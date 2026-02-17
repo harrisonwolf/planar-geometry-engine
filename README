@@ -1,0 +1,14 @@
+Library for planar geometry
+
+Notes: The calculations herein depend on the assumption of general position; that is, no two points
+have the same x-coord (equivalently, that no two points lie on the same vertical line), and that no three points are colinear.
+
+Header Files:
+helper.h - Contains useful functions for reading/printing input/output
+point.h - Point object which defines a point in the plane
+line.h - Line object which defines a non-vertical line in the plane
+triangle.h - Triangle object which defines a triangle in the plane
+edge.h - Edge object which defines one edge of a polygon in the plane
+polygon.h - Polygon object which defines a polygon in the plane (either by a cyclic order
+of vertices, or by the set of edges)
+pointset.h - Pointset object which is a set of points

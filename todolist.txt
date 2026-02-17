@@ -1,0 +1,12 @@
+Stuff I need to do for the project
+
+MAIN
+-Visualize
+-Make way to port large pointsets into program as input
+-Check validity of given pointsets
+
+SECONDARY
+-Save/load files
+
+
+MINOR

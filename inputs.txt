@@ -1,0 +1,7 @@
+1
+2
+1.5 2.335
+24.194
+EOF
+
+//these are the given inputs
