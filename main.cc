@@ -142,6 +142,10 @@ int main(){
 			cout << "\nTriangulation of p: \n";
 			p.print_triangulation();
 			cout << "\n\n";
+			cout << "Desmos: \n";
+			for(Triangle t: p.get_triangulation()){
+				cout << t.to_desmos_polygon() << "\n";
+			}
 		}else if(choice == 5){ //polygon w random vertices
 			cout << "Please enter how many vertices your polygon has:\n";
 			int n = 0;

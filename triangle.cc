@@ -122,6 +122,12 @@ string Triangle::to_string(){
 
 }
 
+string Triangle::to_desmos_polygon(){
+	stringstream ss;
+	ss << "polygon(" << a.to_string() << "," << b.to_string() << "," << c.to_string() << ")";
+	return ss.str();
+}
+
 bool Triangle::contains(Point p){
 	//how do I know if a given point is within a triangle?	
 	//find the area of t

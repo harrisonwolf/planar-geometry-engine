@@ -58,6 +58,7 @@ public:
 	 */ 
 	std::string to_string(); 
 	bool contains(Point p);
+	std::string to_desmos_polygon();
 };
 
 #endif

@@ -66,6 +66,7 @@ public:
 	 */
 	std::string to_string();
 	void print_triangulation();
+	void print_triangulation_desmos();
 	bool contains(Point p); //returns true if p is inside of (or comprises an edge or vertex of)
 				//this->polygon
 };

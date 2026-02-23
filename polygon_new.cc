@@ -134,6 +134,11 @@ void Polygon::print_triangulation(){
 		cout << t.to_string() << "\n";
 }
 
+void Polygon::print_triangulation_desmos(){
+	for(Triangle t: triangulation)
+		cout << ""; //FIXME
+}
+
 bool Polygon::contains(Point p){ //returns true if p is inside of (or comprises an edge or vertex of)
 				 //this->polygon
 	return false; //FIXME

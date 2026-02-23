@@ -46,7 +46,7 @@ void Point::print(){
 
 string Point::to_string(){
 	stringstream ss;
-	ss << "(" << x << ", " << y << ")";
+	ss << "(" << x << "," << y << ")";
 	string retval = ss.str();
 	return retval;
 }
