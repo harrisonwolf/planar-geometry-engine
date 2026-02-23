@@ -12,6 +12,9 @@ MAIN
 
 SECONDARY
 -Implement Delaunay triangulation alg, then voronoi diagram is easy corollary
+	-Either do the flipping algorithm starting with my ear clipper, or divide and conquer with recursion 
+	-**DELAUNAY TRIANGULATION DOES NOT REQUIRE POLYGON!! IT WORKS ON GENERAL POINTSETS
+	-Unless it just does it based on a convex hull
 -Save/load files
 -Finish create_convex_polygon.cc -- think this was an attempt I forgot about to do exactly what I have above (make sure rand gen polygon is valid)
 
