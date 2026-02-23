@@ -8,6 +8,7 @@
 #include "helper.h"
 #include <random>
 #include "choice.h"
+#include "logger.h"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ int main(){
 
 	//cout << "Welcome to Harrison\'s planar geometry library." << endl;
 	//this doesn't work, but if I put the exact same thing into a script and run it, it does
-	system("./print_welcome_message.sh");
+	//system("./print_welcome_message.sh");
 	cout << endl;
 	cout << "\033[1;31;6mATTENTION\033[0m\n";
 	cout << "\033[1;31mPlease remember that all points given by the user are assumed to be in general position; that is, no two points lie on the same vertical line, and no three points are colinear.\033[0m" << endl;

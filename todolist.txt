@@ -1,12 +1,18 @@
 Stuff I need to do for the project
 
 MAIN
+-Make it so that randomly generated polygons' points are generated/sorted into clockwise order. This is why the triangulation alg usually fails for those
+	-In order to do this, I need to generate the points sequentially, and make sure each generated point doesn't ciut back into the polygon. Obv a polygon isn't just its points; the way that the vertices are connected makes the polygon. One idea is do a convex hull algorithm. That could be fun. Another question is given a pointset, are there other valid edge connections apart from the convex hull that make it a simple polygon?
+-And/or convex hull alg. That would be fun to do on its own, but I don't want every randomly generated polygon [pointset] to be convex; that's too boring
+
+-Make way to import/export data from/to desmos; eg. after generating triangulation, have it easily populate into desmos to view the triangles
 -Visualize
 -Make way to port large pointsets into program as input
 -Check validity of given pointsets
 
 SECONDARY
 -Save/load files
+-Finish create_convex_polygon.cc -- think this was an attempt I forgot about to do exactly what I have above (make sure rand gen polygon is valid)
 
 
 MINOR

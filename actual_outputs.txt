@@ -25,6 +25,7 @@
 
 [1;31;6mATTENTION[0m
 [1;31mPlease remember that all points given by the user are assumed to be in general position; that is, no two points lie on the same vertical line, and no three points are colinear.[0m
+[1;31mAlso, it is up to the user to ensure that the polygon they input is simple, and that vertices are given in clockwise order.[0m
 
 [1mPlease select an option:
 [0m1: Create a Triangle

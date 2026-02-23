@@ -1,6 +1,7 @@
 //source code for an algorithm that triangulates a given polygon p using ear_clipping
 #include "ear_clipping_triangulation.h"
-
+#include "logger.h"
+//
 using namespace std;
 
 /*
@@ -19,17 +20,17 @@ using namespace std;
 // vector<Triangle> triangulation = triangulate(p)
 
 vector<Triangle> triangulate(Polygon p){
-	cerr << "Calling initial triangulate.\n";
+	DBG("Calling initial triangulate.\n");
 	vector<Triangle> clipped_ears;
 	return triangulate(p,clipped_ears);
 }
 
 vector<Triangle> triangulate(Polygon curr_polygon, vector<Triangle> &current_ears){ 
-	cerr << "Recursing on polygon of " << curr_polygon.get_vertex_list().size() << " vertices.\n";
-	cerr << "curr_polygon: " << curr_polygon.to_string() << "\n";
+	DBG("Recursing on polygon of " << curr_polygon.get_vertex_list().size() << " vertices.\n");
+	DBG("curr_polygon: " << curr_polygon.to_string() << "\n");
 	//base case 3 vertices
 	if(curr_polygon.get_vertex_list().size() == 3){
-		cerr << "Hit base case in triangulate recursion.\n";
+		DBG("Hit base case in triangulate recursion.\n");
 		//make the remaining 3 vertices into a triangle, add it to ears, return ears
 		vector<Point> points;
 		for(Point p: curr_polygon.get_vertex_list()){
@@ -87,16 +88,16 @@ continue2:
 				//the back point but then you tried using prev_p without actually
 				//having set it
 				t = Triangle(p, next_p, prev_p); 
-				cerr << "p = front - prev_p = back() = " << curr_vertices.back().to_string() << "\n";
+				DBG("p = front - prev_p = back() = " << curr_vertices.back().to_string() << "\n");
 			}else if(p == curr_vertices.back()){ //last vertex; connect to prev and first
 				next_p = curr_vertices.front();
 				prev_p = *prev(it,1);
 				t = Triangle(p, prev_p, next_p);
-				cerr << "p = back() = " << p.to_string() << "\n";
+				DBG("p = back() = " << p.to_string() << "\n");
 			}else{ //general case; connect to prev and next
 			       	next_p = *next(it,1);
 				prev_p = *prev(it,1);
-				cerr << "General case - prev_p = " << prev_p.to_string() << "\n";
+				DBG("General case - prev_p = " << prev_p.to_string() << "\n");
 				t = Triangle(p, next_p, prev_p);
 			}
 
@@ -105,28 +106,28 @@ continue2:
 			//FIXME: FIRST MAKE SURE THIS VERTEX IS CONVEX
 			//IF IT IS NOT, SKIP IT
 
-			cerr << "Checking if vertex " << p.to_string() << " determines an ear.\n";
-			cerr << "First checking if convex:\n";
+			DBG("Checking if vertex " << p.to_string() << " determines an ear.\n");
+			DBG("First checking if convex:\n");
 			if(curr_polygon.get_reflex_vertices().count(p.get_x()) > 0){
-				cerr << "Vertex reflex, continuing...\n";
+				DBG("Vertex reflex, continuing...\n");
 			       	continue;
 			}
 					//this vertex is reflex; skip it
 					//Note: map::contains is only C++20 and later
 
-			cerr << p.to_string() << " convex, now see if any other vertices inside.\n";
+			DBG(p.to_string() << " convex, now see if any other vertices inside.\n");
 			for(auto it_2 = curr_vertices.begin(); it_2 != curr_vertices.end(); it_2++){
 				Point test_vertex = *it_2; //this is the vertex we're testing to
 							 //see if it's in our potential ear
 				//first make sure it's not one of the vertices of the triangle
-				cerr << "test_vertex: " << test_vertex.to_string() << "\n";
-				cerr << "prev_p : " << prev_p.to_string() << "\n";
-				cerr << "next_p : " << next_p.to_string() << "\n";
+				DBG("test_vertex: " << test_vertex.to_string() << "\n");
+				DBG("prev_p : " << prev_p.to_string() << "\n");
+				DBG("next_p : " << next_p.to_string() << "\n");
 				if(test_vertex == p or test_vertex == next_p or test_vertex == prev_p) continue;
 				//not a vertex of the triangle - keep going
 
 				if(t.contains(test_vertex)){
-					cerr << p.to_string() << " contains " << test_vertex.to_string() << ".\n";
+					DBG(p.to_string() << " contains " << test_vertex.to_string() << ".\n");
 					//need to jump back to start of outer for loop but
 					//can't just put this right at the end (and let the loop
 					//itself increment stuff and handle things) because then

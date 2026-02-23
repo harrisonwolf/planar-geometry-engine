@@ -1,6 +1,6 @@
 all: main
 
-main: main.o die.o point.o triangle.o polygon_new.o line.o helper.o choice.o ear_clipping_triangulation.o
+main: main.o die.o point.o triangle.o polygon_new.o line.o helper.o choice.o ear_clipping_triangulation.o logger.h
 	g++ -o main main.o die.o point.o triangle.o polygon_new.o line.o helper.o choice.o ear_clipping_triangulation.o
 
 die.o: die.cc die.h
@@ -24,5 +24,9 @@ helper.o: helper.cc helper.h
 choice.o: choice.cc choice.h
 	g++ -c choice.cc
 
-ear_clipping_triangulation.o: ear_clipping_triangulation.cc ear_clipping_triangulation.h
+ear_clipping_triangulation.o: ear_clipping_triangulation.cc ear_clipping_triangulation.h logger.h
 	g++ -c ear_clipping_triangulation.cc
+
+clean:
+	rm *.o
+	make all
