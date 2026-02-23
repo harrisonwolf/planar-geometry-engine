@@ -4,6 +4,7 @@
 
 #include "polygon_new.h"
 #include "ear_clipping_triangulation.h"
+#include "logger.h"
 
 using namespace std;
 
@@ -92,7 +93,7 @@ double Polygon::calculate_area(){
 
 vector<Triangle> Polygon::calculate_triangulation(){ //returns a set of triangles that form the 
 						     //triangulation of the polygon
-	cerr << "Beginning calc_triang function call\n";
+	DBG("Beginning calc_triang function call\n");
 	vector<Triangle> retvec = triangulate(*this); //call it like this because the
 						      //triangulate function exists outside
 						      //of the Polygon class (why I have to
@@ -145,11 +146,11 @@ bool Polygon::contains(Point p){ //returns true if p is inside of (or comprises 
 }
 
 bool is_convex(Point prev_v, Point curr_v, Point next_v){
-	cerr << "Checking if the sequence: \n" ;
-	cerr << prev_v.to_string() << "\n";
-	cerr << curr_v.to_string() << "\n";;
-	cerr << next_v.to_string() << "\n";
-	cerr << "is convex.\n";
+	DBG("Checking if the sequence: \n");
+	DBG(prev_v.to_string() << "\n");
+	DBG(curr_v.to_string() << "\n");
+	DBG(next_v.to_string() << "\n");
+	DBG("is convex.\n");
 	//first check to see if any of the lines have slope 0
 	Line l1(curr_v,prev_v);
 	Line l2(curr_v,next_v);
@@ -162,8 +163,8 @@ bool is_convex(Point prev_v, Point curr_v, Point next_v){
 	bool p_above = (p.get_y() > l1.get_slope()*p.get_x() + l1.get_y_intercept());
 	//this calculates is p is "above" the line l2
 	bool ans = (p_above == inside_above);
-	if(ans) cerr << "Yes\n";
-	else cerr << "No\n";
+	if(ans) DBG("Yes\n");
+	else DBG("No\n");
 	return(p_above == inside_above);
 	//if p is above (and inside is) or both are below, we're good
 }

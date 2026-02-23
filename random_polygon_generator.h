@@ -14,6 +14,4 @@ Polygon generate_random_polygon(int v, double c);
 Polygon generate_random_polygon(int v, double c1, double c2);
 
 
-
-
 #endif

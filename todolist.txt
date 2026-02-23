@@ -11,6 +11,7 @@ MAIN
 -Check validity of given pointsets
 
 SECONDARY
+-Implement Delaunay triangulation alg, then voronoi diagram is easy corollary
 -Save/load files
 -Finish create_convex_polygon.cc -- think this was an attempt I forgot about to do exactly what I have above (make sure rand gen polygon is valid)
 

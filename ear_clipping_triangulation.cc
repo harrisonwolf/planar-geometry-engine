@@ -1,6 +1,10 @@
 //source code for an algorithm that triangulates a given polygon p using ear_clipping
 #include "ear_clipping_triangulation.h"
 #include "logger.h"
+#include "die.h"
+#include "point.h"
+#include <list>
+#include <iostream>
 //
 using namespace std;
 
