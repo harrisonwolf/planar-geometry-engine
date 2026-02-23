@@ -1,0 +1,29 @@
+# Build output directories
+build/
+bin/
+out/
+
+# Object / dependency files
+*.o
+*.d
+
+# Static / shared libs
+*.a
+*.so
+
+# Executables
+*.out
+*.exe
+
+# Debug / profiling / coverage
+*.gcno
+*.gcda
+*.gcov
+gmon.out
+
+# Editor/OS noise
+*~
+*.swp
+.DS_Store
+Thumbs.db
+
