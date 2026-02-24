@@ -73,7 +73,9 @@ Polygon::Polygon(std::list<Point> given_vertices){//constructor which takes a gi
 
 	}
 
+	DBG("About to call calculate_triangulation in polygon constructor\n");
 	triangulation = this->calculate_triangulation();
+	DBG("About to call calculate_area in polygon constructor\n");
 	area = this->calculate_area();
 	if(reflex_vertices.size() > 0) convex = false;
 }
@@ -117,6 +119,7 @@ vector<Triangle> Polygon::calculate_triangulation(){ //returns a set of triangle
  * Convex/Concave
  */
 string Polygon::to_string(){
+	DBG("Entered Polygon::to_string() function\n");
 	string concavity = "";
 	if(convex) concavity = "Convex";
 	else concavity = "Concave";
@@ -146,6 +149,7 @@ bool Polygon::contains(Point p){ //returns true if p is inside of (or comprises 
 }
 
 bool is_convex(Point prev_v, Point curr_v, Point next_v){
+	DBG("stepped into is_convex function in polygon_new.cc\n");
 	DBG("Checking if the sequence: \n");
 	DBG(prev_v.to_string() << "\n");
 	DBG(curr_v.to_string() << "\n");

@@ -164,13 +164,14 @@ int main(){
 			double upper = 0.0;
 			cin >> upper;
 
+			random_device rd;
+			mt19937 gen(rd());
 			uniform_real_distribution<double> unif(lower,upper);
-			default_random_engine re;
 
 			list<Point> random_points;
 			for(int i=0; i<n; i++){
-				double random_x = unif(re);
-				double random_y = unif(re);
+				double random_x = unif(gen);
+				double random_y = unif(gen);
 				Point p(random_x, random_y);
 				random_points.push_back(p);
 			}

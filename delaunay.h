@@ -9,7 +9,7 @@
 //maybe I make a separate triangulation class..?
 //or with flipping alg, construct new triangulation in parallel..?
 
-bool is_delaunay(std::vector<Triangle> triangulation
+bool is_delaunay(std::vector<Triangle> triangulation);
 
 std::vector<Triangle> bowyer_watson_triangulate(std::unordered_set<Point> points);
 

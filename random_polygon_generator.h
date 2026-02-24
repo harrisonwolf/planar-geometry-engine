@@ -4,7 +4,7 @@
 //need to decide whether to make the generator a class or just have a header file with a bunch of functions in it, like the STL headers
 #include "polygon_new.h"
 
-/* Generate a random polygon with between 4 and 99 vertices, with coordinates from -250 to 250 */
+/* Generate a random polygon with between 4 and 99 (for now) vertices, with coordinates from -250 to 250 */
 Polygon generate_random_polygon();
 
 Polygon generate_random_polygon(int v);
