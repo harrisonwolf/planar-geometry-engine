@@ -19,6 +19,7 @@
 using namespace std;
 
 Polygon generate_random_polygon(int n){
+	DBG("Entered generate_random_polygon function\n");
 	if(n<3){
 		cout << "Error: Called generate_random_polygon with n less than 3. Exiting.\n";
 		exit(1);
@@ -58,7 +59,12 @@ Polygon generate_random_polygon(int n){
 	for(auto it=points.begin(); it!=points.end(); it++){
 		DBG((*it).to_string() << "\n");
 	}
+	//so far, so good
+	//now onto the hard part
+	//now need to start adding vertices up to n, but checking with each one for intersections with existing segments
+	//may need to work in edge class which currently is a stub
+	//or find another way to do it
 
 
-	return Polygon(points); //FIXME
+	return Polygon(points); 
 }
