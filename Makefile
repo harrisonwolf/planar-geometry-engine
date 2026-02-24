@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++17
-OBJ = main.o die.o point.o triangle.o polygon_new.o line.o helper.o choice.o ear_clipping_triangulation.o random_polygon_generator.o
+OBJ = main.o die.o point.o triangle.o polygon_new.o line.o helper.o choice.o ear_clipping_triangulation.o random_polygon_generator.o delaunay.o
 
 all: main
 
@@ -40,6 +40,10 @@ ear_clipping_triangulation.o: ear_clipping_triangulation.cc ear_clipping_triangu
 
 random_polygon_generator.o: random_polygon_generator.cc random_polygon_generator.h polygon_new.h
 	$(CXX) $(CXXFLAGS) -c random_polygon_generator.cc
+
+delaunay.o: delaunay.cc delaunay.h triangle.h
+	$(CXX) $(CXXFLAGS) -c delaunay.cc 
+
 
 clean:
 	rm -f *.o main

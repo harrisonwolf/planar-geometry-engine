@@ -5,7 +5,7 @@
 #include "triangle.h"
 #include "line.h"
 #include "logger.h"
-#include "pointset.h"
+//#include "pointset.h"
 #include "helper.h"
 #include <random>
 #include <vector>

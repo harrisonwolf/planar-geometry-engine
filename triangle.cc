@@ -5,6 +5,8 @@
 
 using namespace std;
 
+const double sqrt3 = sqrt(3); //inlining for runtime savings; one sqrt calc is ~50 clock cycles
+
 Triangle::Triangle(){ //default constructor, initializes all points and area to zero
 	a = Point(0,0);
 	b = Point(0,0);
@@ -30,10 +32,10 @@ Triangle::Triangle(Point a, Point b, Point c){
  */  
 Triangle::Triangle(Point center, double distance){
 	center_of_mass = center;
-	area = (2*distance*distance/sqrt(3));
+	area = (2*distance*distance/sqrt3);
 	a = Point(center.get_x(), center.get_y()+distance);
-	b = Point(center.get_x()+distance/sqrt(3), center.get_y()-distance);	
-	c = Point(center.get_x()-distance/sqrt(3), center.get_y()-distance);
+	b = Point(center.get_x()+distance/sqrt3, center.get_y()-distance);	
+	c = Point(center.get_x()-distance/sqrt3, center.get_y()-distance);
 }
 
 Triangle::Triangle(Line a, Line b, Line c){
