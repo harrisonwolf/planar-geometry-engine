@@ -1,57 +1,90 @@
-CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17
-EXE = main rand_poly_gen_driver
-OBJ = die.o point.o triangle.o polygon_new.o line.o helper.o choice.o ear_clipping_triangulation.o random_polygon_generator.o delaunay.o
+CXX := g++
+BASE_CXXFLAGS := -Wall -Wextra -std=c++17
+RELEASE_CXXFLAGS := $(BASE_CXXFLAGS) -O2
+DEBUG_CXXFLAGS := $(BASE_CXXFLAGS) -g -O0 -DDEBUG
 
-all: main rand_poly_gen_driver
+EXES := main rand_poly_gen_driver
 
-# Debug build: enables #ifdef DEBUG blocks and symbols
-debug: CXXFLAGS += -g -O0 -DDEBUG
-debug: clean all
-# need to figure out how to make it clean only if last make was not debug build
+COMMON_SRCS := \
+	die.cc \
+	point.cc \
+	triangle.cc \
+	polygon_new.cc \
+	line.cc \
+	helper.cc \
+	choice.cc \
+	ear_clipping_triangulation.cc \
+	random_polygon_generator.cc \
+	delaunay.cc
 
-main: main.o $(OBJ) logger.h
-	$(CXX) $(CXXFLAGS) -o main main.o $(OBJ)
+.PHONY: all release debug clean clean-release clean-debug
 
-main.o: main.cc
-	$(CXX) $(CXXFLAGS) -c main.cc
+all: release
 
-die.o: die.cc die.h
-	$(CXX) $(CXXFLAGS) -c die.cc
+release: build/release/main build/release/rand_poly_gen_driver
 
-point.o: point.cc point.h
-	$(CXX) $(CXXFLAGS) -c point.cc 
+debug: build/debug/main build/debug/rand_poly_gen_driver
 
-triangle.o: triangle.cc triangle.h
-	$(CXX) $(CXXFLAGS) -c triangle.cc
+# Build template for each configuration.
+define BUILD_CONFIG
+$(1)_DIR := build/$(1)
+$(1)_COMMON_OBJS := $$(COMMON_SRCS:%.cc=$$($(1)_DIR)/%.o)
+$(1)_MAIN_OBJS := $$($(1)_DIR)/main.o $$($(1)_COMMON_OBJS)
+$(1)_RAND_POLY_OBJS := $$($(1)_DIR)/rand_poly_gen_driver.o $$($(1)_COMMON_OBJS)
 
-polygon_new.o: polygon_new.cc polygon_new.h
-	$(CXX) $(CXXFLAGS) -c polygon_new.cc
+$$($(1)_DIR):
+	mkdir -p $$@
 
-line.o: line.cc line.h
-	$(CXX) $(CXXFLAGS) -c line.cc
+$$($(1)_DIR)/main: $$($(1)_MAIN_OBJS)
+	$$(CXX) $$($(2)) -o $$@ $$($(1)_MAIN_OBJS)
 
-helper.o: helper.cc helper.h
-	$(CXX) $(CXXFLAGS) -c helper.cc
+$$($(1)_DIR)/rand_poly_gen_driver: $$($(1)_RAND_POLY_OBJS)
+	$$(CXX) $$($(2)) -o $$@ $$($(1)_RAND_POLY_OBJS)
 
-choice.o: choice.cc choice.h
-	$(CXX) $(CXXFLAGS) -c choice.cc
+$$($(1)_DIR)/main.o: main.cc logger.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
 
-ear_clipping_triangulation.o: ear_clipping_triangulation.cc ear_clipping_triangulation.h logger.h
-	$(CXX) $(CXXFLAGS) -c ear_clipping_triangulation.cc
+$$($(1)_DIR)/rand_poly_gen_driver.o: rand_poly_gen_driver.cc | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
 
-random_polygon_generator.o: random_polygon_generator.cc random_polygon_generator.h polygon_new.h logger.h
-	$(CXX) $(CXXFLAGS) -c random_polygon_generator.cc 
+$$($(1)_DIR)/die.o: die.cc die.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
 
-delaunay.o: delaunay.cc delaunay.h triangle.h
-	$(CXX) $(CXXFLAGS) -c delaunay.cc 
+$$($(1)_DIR)/point.o: point.cc point.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
 
-rand_poly_gen_driver: rand_poly_gen_driver.o random_polygon_generator.o random_polygon_generator.h helper.h logger.h polygon_new.h
-	$(CXX) $(CXXFLAGS) -o rand_poly_gen_driver rand_poly_gen_driver.o $(OBJ)
+$$($(1)_DIR)/triangle.o: triangle.cc triangle.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
 
-rand_poly_gen_driver.o: rand_poly_gen_driver.cc 
-	$(CXX) $(CXXFLAGS) -c rand_poly_gen_driver.cc
+$$($(1)_DIR)/polygon_new.o: polygon_new.cc polygon_new.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
 
-clean:
-	rm -f *.o $(EXE) 
+$$($(1)_DIR)/line.o: line.cc line.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
 
+$$($(1)_DIR)/helper.o: helper.cc helper.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
+
+$$($(1)_DIR)/choice.o: choice.cc choice.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
+
+$$($(1)_DIR)/ear_clipping_triangulation.o: ear_clipping_triangulation.cc ear_clipping_triangulation.h logger.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
+
+$$($(1)_DIR)/random_polygon_generator.o: random_polygon_generator.cc random_polygon_generator.h polygon_new.h logger.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
+
+$$($(1)_DIR)/delaunay.o: delaunay.cc delaunay.h triangle.h | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
+endef
+
+$(eval $(call BUILD_CONFIG,release,RELEASE_CXXFLAGS))
+$(eval $(call BUILD_CONFIG,debug,DEBUG_CXXFLAGS))
+
+clean: clean-release clean-debug
+
+clean-release:
+	rm -rf build/release
+
+clean-debug:
+	rm -rf build/debug
