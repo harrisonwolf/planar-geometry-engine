@@ -104,6 +104,11 @@ int main(){
 
 	}
 
+	cout << "Testing Point::is_between...\n";
+	//(26,0) should be in btwn (22,-3) and (30,3)
+	cout << "Testing if (26,0) is btwn (22,-3) and (30,3) (should be true): " << boolalpha << Point(26,0).is_between(Point(22,-3),Point(30,3)) << endl;
+	cout << "Testing if (26,1) is btwn (22,-3) and (30,3) (should be false): " << boolalpha << Point(26,1).is_between(Point(22,-3),Point(30,3)) << endl;
+	
 
 	return 0;
 }
