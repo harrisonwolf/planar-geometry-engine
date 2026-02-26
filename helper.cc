@@ -238,4 +238,19 @@ Polygon read_polygon(){
 
 }
 
+bool collides(pair<Point,Point> pair1, pair<Point,Point> pair2){
+	//now how do I actally check this
+	//just find the intersection point of the two (inf) lines, and check if that point
+	//is on BOTH line segments... but may run into precision errors
+	Line l1(pair1.first,pair1.second);
+	Line l2(pair2.first,pair2.second);
+	if(!(l1.intersects(l2))){ //sanity check
+		cout << "Error: in helper.cc collides, checking if parallel or superimposed line segments collide.\n";
+		exit(1);
+	}
+	Point poi = l1.intersection(l2);
+	//now check if this point is between both pairs of given points
+	
 
+	return false; //FIXME
+}

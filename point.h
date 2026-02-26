@@ -40,6 +40,7 @@ public:
 	//bool is_inside(Polygon p); //returns true if the point is inside (or comprises an
 				   //edge of) Polygon p
 				 
+	bool is_between(Point p1, Point p2); //checks if this point is between two others
 };
 
 

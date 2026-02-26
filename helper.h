@@ -10,6 +10,7 @@
 //#include "polygon.h"
 #include "polygon_new.h"
 #include "line.h"
+#include <utility> //for std::pair
 
 /*
  * Reads a point
@@ -65,4 +66,12 @@ bool is_inside(Point p, Triangle t);
  */
 bool is_inside(Point p, Point a, Point b, Point c);
 
+/*
+ * Checks if the line segment btwn one pair of points collides with that between another pair
+ */
+bool collides(std::pair<Point,Point> pair1, std::pair<Point,Point> pair2);
+
+/*
+ * Checks if a given point is between two others
+ */
 #endif

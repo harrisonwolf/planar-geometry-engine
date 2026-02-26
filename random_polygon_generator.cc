@@ -64,6 +64,22 @@ Polygon generate_random_polygon(int n){
 	//now need to start adding vertices up to n, but checking with each one for intersections with existing segments
 	//may need to work in edge class which currently is a stub
 	//or find another way to do it
+	//
+	//Could just brute force it and check every other double of consecutive vertices against the double of the last, next potential and check for collisions. Probably pretty
+	//easy to implement but could be very slow (probably O(n^3) or higher) but okay for getting gen to work for driving triangulator and delaunay algs
+	//not planning on doing anything with huge n as of now
+	//
+	//First add helper function for checking if line segment between to vertices intersects that between another 2
+	//Alg for vertex gen:
+	//1. randomly gen x-coord and y-coord
+	//2. check if last vertex - new vertex collides with any existing segments
+	//	2.1. if so, go back to step 1 (make sure to decrement i)
+	//	2.2. if not, add new vertex, continue
+	for(int i=3; i<n; i++){ //start at 3 b/c 3 verts already exist
+		
+
+
+	}
 
 
 	return Polygon(points); 

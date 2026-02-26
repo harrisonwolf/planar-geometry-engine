@@ -73,6 +73,15 @@ Point Point::midpoint(Point other){
 	return Point( (x + (other.get_x() - x)/2 ), ((y + (other.get_y() - y)/2 ))  );
 }
 
+bool Point::is_between(Point p1, Point p2){
+	//could use angle_to, but that is likely highly computationally expensive, esp. if using for each iteration of for loop in rand_poly_gen
+	//worth a shot though
+	double angle1 = this->angle_to(p1);
+	double angle2 = this->angle_to(p2);
+	if(angle1 == angle2+M_PI) return true;
+	return false;
+}
+
 /*
 bool x_comp(Point a, Point b){
 	return a.get_x() < b.get_x();
