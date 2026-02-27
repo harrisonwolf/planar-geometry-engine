@@ -22,7 +22,7 @@ void expect_true(TestRunSummary& summary,
     }
 }
 
-Point interpolate(const Point& a, const Point& b, double t){
+Point interpolate(const Point& a, const Point& b, double t){ //when run with 0<t<1, will always return a point strictly in between a and b
     return Point(
         a.get_x() + (b.get_x() - a.get_x()) * t,
         a.get_y() + (b.get_y() - a.get_y()) * t
