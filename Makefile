@@ -2,8 +2,11 @@ CXX := g++
 BASE_CXXFLAGS := -Wall -Wextra -std=c++17
 RELEASE_CXXFLAGS := $(BASE_CXXFLAGS) -O2
 DEBUG_CXXFLAGS := $(BASE_CXXFLAGS) -g -O0 -DDEBUG
+DEPFLAGS := -MMD -MP
+CPPFLAGS := -I.
 
-EXES := main rand_poly_gen_driver driver
+DRIVER_SRC_DIR := drivers
+BIN_DIR := bin
 
 COMMON_SRCS := \
 	die.cc \
@@ -17,6 +20,10 @@ COMMON_SRCS := \
 	random_polygon_generator.cc \
 	delaunay.cc
 
+MAIN_SRC := main.cc
+RAND_POLY_SRC := $(DRIVER_SRC_DIR)/rand_poly_gen_driver.cc
+DRIVER_SRC := $(DRIVER_SRC_DIR)/driver.cc
+
 .PHONY: all development development-normal development-debug release clean \
 	clean-development clean-development-normal clean-development-debug clean-release
 
@@ -24,75 +31,51 @@ all: development release
 
 development: development-normal development-debug
 
-development-normal: build/development/normal/main build/development/normal/rand_poly_gen_driver build/development/normal/driver
+development-normal: build/development/normal/$(BIN_DIR)/main \
+	build/development/normal/$(BIN_DIR)/rand_poly_gen_driver \
+	build/development/normal/$(BIN_DIR)/driver
 
-development-debug: build/development/debug/main build/development/debug/rand_poly_gen_driver build/development/debug/driver
+development-debug: build/development/debug/$(BIN_DIR)/main \
+	build/development/debug/$(BIN_DIR)/rand_poly_gen_driver \
+	build/development/debug/$(BIN_DIR)/driver
 
-release: build/release/main build/release/rand_poly_gen_driver build/release/driver
+release: build/release/$(BIN_DIR)/main \
+	build/release/$(BIN_DIR)/rand_poly_gen_driver \
+	build/release/$(BIN_DIR)/driver
 
-# Build template for each configuration.
 define BUILD_CONFIG
 $(1)_DIR := $(2)
-$(1)_COMMON_OBJS := $$(COMMON_SRCS:%.cc=$$($(1)_DIR)/%.o)
-$(1)_MAIN_OBJS := $$($(1)_DIR)/main.o $$($(1)_COMMON_OBJS)
-$(1)_RAND_POLY_OBJS := $$($(1)_DIR)/rand_poly_gen_driver.o $$($(1)_COMMON_OBJS)
-$(1)_DRIVER_OBJS := $$($(1)_DIR)/driver.o $$($(1)_COMMON_OBJS)
+$(1)_COMMON_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(COMMON_SRCS))
+$(1)_MAIN_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(MAIN_SRC)) $$($(1)_COMMON_OBJS)
+$(1)_RAND_POLY_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(RAND_POLY_SRC)) $$($(1)_COMMON_OBJS)
+$(1)_DRIVER_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(DRIVER_SRC)) $$($(1)_COMMON_OBJS)
+$(1)_DEPS := $$($(1)_MAIN_OBJS:.o=.d) $$($(1)_RAND_POLY_OBJS:.o=.d) $$($(1)_DRIVER_OBJS:.o=.d)
 
 $$($(1)_DIR):
 	mkdir -p $$@
 
-$$($(1)_DIR)/main: $$($(1)_MAIN_OBJS)
-	$$(CXX) $$($(3)) -o $$@ $$($(1)_MAIN_OBJS)
+$$($(1)_DIR)/$(BIN_DIR)/main: $$($(1)_MAIN_OBJS)
+	mkdir -p $$(dir $$@)
+	$$(CXX) $$(CPPFLAGS) $$($(3)) -o $$@ $$^
 
-$$($(1)_DIR)/rand_poly_gen_driver: $$($(1)_RAND_POLY_OBJS)
-	$$(CXX) $$($(3)) -o $$@ $$($(1)_RAND_POLY_OBJS)
+$$($(1)_DIR)/$(BIN_DIR)/rand_poly_gen_driver: $$($(1)_RAND_POLY_OBJS)
+	mkdir -p $$(dir $$@)
+	$$(CXX) $$(CPPFLAGS) $$($(3)) -o $$@ $$^
 
-$$($(1)_DIR)/driver: $$($(1)_DRIVER_OBJS)
-	$$(CXX) $$($(3)) -o $$@ $$($(1)_DRIVER_OBJS)
+$$($(1)_DIR)/$(BIN_DIR)/driver: $$($(1)_DRIVER_OBJS)
+	mkdir -p $$(dir $$@)
+	$$(CXX) $$(CPPFLAGS) $$($(3)) -o $$@ $$^
 
-$$($(1)_DIR)/main.o: main.cc logger.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/rand_poly_gen_driver.o: rand_poly_gen_driver.cc | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/driver.o: driver.cc | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/die.o: die.cc die.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/point.o: point.cc point.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/triangle.o: triangle.cc triangle.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/polygon_new.o: polygon_new.cc polygon_new.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/line.o: line.cc line.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/helper.o: helper.cc helper.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/choice.o: choice.cc choice.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/ear_clipping_triangulation.o: ear_clipping_triangulation.cc ear_clipping_triangulation.h logger.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/random_polygon_generator.o: random_polygon_generator.cc random_polygon_generator.h polygon_new.h logger.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
-
-$$($(1)_DIR)/delaunay.o: delaunay.cc delaunay.h triangle.h | $$($(1)_DIR)
-	$$(CXX) $$($(3)) -c $$< -o $$@
+$$($(1)_DIR)/%.o: %.cc | $$($(1)_DIR)
+	mkdir -p $$(dir $$@)
+	$$(CXX) $$(CPPFLAGS) $$($(3)) $$(DEPFLAGS) -c $$< -o $$@
 endef
 
 $(eval $(call BUILD_CONFIG,DEV_NORMAL,build/development/normal,RELEASE_CXXFLAGS))
 $(eval $(call BUILD_CONFIG,DEV_DEBUG,build/development/debug,DEBUG_CXXFLAGS))
 $(eval $(call BUILD_CONFIG,RELEASE,build/release,RELEASE_CXXFLAGS))
+
+-include $(DEV_NORMAL_DEPS) $(DEV_DEBUG_DEPS) $(RELEASE_DEPS)
 
 clean: clean-development clean-release
 
