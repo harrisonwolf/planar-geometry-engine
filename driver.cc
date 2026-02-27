@@ -35,6 +35,7 @@ int main(){
 	Polygon p(pointlist);
 	cout << "Initialized polygon.\n";
 	cout << "\nPoints in polygon p:\n" << p.to_string() << endl;
+	cout << "Desmos table (x\ty):\n" << p.to_desmos() << "\n";
 
 	Triangle t(Point(5,5),1.0);
 	cout << "\nTriangle t:\n";

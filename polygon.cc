@@ -1,6 +1,7 @@
 //implementation file for the Polygon class
 
 #include "polygon.h"
+#include <iomanip>
 
 using namespace std;
 
@@ -111,6 +112,19 @@ string Polygon::to_string(){
 	}	
 	ss << "Area: " << area << "\n";
 	ss << "Concave/Convex? \n"; //FIXME
+	return ss.str();
+}
+
+
+string Polygon::to_desmos(){
+	stringstream ss;
+	ss << fixed << setprecision(6);
+	for(size_t i = 0; i < vertices.size(); i++){
+		ss << vertices.at(i).get_x() << "\t" << vertices.at(i).get_y() << "\n";
+	}
+	if(!vertices.empty()){
+		ss << vertices.front().get_x() << "\t" << vertices.front().get_y();
+	}
 	return ss.str();
 }
 

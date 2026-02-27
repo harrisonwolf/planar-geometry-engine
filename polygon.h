@@ -54,6 +54,7 @@ public:
 	 * Convex/Concave (TODO)
 	 */
 	std::string to_string();
+	std::string to_desmos();
 	void print_triangulation();
 	bool contains(Point p); //returns true if p is inside of (or comprises an edge or vertex of)
 				//this->polygon
