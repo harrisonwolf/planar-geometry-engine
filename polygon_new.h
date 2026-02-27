@@ -65,6 +65,7 @@ public:
 	 * Convex/Concave (TODO)
 	 */
 	std::string to_string();
+	std::string to_desmos(); //prints table-ready desmos version
 	void print_triangulation();
 	void print_triangulation_desmos();
 	bool contains(Point p); //returns true if p is inside of (or comprises an edge or vertex of)

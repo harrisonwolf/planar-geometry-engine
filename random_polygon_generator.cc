@@ -75,12 +75,41 @@ Polygon generate_random_polygon(int n){
 	//2. check if last vertex - new vertex collides with any existing segments
 	//	2.1. if so, go back to step 1 (make sure to decrement i)
 	//	2.2. if not, add new vertex, continue
+	Point potential_new(0,0);
+	Point last(points.back());
+	pair<Point,Point> iterating_pair{{0,0},{0,0}};
+	pair<Point,Point> potential_new_pair{{0,0},{0,0}};
+	Point curr1(0,0);
+	Point curr2(0,0);
+	auto it = points.begin();
+	DBG("About to begin random point generation outer loop.\n");
 	for(int i=3; i<n; i++){ //start at 3 b/c 3 verts already exist
-		
-
-
+	DBG("Entered loop with i = " << i << ".\n");
+restart_curr_rand_gen:
+		rand_x = unif(gen);		
+		rand_y = unif(gen);		
+		potential_new.set_x(rand_x);
+		potential_new.set_y(rand_y);
+		last = points.back();
+		potential_new_pair = {last,potential_new};
+		it = points.begin();
+		//got my potential new point, now check for collisions
+		DBG("About to begin inner loop for collision checking for pair " << potential_new_pair.first.to_string() << "-" << potential_new_pair.second.to_string() << ".\n");
+		for(int j=0; j<i-1; j++){
+			DBG("\n\nEntered inner loop with j = " << j << ", i = " << i << ".\n");
+			curr1 = *it;
+			it++;
+			curr2 = *it;
+			iterating_pair = {curr1,curr2};
+			if(collides(iterating_pair,potential_new_pair)){ //we have a collision
+				it--; //reset iterator
+					  //i doesn't need to be reset since not using continue statement
+				goto restart_curr_rand_gen;
+			}
+		}//at this point it has been verified no collisions
+		 //add the new point, continue outer loop
+		points.push_back(potential_new);
 	}
-
-
+	cerr << "In rand poly generator, about to attempt initialization of polygon with rand gen points.\n";
 	return Polygon(points); 
 }

@@ -133,6 +133,17 @@ string Polygon::to_string(){
         return ss.str();
 }
 
+string Polygon::to_desmos(){
+	DBG("Entered Polygon::to_desmos() function\n");
+	stringstream ss;
+	ss << "table";
+	for(Point p: vertex_list){
+		ss << p.get_x() << "\t";
+	}
+	ss << "\n";
+	return ss.str();
+}
+
 void Polygon::print_triangulation(){
 	for(Triangle t: triangulation)
 		cout << t.to_string() << "\n";
