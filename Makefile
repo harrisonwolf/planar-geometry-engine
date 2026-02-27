@@ -3,7 +3,7 @@ BASE_CXXFLAGS := -Wall -Wextra -std=c++17
 RELEASE_CXXFLAGS := $(BASE_CXXFLAGS) -O2
 DEBUG_CXXFLAGS := $(BASE_CXXFLAGS) -g -O0 -DDEBUG
 
-EXES := main rand_poly_gen_driver #driver
+EXES := main rand_poly_gen_driver driver
 
 COMMON_SRCS := \
 	die.cc \
