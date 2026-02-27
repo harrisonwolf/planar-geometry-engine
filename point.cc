@@ -47,7 +47,7 @@ void Point::print(){
 	std::cout << "(" << x << ", " << y << ")";
 }
 
-string Point::to_string(){
+string Point::to_string() const{
 	stringstream ss;
 	ss << "(" << x << "," << y << ")";
 	string retval = ss.str();
@@ -56,11 +56,11 @@ string Point::to_string(){
 
 /* Member Functions */
 
-bool Point::operator==(Point other){
+bool Point::operator==(Point other) const{
 	return ( this->x == other.get_x() and this->y == other.get_y() );
 }
 
-double Point::angle_to(Point other){
+double Point::angle_to(Point other) const{
 	if(x == other.get_x()) die();
 	double rise = y - other.get_y();
 	double run = x - other.get_x();
@@ -68,15 +68,15 @@ double Point::angle_to(Point other){
 	return atan(slope);
 }
 
-double Point::distance_to(Point other){
+double Point::distance_to(Point other) const{
 	return sqrt( pow((x-other.get_x()),2) + pow((y-other.get_y()),2) );
 }
 
-Point Point::midpoint(Point other){
+Point Point::midpoint(Point other) const{
 	return Point( (x + (other.get_x() - x)/2 ), ((y + (other.get_y() - y)/2 ))  );
 }
 
-bool Point::is_between(Point p1, Point p2){
+bool Point::is_between(Point p1, Point p2) const{
 	//could use angle_to, but that is likely highly computationally expensive, esp. if using for each iteration of for loop in rand_poly_gen
 	//worth a shot though
 	//NOTE: angle_to just returns the angle of the segment between two points!!

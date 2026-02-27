@@ -12,3 +12,14 @@ edge.h - Edge object which defines one edge of a polygon in the plane
 polygon.h - Polygon object which defines a polygon in the plane (either by a cyclic order
 of vertices, or by the set of edges)
 pointset.h - Pointset object which is a set of points
+
+Desmos bridge
+-------------
+A local bridge page is available at `tools/desmos-bridge/index.html`.
+
+Polygon schema format used for import/export:
+`{"type":"polygon","id":"poly1","points":[[x1,y1],[x2,y2],...]}`
+
+In the CLI (`main`), option 6 exports the latest stored polygon to:
+`tools/desmos-bridge/polygon-export.json`
+and attempts to open the bridge page in your default browser.
