@@ -12,3 +12,39 @@ edge.h - Edge object which defines one edge of a polygon in the plane
 polygon.h - Polygon object which defines a polygon in the plane (either by a cyclic order
 of vertices, or by the set of edges)
 pointset.h - Pointset object which is a set of points
+
+Desmos bridge
+-------------
+A local bridge page is available at `tools/desmos-bridge/index.html`.
+
+Polygon schema format used for import/export:
+`{"type":"polygon","id":"poly1","points":[[x1,y1],[x2,y2],...]}`
+
+In the CLI (`main`), option 6 exports the latest stored polygon to:
+`tools/desmos-bridge/polygon-export.json`
+and then attempts to open the bridge in your browser.
+
+Browser auto-open behavior (including WSL)
+------------------------------------------
+When export runs, the program tries multiple browser launch commands in order, including Chrome and WSL-friendly fallbacks:
+- `google-chrome`
+- `google-chrome-stable`
+- `chromium-browser` / `chromium`
+- `wslview`
+- `xdg-open`
+- `cmd.exe /C start`
+
+If none succeeds, the program prints a manual link/URL you can open directly.
+
+Recommended usage for reliable import
+-------------------------------------
+If you are in WSL, prefer serving the repo over HTTP instead of opening `file://` URLs.
+
+1. From repo root, run:
+   `python3 -m http.server 8000`
+2. Open:
+   `http://localhost:8000/tools/desmos-bridge/index.html`
+3. In the bridge, use Fetch & Import with:
+   `http://localhost:8000/tools/desmos-bridge/polygon-export.json`
+
+This avoids file-origin issues and usually works best with Chrome.

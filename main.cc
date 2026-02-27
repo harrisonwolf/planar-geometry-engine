@@ -68,7 +68,7 @@ int main(){
 		print_choices();
 		int choice;
 		cin >> choice;
-		if(choice < 1 or choice > 5) break;
+		if(choice < 1 or choice > 7) break;
 
 		if(choice == 1){ //make a triangle
 			Triangle t = read_triangle();
@@ -182,7 +182,21 @@ int main(){
 			//now print it
 			cout << "Your polygon:\n" << rand_poly.to_string() << "\n\n";
 
-		}else if(choice == 6){ //quit (currently)
+		}else if(choice == 6){ //export polygon to desmos bridge
+			if(stored_polygons.empty()){
+				cout << "No stored polygons to export. Create one first.\n";
+			}else{
+				const Polygon& latest = stored_polygons.back();
+				string output_path = "tools/desmos-bridge/polygon-export.json";
+				if(write_polygon_schema_file(latest, "poly1", output_path)){
+					cout << "Exported polygon schema to " << output_path << "\n";
+					open_desmos_bridge_page("file:///workspace/planar-geometry-engine-v1/tools/desmos-bridge/index.html");
+				}else{
+					cout << "Failed to write polygon export file.\n";
+				}
+			}
+
+		}else if(choice == 7){ //quit
 			return 0;
 		}
 
