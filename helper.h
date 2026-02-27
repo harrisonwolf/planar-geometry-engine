@@ -64,8 +64,9 @@ bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygo
 
 /*
  * Attempts to open the local Desmos bridge page in the default browser.
+ * Returns true if an opener command succeeded, false otherwise.
  */
-void open_desmos_bridge_page(const std::string& bridge_path);
+bool open_desmos_bridge_page(const std::string& bridge_path);
 
 /*
  * Returns true if p is inside t; false otherwise
