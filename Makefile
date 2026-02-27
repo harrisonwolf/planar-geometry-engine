@@ -6,6 +6,7 @@ DEPFLAGS := -MMD -MP
 CPPFLAGS := -I.
 
 DRIVER_SRC_DIR := drivers
+EXECUTABLE_SRC_DIR := executables
 BIN_DIR := bin
 
 COMMON_SRCS := \
@@ -23,6 +24,7 @@ COMMON_SRCS := \
 MAIN_SRC := main.cc
 RAND_POLY_SRC := $(DRIVER_SRC_DIR)/rand_poly_gen_driver.cc
 DRIVER_SRC := $(DRIVER_SRC_DIR)/driver.cc
+CREATE_CONVEX_SRC := $(EXECUTABLE_SRC_DIR)/create_convex_polygon.cc
 
 .PHONY: all development development-normal development-debug release clean \
 	clean-development clean-development-normal clean-development-debug clean-release
@@ -33,15 +35,18 @@ development: development-normal development-debug
 
 development-normal: build/development/normal/$(BIN_DIR)/main \
 	build/development/normal/$(BIN_DIR)/rand_poly_gen_driver \
-	build/development/normal/$(BIN_DIR)/driver
+	build/development/normal/$(BIN_DIR)/driver \
+	build/development/normal/$(BIN_DIR)/create_convex_polygon
 
 development-debug: build/development/debug/$(BIN_DIR)/main \
 	build/development/debug/$(BIN_DIR)/rand_poly_gen_driver \
-	build/development/debug/$(BIN_DIR)/driver
+	build/development/debug/$(BIN_DIR)/driver \
+	build/development/debug/$(BIN_DIR)/create_convex_polygon
 
 release: build/release/$(BIN_DIR)/main \
 	build/release/$(BIN_DIR)/rand_poly_gen_driver \
-	build/release/$(BIN_DIR)/driver
+	build/release/$(BIN_DIR)/driver \
+	build/release/$(BIN_DIR)/create_convex_polygon
 
 define BUILD_CONFIG
 $(1)_DIR := $(2)
@@ -49,7 +54,8 @@ $(1)_COMMON_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(COMMON_SRCS))
 $(1)_MAIN_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(MAIN_SRC)) $$($(1)_COMMON_OBJS)
 $(1)_RAND_POLY_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(RAND_POLY_SRC)) $$($(1)_COMMON_OBJS)
 $(1)_DRIVER_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(DRIVER_SRC)) $$($(1)_COMMON_OBJS)
-$(1)_DEPS := $$($(1)_MAIN_OBJS:.o=.d) $$($(1)_RAND_POLY_OBJS:.o=.d) $$($(1)_DRIVER_OBJS:.o=.d)
+$(1)_CREATE_CONVEX_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(CREATE_CONVEX_SRC)) $$($(1)_COMMON_OBJS)
+$(1)_DEPS := $$($(1)_MAIN_OBJS:.o=.d) $$($(1)_RAND_POLY_OBJS:.o=.d) $$($(1)_DRIVER_OBJS:.o=.d) $$($(1)_CREATE_CONVEX_OBJS:.o=.d)
 
 $$($(1)_DIR):
 	mkdir -p $$@
@@ -63,6 +69,10 @@ $$($(1)_DIR)/$(BIN_DIR)/rand_poly_gen_driver: $$($(1)_RAND_POLY_OBJS)
 	$$(CXX) $$(CPPFLAGS) $$($(3)) -o $$@ $$^
 
 $$($(1)_DIR)/$(BIN_DIR)/driver: $$($(1)_DRIVER_OBJS)
+	mkdir -p $$(dir $$@)
+	$$(CXX) $$(CPPFLAGS) $$($(3)) -o $$@ $$^
+
+$$($(1)_DIR)/$(BIN_DIR)/create_convex_polygon: $$($(1)_CREATE_CONVEX_OBJS)
 	mkdir -p $$(dir $$@)
 	$$(CXX) $$(CPPFLAGS) $$($(3)) -o $$@ $$^
 
