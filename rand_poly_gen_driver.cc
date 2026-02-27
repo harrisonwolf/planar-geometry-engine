@@ -13,7 +13,7 @@ int main(){
 	//dbg statements belong in random poly gen file so that anywhere that that function is used, I can turn on debug statements and see what's going one
 	cout << "Beginning random_polygon_generator driver program.\n";	
 	cout << "Testing first 3 points insertion...\n";
-	Polygon p = generate_random_polygon(4);
+	Polygon p = generate_random_polygon(7);
 	cout << "Random polygon generated: \n" << p.to_string() << endl;
 	cout << "Desmos version: \n" << p.to_desmos() << endl;
 
