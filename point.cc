@@ -1,4 +1,5 @@
 #include "point.h"
+#include "logger.h"
 
 using namespace std;
 
@@ -76,9 +77,13 @@ Point Point::midpoint(Point other){
 bool Point::is_between(Point p1, Point p2){
 	//could use angle_to, but that is likely highly computationally expensive, esp. if using for each iteration of for loop in rand_poly_gen
 	//worth a shot though
+	//NOTE: angle_to just returns the angle of the segment between two points!!
+	//Does not matter which point is given first
+	DBG("Entered Point::is_between. Testing if " << this->to_string() << " is between "
+			<< p1.to_string() << " and " << p2.to_string() << ".\n");
 	double angle1 = this->angle_to(p1);
 	double angle2 = this->angle_to(p2);
-	if(angle1 == angle2+M_PI) return true;
+	if(angle1 == angle2) return true;
 	return false;
 }
 

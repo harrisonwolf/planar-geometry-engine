@@ -3,7 +3,7 @@ BASE_CXXFLAGS := -Wall -Wextra -std=c++17
 RELEASE_CXXFLAGS := $(BASE_CXXFLAGS) -O2
 DEBUG_CXXFLAGS := $(BASE_CXXFLAGS) -g -O0 -DDEBUG
 
-EXES := main rand_poly_gen_driver
+EXES := main rand_poly_gen_driver #driver
 
 COMMON_SRCS := \
 	die.cc \
@@ -19,11 +19,11 @@ COMMON_SRCS := \
 
 .PHONY: all release debug clean clean-release clean-debug
 
-all: release
+all: release debug
 
-release: build/release/main build/release/rand_poly_gen_driver
+release: build/release/main build/release/rand_poly_gen_driver build/release/driver
 
-debug: build/debug/main build/debug/rand_poly_gen_driver
+debug: build/debug/main build/debug/rand_poly_gen_driver build/debug/driver
 
 # Build template for each configuration.
 define BUILD_CONFIG
@@ -31,6 +31,7 @@ $(1)_DIR := build/$(1)
 $(1)_COMMON_OBJS := $$(COMMON_SRCS:%.cc=$$($(1)_DIR)/%.o)
 $(1)_MAIN_OBJS := $$($(1)_DIR)/main.o $$($(1)_COMMON_OBJS)
 $(1)_RAND_POLY_OBJS := $$($(1)_DIR)/rand_poly_gen_driver.o $$($(1)_COMMON_OBJS)
+$(1)_DRIVER_OBJS := $$($(1)_DIR)/driver.o $$($(1)_COMMON_OBJS)
 
 $$($(1)_DIR):
 	mkdir -p $$@
@@ -41,10 +42,16 @@ $$($(1)_DIR)/main: $$($(1)_MAIN_OBJS)
 $$($(1)_DIR)/rand_poly_gen_driver: $$($(1)_RAND_POLY_OBJS)
 	$$(CXX) $$($(2)) -o $$@ $$($(1)_RAND_POLY_OBJS)
 
+$$($(1)_DIR)/driver: $$($(1)_DRIVER_OBJS)
+	$$(CXX) $$($(2)) -o $$@ $$($(1)_DRIVER_OBJS)
+
 $$($(1)_DIR)/main.o: main.cc logger.h | $$($(1)_DIR)
 	$$(CXX) $$($(2)) -c $$< -o $$@
 
 $$($(1)_DIR)/rand_poly_gen_driver.o: rand_poly_gen_driver.cc | $$($(1)_DIR)
+	$$(CXX) $$($(2)) -c $$< -o $$@
+
+$$($(1)_DIR)/driver.o: driver.cc | $$($(1)_DIR)
 	$$(CXX) $$($(2)) -c $$< -o $$@
 
 $$($(1)_DIR)/die.o: die.cc die.h | $$($(1)_DIR)

@@ -1,9 +1,11 @@
 #include <iostream>
 #include <vector>
+#include <list>
 #include "point.h"
 #include "triangle.h"
-#include "polygon.h"
+#include "polygon_new.h"
 #include "line.h"
+#include "helper.h"
 
 using namespace std;
 
@@ -12,23 +14,26 @@ int main(){
 	cout << "a: (" << a.get_x() << ", " << a.get_y() << ")\n";	
 	cout << "Distance from a to origin: " << a.get_distance() << endl;
 
-	vector<Point> points;
-	for(int i=0; i<4; i++){
-		points.push_back(Point(i,i+1));
-	}	
-	for(auto curr: points){ 
-		curr.print();
+	list<Point> pointlist; 
+	Point p1(-2,-1);
+	Point p2(-1,3);
+	Point p3(5,1);
+	Point p4(2,-1);
+	pointlist.push_back(p1);
+	pointlist.push_back(p2);
+	pointlist.push_back(p3);
+	pointlist.push_back(p4);
+
+	cout << "Printing point list\n";
+	for(auto it=pointlist.begin(); it!=pointlist.end(); it++){
+		(*it).print();
 		cout << "\n";
 	}
 
-	Polygon p(points);
-	cout << "\nPoints in polygon p:\n";
-
-	vector<Point> my_vec = p.get_vertices();
-	for(Point curr: my_vec){
-		curr.print();
-		cout << "\n";
-	}
+	cout << "About to init polygon w pointlist.\n";
+	Polygon p(pointlist);
+	cout << "Initialized polygon.\n";
+	cout << "\nPoints in polygon p:\n" << p.to_string() << endl;
 
 	Triangle t(Point(5,5),1.0);
 	cout << "\nTriangle t:\n";
@@ -77,6 +82,7 @@ int main(){
 
 	cout << "Point of intersection: " << l1.intersection(l2).to_string() << endl;
 
+	/*
 	vector<Point> input_points;
 	while(1){
 		input_points.clear();
@@ -103,6 +109,7 @@ int main(){
 		cout << "Your triangle:\n" << input_triangle.to_string() << endl;
 
 	}
+	*/
 
 	cout << "Testing Point::is_between...\n";
 	//(26,0) should be in btwn (22,-3) and (30,3)
