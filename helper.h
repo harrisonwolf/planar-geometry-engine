@@ -11,6 +11,7 @@
 #include "polygon_new.h"
 #include "line.h"
 #include <utility> //for std::pair
+#include <string>
 
 /*
  * Reads a point
@@ -54,6 +55,17 @@ Polygon read_polygon();
  * Read multiple polygons from the user
  */
 std::vector<Polygon> read_polygons(int n);
+
+/*
+ * Writes a polygon schema JSON file suitable for the Desmos bridge page.
+ */
+bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygon_id,
+                               const std::string& output_path);
+
+/*
+ * Attempts to open the local Desmos bridge page in the default browser.
+ */
+void open_desmos_bridge_page(const std::string& bridge_path);
 
 /*
  * Returns true if p is inside t; false otherwise

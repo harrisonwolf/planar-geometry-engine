@@ -10,5 +10,6 @@ void print_choices(){ //print available choices
 	cout << "3: View Created Points, Lines, Triangles, or Polygons\n";
 	cout << "4: Create a Polygon\n";
 	cout << "5: Create a Polygon with randomly selected vertices\n";
-	cout << "6: Quit\n";
+	cout << "6: Export latest polygon to Desmos bridge\n";
+	cout << "7: Quit\n";
 }

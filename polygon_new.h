@@ -33,7 +33,7 @@ public:
 	Polygon(std::list<Point> vertices);//constructor which takes a given point list
 	
 	/* Accessors */
-	std::list<Point> get_vertex_list(){ return vertex_list; }
+	std::list<Point> get_vertex_list() const { return vertex_list; }
 	std::unordered_map<double,Point> get_reflex_vertices(){ return reflex_vertices; }
 	std::unordered_map<double,Point> get_convex_vertices(){ return convex_vertices; }
 	double get_area(){ return area; }
