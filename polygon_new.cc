@@ -5,6 +5,7 @@
 #include "polygon_new.h"
 #include "ear_clipping_triangulation.h"
 #include "logger.h"
+#include <iomanip>
 
 using namespace std;
 
@@ -136,11 +137,14 @@ string Polygon::to_string(){
 string Polygon::to_desmos(){
 	DBG("Entered Polygon::to_desmos() function\n");
 	stringstream ss;
-	ss << "table";
+	ss << fixed << setprecision(6);
 	for(Point p: vertex_list){
-		ss << p.get_x() << "\t";
+		ss << p.get_x() << "\t" << p.get_y() << "\n";
 	}
-	ss << "\n";
+	if(!vertex_list.empty()){
+		Point first_vertex = vertex_list.front();
+		ss << first_vertex.get_x() << "\t" << first_vertex.get_y();
+	}
 	return ss.str();
 }
 
