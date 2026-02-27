@@ -1,8 +1,8 @@
 Stuff I need to do for the project
 
 PRIMARY
+-Refactor makefile to do auto-dependency checking
 -TDD suite
--Desmos data import/export
 
 -Really the driver program should be a TDD test suite.
 -Random polygon gen
