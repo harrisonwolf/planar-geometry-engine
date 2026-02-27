@@ -3,7 +3,7 @@ BASE_CXXFLAGS := -Wall -Wextra -std=c++17
 RELEASE_CXXFLAGS := $(BASE_CXXFLAGS) -O2
 DEBUG_CXXFLAGS := $(BASE_CXXFLAGS) -g -O0 -DDEBUG
 
-EXES := main rand_poly_gen_driver driver
+EXES := main rand_poly_gen_driver driver tester
 
 COMMON_SRCS := \
 	die.cc \
@@ -18,17 +18,21 @@ COMMON_SRCS := \
 	delaunay.cc
 
 .PHONY: all development development-normal development-debug release clean \
-	clean-development clean-development-normal clean-development-debug clean-release
+	clean-development clean-development-normal clean-development-debug clean-release \
+	test-suite
 
 all: development release
 
 development: development-normal development-debug
 
 development-normal: build/development/normal/main build/development/normal/rand_poly_gen_driver build/development/normal/driver
+development-normal: build/development/normal/tester
 
 development-debug: build/development/debug/main build/development/debug/rand_poly_gen_driver build/development/debug/driver
+development-debug: build/development/debug/tester
 
 release: build/release/main build/release/rand_poly_gen_driver build/release/driver
+release: build/release/tester
 
 # Build template for each configuration.
 define BUILD_CONFIG
@@ -37,6 +41,7 @@ $(1)_COMMON_OBJS := $$(COMMON_SRCS:%.cc=$$($(1)_DIR)/%.o)
 $(1)_MAIN_OBJS := $$($(1)_DIR)/main.o $$($(1)_COMMON_OBJS)
 $(1)_RAND_POLY_OBJS := $$($(1)_DIR)/rand_poly_gen_driver.o $$($(1)_COMMON_OBJS)
 $(1)_DRIVER_OBJS := $$($(1)_DIR)/driver.o $$($(1)_COMMON_OBJS)
+$(1)_TESTER_OBJS := $$($(1)_DIR)/testing/tester.o $$($(1)_DIR)/testing/tdd_suite.o $$($(1)_COMMON_OBJS)
 
 $$($(1)_DIR):
 	mkdir -p $$@
@@ -50,6 +55,9 @@ $$($(1)_DIR)/rand_poly_gen_driver: $$($(1)_RAND_POLY_OBJS)
 $$($(1)_DIR)/driver: $$($(1)_DRIVER_OBJS)
 	$$(CXX) $$($(3)) -o $$@ $$($(1)_DRIVER_OBJS)
 
+$$($(1)_DIR)/tester: $$($(1)_TESTER_OBJS)
+	$$(CXX) $$($(3)) -o $$@ $$($(1)_TESTER_OBJS)
+
 $$($(1)_DIR)/main.o: main.cc logger.h | $$($(1)_DIR)
 	$$(CXX) $$($(3)) -c $$< -o $$@
 
@@ -57,6 +65,14 @@ $$($(1)_DIR)/rand_poly_gen_driver.o: rand_poly_gen_driver.cc | $$($(1)_DIR)
 	$$(CXX) $$($(3)) -c $$< -o $$@
 
 $$($(1)_DIR)/driver.o: driver.cc | $$($(1)_DIR)
+	$$(CXX) $$($(3)) -c $$< -o $$@
+
+$$($(1)_DIR)/testing/tester.o: testing/tester.cc testing/tdd_suite.h | $$($(1)_DIR)
+	mkdir -p $$(dir $$@)
+	$$(CXX) $$($(3)) -c $$< -o $$@
+
+$$($(1)_DIR)/testing/tdd_suite.o: testing/tdd_suite.cc testing/tdd_suite.h helper.h point.h | $$($(1)_DIR)
+	mkdir -p $$(dir $$@)
 	$$(CXX) $$($(3)) -c $$< -o $$@
 
 $$($(1)_DIR)/die.o: die.cc die.h | $$($(1)_DIR)
@@ -93,6 +109,9 @@ endef
 $(eval $(call BUILD_CONFIG,DEV_NORMAL,build/development/normal,RELEASE_CXXFLAGS))
 $(eval $(call BUILD_CONFIG,DEV_DEBUG,build/development/debug,DEBUG_CXXFLAGS))
 $(eval $(call BUILD_CONFIG,RELEASE,build/release,RELEASE_CXXFLAGS))
+
+test-suite: build/development/normal/tester
+	./build/development/normal/tester
 
 clean: clean-development clean-release
 

@@ -31,3 +31,15 @@ If the automatic browser launch does not work:
 
 Tip: if your system opens a file manager instead of a browser, opening
 `index.html` directly from the browser (File -> Open File) is the most reliable fallback.
+
+
+TDD test suite
+--------------
+A growing TDD-style validation suite lives under `testing/`.
+
+Current coverage:
+- `Point::is_between`
+- `collides(...)` helper function
+
+Run with:
+`make test-suite`
