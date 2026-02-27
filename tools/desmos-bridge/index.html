@@ -62,7 +62,7 @@
     const fileInputElt = document.getElementById('fileInput');
     const endpointInputElt = document.getElementById('endpointInput');
 
-    const calculator = Desmos.GraphingCalculator(calculatorElt, { expressions: true });
+    let calculator = null;
 
     function setStatus(message, isError = false) {
       statusElt.className = isError ? 'error' : 'success';
@@ -123,6 +123,9 @@
     }
 
     function importSchema(schema) {
+      if (!calculator) {
+        throw new Error('Desmos calculator is not initialized yet.');
+      }
       const parsed = parsePolygonSchema(schema);
       const latex = pointsToLatex(parsed.points);
       calculator.setExpression({ id: parsed.id, latex });
@@ -172,18 +175,35 @@
     }
 
     document.getElementById('exportStateBtn').addEventListener('click', () => {
+      if (!calculator) {
+        setStatus('Desmos calculator is not initialized yet.', true);
+        return;
+      }
       const state = calculator.getState();
       downloadJson('desmos-state.json', state);
       setStatus('Exported full Desmos state.');
     });
 
     document.getElementById('exportPolysBtn').addEventListener('click', () => {
+      if (!calculator) {
+        setStatus('Desmos calculator is not initialized yet.', true);
+        return;
+      }
       const expressions = calculator.getExpressions();
       const polygons = expressions
         .filter((expr) => typeof expr.latex === 'string' && expr.latex.startsWith('polygon('))
         .map((expr) => ({ type: 'polygon-expression', id: expr.id, latex: expr.latex }));
       downloadJson('desmos-polygons.json', polygons);
       setStatus(`Exported ${polygons.length} polygon expression(s).`);
+    });
+
+    window.addEventListener('load', () => {
+      if (typeof Desmos === 'undefined' || !Desmos.GraphingCalculator) {
+        setStatus('Failed to load Desmos API. Check your network connection and reload.', true);
+        return;
+      }
+      calculator = Desmos.GraphingCalculator(calculatorElt, { expressions: true });
+      setStatus('Ready. Choose a schema JSON file to import.');
     });
   </script>
 </body>
