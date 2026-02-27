@@ -320,6 +320,15 @@ bool open_desmos_bridge_page(const std::string& bridge_path){
 	return false;
 }
 
+bool is_inside(Point p, Triangle t){
+	return t.contains(p);
+}
+
+bool is_inside(Point p, Point a, Point b, Point c){
+	Triangle t(a,b,c);
+	return is_inside(p,t);
+}
+
 bool collides(pair<Point,Point> pair1, pair<Point,Point> pair2){
 	DBG("Entered collides function in helper file.\n");
 	//now how do I actally check this

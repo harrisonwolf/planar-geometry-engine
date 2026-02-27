@@ -1,12 +1,15 @@
 #include "tdd_suite.h"
 
 #include <cmath>
+#include <list>
 #include <random>
 #include <sstream>
 #include <utility>
 
 #include "../helper.h"
 #include "../point.h"
+#include "../polygon_new.h"
+#include "../triangle.h"
 
 namespace {
 
@@ -20,6 +23,22 @@ void expect_true(TestRunSummary& summary,
         summary.assertions_failed++;
         summary.failures.push_back({suite, name, message});
     }
+}
+
+void expect_near(TestRunSummary& summary,
+                 double actual,
+                 double expected,
+                 double epsilon,
+                 const std::string& suite,
+                 const std::string& name,
+                 const std::string& message){
+    std::ostringstream details;
+    details << message << " (expected " << expected << ", got " << actual << ")";
+    expect_true(summary,
+                std::fabs(actual - expected) <= epsilon,
+                suite,
+                name,
+                details.str());
 }
 
 Point interpolate(const Point& a, const Point& b, double t){ //when run with 0<t<1, will always return a point strictly in between a and b
@@ -152,11 +171,132 @@ void run_helper_collides_suite(TestRunSummary& summary){
                 "Segments sharing an endpoint should collide.");
 }
 
+void run_helper_is_inside_suite(TestRunSummary& summary){
+    const std::string suite_name = "helper::is_inside";
+    Point a(0.0, 0.0);
+    Point b(6.0, 0.0);
+    Point c(0.0, 6.0);
+    Triangle t(a, b, c);
+
+    Point inside(1.0, 1.0);
+    Point edge(3.0, 0.0);
+    Point outside(4.0, 4.0);
+
+    expect_true(summary,
+                is_inside(inside, t),
+                suite_name,
+                "triangle overload interior",
+                "Point strictly inside triangle should be inside.");
+    expect_true(summary,
+                is_inside(edge, t),
+                suite_name,
+                "triangle overload edge",
+                "Point on triangle edge should be treated as inside.");
+    expect_true(summary,
+                !is_inside(outside, t),
+                suite_name,
+                "triangle overload exterior",
+                "Point outside triangle should be outside.");
+
+    expect_true(summary,
+                is_inside(inside, a, b, c),
+                suite_name,
+                "vertex overload interior",
+                "Point strictly inside triangle should be inside (vertex overload).");
+    expect_true(summary,
+                is_inside(edge, a, b, c),
+                suite_name,
+                "vertex overload edge",
+                "Point on triangle edge should be inside (vertex overload).");
+    expect_true(summary,
+                !is_inside(outside, a, b, c),
+                suite_name,
+                "vertex overload exterior",
+                "Point outside triangle should be outside (vertex overload).");
+}
+
+void run_triangle_geometry_suite(TestRunSummary& summary){
+    const std::string suite_name = "Triangle";
+    Triangle right_triangle(Point(0.0, 0.0), Point(4.0, 0.0), Point(0.0, 3.0));
+
+    expect_near(summary,
+                right_triangle.calculate_area(),
+                6.0,
+                1e-9,
+                suite_name,
+                "calculate_area right triangle",
+                "Right-triangle area should match base*height/2.");
+
+    expect_true(summary,
+                right_triangle.contains(Point(0.75, 0.75)),
+                suite_name,
+                "contains interior",
+                "Interior point should be contained in triangle.");
+    expect_true(summary,
+                right_triangle.contains(Point(2.0, 0.0)),
+                suite_name,
+                "contains edge",
+                "Point on an edge should be contained.");
+    expect_true(summary,
+                !right_triangle.contains(Point(4.0, 3.0)),
+                suite_name,
+                "contains exterior",
+                "Exterior point should not be contained.");
+}
+
+void run_polygon_geometry_suite(TestRunSummary& summary){
+    const std::string suite_name = "Polygon";
+    Polygon polygon(std::list<Point>{
+        Point(-2.0, 0.0),
+        Point(-1.0, 1.0),
+        Point(1.0, 1.0),
+        Point(2.0, 0.0)
+    });
+
+    expect_near(summary,
+                polygon.calculate_area(),
+                3.0,
+                1e-6,
+                suite_name,
+                "calculate_area convex quadrilateral",
+                "Area should match the expected trapezoid area.");
+
+    expect_true(summary,
+                polygon.contains(Point(0.0, 0.5)),
+                suite_name,
+                "contains interior",
+                "Interior point should be contained in polygon.");
+    expect_true(summary,
+                polygon.contains(Point(0.0, 1.0)),
+                suite_name,
+                "contains boundary",
+                "Boundary point should be contained in polygon.");
+    expect_true(summary,
+                !polygon.contains(Point(0.0, 2.0)),
+                suite_name,
+                "contains exterior",
+                "Exterior point should not be contained in polygon.");
+
+    expect_true(summary,
+                is_convex(Point(0.0, 0.0), Point(1.0, 0.0), Point(2.0, -1.0)),
+                suite_name,
+                "is_convex convex turn",
+                "Known convex turn should be classified as convex.");
+    expect_true(summary,
+                !is_convex(Point(0.0, 0.0), Point(1.0, 0.0), Point(2.0, 1.0)),
+                suite_name,
+                "is_convex reflex turn",
+                "Known reflex turn should be classified as non-convex.");
+}
+
 } // namespace
 
 TestRunSummary run_geometry_tdd_suite(){
     TestRunSummary summary;
     run_point_is_between_suite(summary);
     run_helper_collides_suite(summary);
+    run_helper_is_inside_suite(summary);
+    run_triangle_geometry_suite(summary);
+    run_polygon_geometry_suite(summary);
     return summary;
 }
