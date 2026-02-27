@@ -1,16 +1,11 @@
 Stuff I need to do for the project
 
 PRIMARY
+-Fix random poly generator
 -Refactor makefile to do auto-dependency checking
 -TDD suite
 
--Really the driver program should be a TDD test suite.
--Random polygon gen
--Make it so that debug/normal builds do not require recompilation of entire project. Or even better, have one debug build and one normal
--Make test suite for TDD
 -Delauany triangulation algs
-
--Make way to import/export data from/to desmos; eg. after generating triangulation, have it easily populate into desmos to view the triangles
 -Visualize
 -Make way to port large pointsets into program as input
 
