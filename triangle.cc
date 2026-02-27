@@ -161,7 +161,7 @@ bool Triangle::contains(Point p){
 	//cerr << "aT (total area of smaller t's) = " << aT << "\n";
 	//cerr << "aT - A = " << (aT-A) << "\n";
 	//return ( (a1 + a2 + a3) == A );
-	return ( (abs(aT-A)) < 0.000001 ); //rounding errors in double calculations force
+	return ( (std::fabs(aT-A)) < 0.000001 ); //rounding errors in double calculations force
 					 //me to do this, as much as I don't want to
 }
 

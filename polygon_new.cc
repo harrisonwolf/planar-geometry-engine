@@ -160,7 +160,10 @@ void Polygon::print_triangulation_desmos(){
 
 bool Polygon::contains(Point p){ //returns true if p is inside of (or comprises an edge or vertex of)
 				 //this->polygon
-	return false; //FIXME
+	for(Triangle& t: triangulation){
+		if(t.contains(p)) return true;
+	}
+	return false;
 }
 
 bool is_convex(Point prev_v, Point curr_v, Point next_v){
