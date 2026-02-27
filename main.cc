@@ -9,6 +9,7 @@
 #include <random>
 #include "choice.h"
 #include "logger.h"
+#include "random_polygon_generator.h"
 
 using namespace std;
 
@@ -157,26 +158,8 @@ int main(){
 				cin >> n;
 			}
 
-			cout << "Please enter a lower bound for the coordinates:\n";
-			double lower = 0.0;
-			cin >> lower;
-			cout << "Please enter an upper bound for the coordinates:\n";
-			double upper = 0.0;
-			cin >> upper;
 
-			random_device rd;
-			mt19937 gen(rd());
-			uniform_real_distribution<double> unif(lower,upper);
-
-			list<Point> random_points;
-			for(int i=0; i<n; i++){
-				double random_x = unif(gen);
-				double random_y = unif(gen);
-				Point p(random_x, random_y);
-				random_points.push_back(p);
-			}
-
-			Polygon rand_poly(random_points);
+			Polygon rand_poly = generate_random_polygon(n);
 			//store it
 			stored_polygons.push_back(rand_poly);
 			//now print it
