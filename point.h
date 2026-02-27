@@ -34,6 +34,17 @@ public:
 	bool operator==(Point other);
 	double angle_to(Point other); //returns angle to other Point in radians, where 0 is a
 				      //horizontal line
+	inline friend Point operator-(const Point& a, const Point& b) {
+		return {a.x - b.x, a.y - b.y};
+	}
+
+	inline friend double dot(const Point& u, const Point& v) {
+		return u.x * v.x + u.y * v.y;
+	}
+
+	inline friend double cross(const Point& u, const Point& v) {
+		return u.x * v.y - u.y * v.x;
+	}
 	void print();
 	std::string to_string();
 	Point midpoint(Point other); //returns the midpoint between 2 points

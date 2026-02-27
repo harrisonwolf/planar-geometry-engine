@@ -1,5 +1,7 @@
 #include "point.h"
 #include "logger.h"
+#include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -79,22 +81,37 @@ bool Point::is_between(Point p1, Point p2){
 	//worth a shot though
 	//NOTE: angle_to just returns the angle of the segment between two points!!
 	//Does not matter which point is given first
+	//THAT MEANS IT DOES NOT WORK FOR THIS APPLICATION
 	DBG("Entered Point::is_between. Testing if " << this->to_string() << " is between "
 			<< p1.to_string() << " and " << p2.to_string() << ".\n");
-	double angle1 = this->angle_to(p1);
-	double angle2 = this->angle_to(p2);
-	if(angle1 == angle2) return true;
-	return false;
+	Point twoMinus1 = p2 - p1;
+    Point thisMinus1 = *this - p1;
+
+    // Scale epsilon to the problem size a bit.
+    double scale = max({1.0, fabs(twoMinus1.get_x()), fabs(twoMinus1.get_y()), fabs(thisMinus1.get_x()), fabs(thisMinus1.get_y())});
+    double eps = 1e-12 * scale;
+
+    // 1) Collinearity
+    if (fabs(cross(twoMinus1, thisMinus1)) > eps) return false;
+
+    // 2) Between-ness via projection
+    double proj = dot(thisMinus1, twoMinus1);
+    if (proj < -eps) return false;
+
+    double len2 = dot(twoMinus1, twoMinus1);
+    if (proj > len2 + eps) return false;
+
+    return true;
 }
 
 /*
-bool x_comp(Point a, Point b){
-	return a.get_x() < b.get_x();
-}
+   bool x_comp(Point a, Point b){
+   return a.get_x() < b.get_x();
+   }
 
-bool y_comp(Point a, Point b){
-	return a.get_y() < b.get_y();
-}
-*/
+   bool y_comp(Point a, Point b){
+   return a.get_y() < b.get_y();
+   }
+   */
 
 

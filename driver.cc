@@ -6,6 +6,7 @@
 #include "polygon_new.h"
 #include "line.h"
 #include "helper.h"
+#include <utility>
 
 using namespace std;
 
@@ -116,6 +117,12 @@ int main(){
 	cout << "Testing if (26,0) is btwn (22,-3) and (30,3) (should be true): " << boolalpha << Point(26,0).is_between(Point(22,-3),Point(30,3)) << endl;
 	cout << "Testing if (26,1) is btwn (22,-3) and (30,3) (should be false): " << boolalpha << Point(26,1).is_between(Point(22,-3),Point(30,3)) << endl;
 	
+	cout << "\nTesting collides function:\n";
+	pair<Point,Point> pair1 = {Point(22,-3),Point(30,3)};
+	pair<Point,Point> pair2 = {Point(11,6),Point(24,-8)};
+	pair<Point,Point> pair3 = {Point(17,-5),Point(30,3)};
+	cout << "\nTesting if (22,-3)_(30,3) collides with (11,6)_(24,-8) (SHOULD BE FALSE): " << boolalpha << collides(pair1,pair2) << endl;
+	cout << "\nTesting if (17,-5)_(30,3) collides with (11,6)_(24,-8) (SHOULD BE TRUE): " << boolalpha << collides(pair3,pair2) << endl;
 
 	return 0;
 }

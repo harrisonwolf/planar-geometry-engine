@@ -1,6 +1,7 @@
 Stuff I need to do for the project
 
 PRIMARY
+-Really the driver program should be a TDD test suite.
 -Random polygon gen
 -Make it so that debug/normal builds do not require recompilation of entire project. Or even better, have one debug build and one normal
 -Make test suite for TDD
