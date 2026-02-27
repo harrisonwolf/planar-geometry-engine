@@ -171,9 +171,13 @@ int main(){
 			}else{
 				const Polygon& latest = stored_polygons.back();
 				string output_path = "tools/desmos-bridge/polygon-export.json";
+				string bridge_path = "tools/desmos-bridge/index.html";
 				if(write_polygon_schema_file(latest, "poly1", output_path)){
 					cout << "Exported polygon schema to " << output_path << "\n";
-					open_desmos_bridge_page("file:///workspace/planar-geometry-engine-v1/tools/desmos-bridge/index.html");
+					if(!open_desmos_bridge_page(bridge_path)){
+						cout << "If the browser did not open, manually open " << bridge_path
+						     << " and click 'Load polygon-export.json'.\n";
+					}
 				}else{
 					cout << "Failed to write polygon export file.\n";
 				}

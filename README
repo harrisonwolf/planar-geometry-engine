@@ -23,3 +23,11 @@ Polygon schema format used for import/export:
 In the CLI (`main`), option 6 exports the latest stored polygon to:
 `tools/desmos-bridge/polygon-export.json`
 and attempts to open the bridge page in your default browser.
+
+If the automatic browser launch does not work:
+1. Manually open `tools/desmos-bridge/index.html` in a browser.
+2. Click **Load polygon-export.json**.
+3. Select `tools/desmos-bridge/polygon-export.json`.
+
+Tip: if your system opens a file manager instead of a browser, opening
+`index.html` directly from the browser (File -> Open File) is the most reliable fallback.

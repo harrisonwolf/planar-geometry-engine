@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <sstream>
 #include <cmath>
+#include <filesystem>
+#include <vector>
 
 using namespace std;
 
@@ -300,13 +302,22 @@ bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygo
 	return true;
 }
 
-void open_desmos_bridge_page(const std::string& bridge_path){
-	std::stringstream command;
-	command << "xdg-open '" << bridge_path << "' >/dev/null 2>&1";
-	int rc = system(command.str().c_str());
-	if(rc != 0){
-		std::cout << "Could not automatically open browser. Please open: " << bridge_path << "\n";
+bool open_desmos_bridge_page(const std::string& bridge_path){
+	std::filesystem::path canonical_bridge_path = std::filesystem::absolute(std::filesystem::path(bridge_path));
+	std::string resolved_path = canonical_bridge_path.string();
+
+	std::vector<std::string> commands;
+	commands.push_back("xdg-open '" + resolved_path + "' >/dev/null 2>&1");
+	commands.push_back("gio open '" + resolved_path + "' >/dev/null 2>&1");
+	commands.push_back("open '" + resolved_path + "' >/dev/null 2>&1");
+
+	for(const std::string& command: commands){
+		int rc = system(command.c_str());
+		if(rc == 0) return true;
 	}
+
+	std::cout << "Could not automatically open browser. Please open: " << resolved_path << "\n";
+	return false;
 }
 
 bool collides(pair<Point,Point> pair1, pair<Point,Point> pair2){
