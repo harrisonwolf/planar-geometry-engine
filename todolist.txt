@@ -1,5 +1,8 @@
 Stuff I need to do for the project
 
+-prune superfluous polygon_new/polygon
+-auto-generate dependencies in makefile
+
 PRIMARY
 -Fix random poly generator, ear clipper
 -Refactor makefile to do auto-dependency checking
