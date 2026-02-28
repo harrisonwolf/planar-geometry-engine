@@ -1,6 +1,6 @@
 Stuff I need to do for the project
 
--prune superfluous polygon_new/polygon
+CURR TASK SHORTLIST
 -auto-generate dependencies in makefile
 
 PRIMARY
