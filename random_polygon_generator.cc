@@ -9,6 +9,16 @@ using namespace std;
 
 namespace {
 
+// Methodology:
+// - Preserve original sequential generator style: vertices are appended one-by-one.
+// - For each new candidate, validate uniqueness and reject edge intersections.
+// - The final vertex is handled specially because it creates two new edges
+//   (to the previous vertex and back to the first vertex).
+// - After construction, perform a full simplicity check as a final guard.
+//
+// This keeps the same algorithmic shape the project started with, while fixing
+// intersection logic and endpoint-adjacency handling bugs.
+
 constexpr double kDefaultBound = 100.0;
 constexpr double kEps = 1e-9;
 constexpr int kMaxVertexAttempts = 20000;
@@ -32,6 +42,7 @@ double orient2d(const Point& a, const Point& b, const Point& c){
 	       (b.get_y() - a.get_y()) * (c.get_x() - a.get_x());
 }
 
+// Collinear point-on-segment test with epsilon bounds.
 bool on_segment(const Point& a, const Point& b, const Point& p){
 	if(fabs(orient2d(a, b, p)) > kEps) return false;
 	double min_x = min(a.get_x(), b.get_x()) - kEps;
@@ -41,6 +52,7 @@ bool on_segment(const Point& a, const Point& b, const Point& p){
 	return p.get_x() >= min_x && p.get_x() <= max_x && p.get_y() >= min_y && p.get_y() <= max_y;
 }
 
+// Robust segment intersection: proper crossing + collinear overlap cases.
 bool segments_intersect(const Point& p1, const Point& p2, const Point& q1, const Point& q2){
 	double o1 = orient2d(p1, p2, q1);
 	double o2 = orient2d(p1, p2, q2);
@@ -59,6 +71,7 @@ bool segments_intersect(const Point& p1, const Point& p2, const Point& q1, const
 	return false;
 }
 
+// Allow only one intentional shared endpoint (adjacent edges), reject all others.
 bool intersects_disallowing_shared_endpoint(const Segment& s1, const Segment& s2, const Point& allowed_shared){
 	if(!segments_intersect(s1.a, s1.b, s2.a, s2.b)) return false;
 
@@ -123,14 +136,15 @@ Polygon generate_random_polygon_with_bounds(int n, double min_coord, double max_
 			Point candidate(unif(gen), unif(gen));
 			if(!point_is_usable(candidate, points)) continue;
 			points.push_back(candidate);
-			if(points.size() == 3 && fabs(orient2d(points[0], points[1], points[2])) <= kEps){
+			if(points.size() == 3 && fabs(orient2d(points.at(0), points.at(1), points.at(2))) <= kEps){
 				points.pop_back();
 			}
 		}
 
 		bool failed = false;
 
-		// Sequentially generate vertices 4..(n-1)
+		// Sequentially generate interior chain vertices 4..(n-1).
+		// Each new edge must avoid all existing non-adjacent edges.
 		for(int i = 3; i < n - 1; ++i){
 			bool placed = false;
 			for(int attempts = 0; attempts < kMaxVertexAttempts; ++attempts){
@@ -140,7 +154,7 @@ Polygon generate_random_polygon_with_bounds(int n, double min_coord, double max_
 				Segment candidate_edge{points.back(), candidate};
 				bool collides = false;
 				for(size_t e = 0; e + 1 < points.size(); ++e){
-					Segment existing{points[e], points[e + 1]};
+					Segment existing{points.at(e), points.at(e + 1)};
 					if(intersects_disallowing_shared_endpoint(candidate_edge, existing, points.back())){
 						collides = true;
 						break;
@@ -159,7 +173,8 @@ Polygon generate_random_polygon_with_bounds(int n, double min_coord, double max_
 
 		if(failed) continue;
 
-		// Final vertex must connect safely to both first and current last
+		// Final vertex closes the polygon and therefore creates two edges.
+		// Both must be collision-free against the existing chain.
 		bool placed_last = false;
 		for(int attempts = 0; attempts < kMaxVertexAttempts; ++attempts){
 			Point candidate(unif(gen), unif(gen));
@@ -170,7 +185,7 @@ Polygon generate_random_polygon_with_bounds(int n, double min_coord, double max_
 			bool collides = false;
 
 			for(size_t e = 0; e + 1 < points.size(); ++e){
-				Segment existing{points[e], points[e + 1]};
+				Segment existing{points.at(e), points.at(e + 1)};
 				if(intersects_disallowing_shared_endpoint(edge_to_last, existing, points.back())){
 					collides = true;
 					break;

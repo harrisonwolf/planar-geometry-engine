@@ -12,22 +12,34 @@ using namespace std;
 
 namespace {
 
+// Methodology:
+// - Compute polygon orientation from signed area each clipping round.
+// - A vertex is an ear candidate only if it is convex with respect to current winding.
+// - Candidate ear triangle must contain no other polygon vertices.
+// - Once an ear is found, clip it and continue until only one triangle remains.
+//
+// This stays faithful to ear clipping while using explicit geometric predicates
+// (orientation tests) for robust logic under floating-point noise.
+
+// Shoelace signed area: >0 for CCW, <0 for CW
 double signed_area(const vector<Point>& vertices){
 	double area2 = 0.0;
 	if(vertices.size() < 3) return 0.0;
 	for(size_t i = 0; i < vertices.size(); ++i){
-		const Point& a = vertices[i];
-		const Point& b = vertices[(i + 1) % vertices.size()];
+		const Point& a = vertices.at(i);
+		const Point& b = vertices.at((i + 1) % vertices.size());
 		area2 += (a.get_x() * b.get_y()) - (b.get_x() * a.get_y());
 	}
 	return 0.5 * area2;
 }
 
+// Signed turn test for ordered triplet (a,b,c).
 double orient2d(const Point& a, const Point& b, const Point& c){
 	return (b.get_x() - a.get_x()) * (c.get_y() - a.get_y()) -
 	       (b.get_y() - a.get_y()) * (c.get_x() - a.get_x());
 }
 
+// Inclusive point-in-triangle test using orientation signs.
 bool point_in_triangle(const Point& p, const Point& a, const Point& b, const Point& c){
 	const double eps = 1e-10;
 	double o1 = orient2d(a, b, p);
@@ -39,6 +51,7 @@ bool point_in_triangle(const Point& p, const Point& a, const Point& b, const Poi
 	return !(has_neg && has_pos);
 }
 
+// Convexity depends on current polygon winding.
 bool is_convex_vertex(const Point& prev_p, const Point& p, const Point& next_p, bool is_ccw){
 	double turn = orient2d(prev_p, p, next_p);
 	const double eps = 1e-10;
@@ -65,6 +78,7 @@ vector<Triangle> triangulate(Polygon curr_polygon, vector<Triangle> &current_ear
 		die();
 	}
 
+	// Iteratively clip one ear at a time until triangle base case.
 	while(vertices.size() > 3){
 		bool clipped_any_ear = false;
 		bool is_ccw = signed_area(vertices) > 0.0;
@@ -73,9 +87,9 @@ vector<Triangle> triangulate(Polygon curr_polygon, vector<Triangle> &current_ear
 			size_t prev_i = (i + vertices.size() - 1) % vertices.size();
 			size_t next_i = (i + 1) % vertices.size();
 
-			const Point& prev_p = vertices[prev_i];
-			const Point& p = vertices[i];
-			const Point& next_p = vertices[next_i];
+			const Point& prev_p = vertices.at(prev_i);
+			const Point& p = vertices.at(i);
+			const Point& next_p = vertices.at(next_i);
 
 			if(!is_convex_vertex(prev_p, p, next_p, is_ccw)){
 				continue;
@@ -84,7 +98,7 @@ vector<Triangle> triangulate(Polygon curr_polygon, vector<Triangle> &current_ear
 			bool any_inside = false;
 			for(size_t j = 0; j < vertices.size(); ++j){
 				if(j == prev_i || j == i || j == next_i) continue;
-				if(point_in_triangle(vertices[j], prev_p, p, next_p)){
+				if(point_in_triangle(vertices.at(j), prev_p, p, next_p)){
 					any_inside = true;
 					break;
 				}
@@ -104,6 +118,6 @@ vector<Triangle> triangulate(Polygon curr_polygon, vector<Triangle> &current_ear
 		}
 	}
 
-	current_ears.push_back(Triangle(vertices[0], vertices[1], vertices[2]));
+	current_ears.push_back(Triangle(vertices.at(0), vertices.at(1), vertices.at(2)));
 	return current_ears;
 }
