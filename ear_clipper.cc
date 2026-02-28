@@ -1,5 +1,5 @@
 #include <iostream>
-#include "polygon_new.h"
+#include "polygon.h"
 #include "helper.h"
 #include <vector>
 #include "triangle.h"

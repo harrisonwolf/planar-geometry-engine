@@ -1,4 +1,6 @@
 //header file for polygon class which is composed of a set of points
+//THE polygon is defined by its points, but to really figure out anything about it (eg area,
+//we use its triangulation
 #ifndef POLYGON_H
 #define POLYGON_H
 
@@ -9,22 +11,31 @@
 #include <algorithm>
 #include <unordered_map>
 #include <sstream>
+#include <list>
 
 class Polygon{
 private:
-	std::vector<Point> vertices; //used for actually manipulating/using vertices
+	std::list<Point> vertex_list;
 	std::unordered_map<double,Point> dict;
+	std::unordered_map<double,Point> reflex_vertices;
+	std::unordered_map<double,Point> convex_vertices;
+	//need to add to these as I'm constructing the polygon, using the fact that points are given
+	//in clockwise order, so the inside of the polygon is always to the "right,"
+	//with respect to the movement along the perimeter
 	std::vector<Triangle> triangulation;
 	double area = 0.0;
+	bool convex = true;
 
 public:
 	/* Constructors */ 
 	//Each polygon must have at least 3 vertices
 	Polygon();
-	Polygon(std::vector<Point> vertices);//constructor which takes a given point set 
+	Polygon(std::list<Point> vertices);//constructor which takes a given point list
 	
 	/* Accessors */
-	std::vector<Point> get_vertices(){ return vertices; }
+	std::list<Point> get_vertex_list() const { return vertex_list; }
+	std::unordered_map<double,Point> get_reflex_vertices(){ return reflex_vertices; }
+	std::unordered_map<double,Point> get_convex_vertices(){ return convex_vertices; }
 	double get_area(){ return area; }
 	std::vector<Triangle> get_triangulation(){ return triangulation; }
 
@@ -32,7 +43,7 @@ public:
 	 * Actually calculates the area (using triangulation)
 	 */
 	double calculate_area();
-	std::vector<Triangle> triangulate(); //returns a set of triangles that form the 
+	std::vector<Triangle> calculate_triangulation(); //returns a set of triangles that form the 
 					     //triangulation of the polygon (may be useful 
 					     //for calulating area 
 
@@ -54,9 +65,17 @@ public:
 	 * Convex/Concave (TODO)
 	 */
 	std::string to_string();
+	std::string to_desmos(); //prints table-ready desmos version
 	void print_triangulation();
+	void print_triangulation_desmos();
 	bool contains(Point p); //returns true if p is inside of (or comprises an edge or vertex of)
 				//this->polygon
 };
+
+/*
+ * Takes a string of 3 vertices in counter-clockwise order of a simple polygon
+ * Returns true if curr_v is convex, false if it's reflex
+ */
+bool is_convex(Point prev_v, Point curr_v, Point next_v);
 
 #endif

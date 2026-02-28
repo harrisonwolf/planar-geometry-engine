@@ -19,10 +19,10 @@ public:
 	Point(double new_x, double new_y);
 
 	/* Accessors */
-	double get_x(){ return x; }
-	double get_y(){ return y; }
-	double get_distance(){ return distance; }
-	double distance_to(Point other);
+	double get_x() const { return x; }
+	double get_y() const { return y; }
+	double get_distance() const { return distance; }
+	double distance_to(Point other) const;
 
 	/* Mutators */
 	void set_x(double new_x); //set x and update distance
@@ -31,8 +31,8 @@ public:
 	void transpose(double x_shift, double y_shift);
 						     
 	/* Miscellaneous */
-	bool operator==(Point other);
-	double angle_to(Point other); //returns angle to other Point in radians, where 0 is a
+	bool operator==(Point other) const;
+	double angle_to(Point other) const; //returns angle to other Point in radians, where 0 is a
 				      //horizontal line
 	inline friend Point operator-(const Point& a, const Point& b) {
 		return {a.x - b.x, a.y - b.y};
@@ -46,12 +46,13 @@ public:
 		return u.x * v.y - u.y * v.x;
 	}
 	void print();
-	std::string to_string();
-	Point midpoint(Point other); //returns the midpoint between 2 points
+	std::string to_string() const;
+	Point midpoint(Point other) const; //returns the midpoint between 2 points
 	//bool is_inside(Polygon p); //returns true if the point is inside (or comprises an
 				   //edge of) Polygon p
 				 
-	bool is_between(Point p1, Point p2); //checks if this point is between two others
+	bool is_between(Point p1, Point p2) const; //checks if this point is between two others
+	bool strict_is_between(Point p1, Point p2) const; //checks if this point is strictly between two others
 };
 
 

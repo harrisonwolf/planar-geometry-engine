@@ -1,15 +1,24 @@
 CXX := g++
 BASE_CXXFLAGS := -Wall -Wextra -std=c++17
+DEPFLAGS := -MMD -MP
 RELEASE_CXXFLAGS := $(BASE_CXXFLAGS) -O2
 DEBUG_CXXFLAGS := $(BASE_CXXFLAGS) -g -O0 -DDEBUG
 
-EXES := main rand_poly_gen_driver #driver
+# Add/remove executable names in one place.
+EXES := main rand_poly_gen_driver driver tester
 
+# Per-executable entry sources (files containing main/test harness code).
+EXE_main_SRCS := main.cc
+EXE_rand_poly_gen_driver_SRCS := rand_poly_gen_driver.cc
+EXE_driver_SRCS := driver.cc
+EXE_tester_SRCS := testing/tester.cc testing/tdd_suite.cc
+
+# Shared implementation sources linked into each executable.
 COMMON_SRCS := \
 	die.cc \
 	point.cc \
 	triangle.cc \
-	polygon_new.cc \
+	polygon.cc \
 	line.cc \
 	helper.cc \
 	choice.cc \
@@ -17,81 +26,78 @@ COMMON_SRCS := \
 	random_polygon_generator.cc \
 	delaunay.cc
 
-.PHONY: all release debug clean clean-release clean-debug
+.PHONY: all development development-normal development-debug release clean \
+	clean-development clean-development-normal clean-development-debug clean-release \
+	test-suite help
 
-all: release debug
+all: development release
 
-release: build/release/main build/release/rand_poly_gen_driver build/release/driver
+development: development-normal development-debug
 
-debug: build/debug/main build/debug/rand_poly_gen_driver build/debug/driver
+# Generates per-executable object lists and link rules for one build config.
+define EXE_RULE
+$(1)_$(2)_ENTRY_SRCS := $$(EXE_$(2)_SRCS)
+$(1)_$(2)_ENTRY_OBJS := $$(addprefix $$($(1)_DIR)/,$$(patsubst %.cc,%.o,$$($(1)_$(2)_ENTRY_SRCS)))
+$(1)_$(2)_OBJS := $$($(1)_$(2)_ENTRY_OBJS) $$($(1)_COMMON_OBJS)
+
+$$($(1)_DIR)/$(2): $$($(1)_$(2)_OBJS)
+	$$(CXX) $$($(3)) -o $$@ $$^
+endef
 
 # Build template for each configuration.
 define BUILD_CONFIG
-$(1)_DIR := build/$(1)
+$(1)_DIR := $(2)
+$(1)_TARGETS := $$(addprefix $$($(1)_DIR)/,$$(EXES))
+$(1)_ENTRY_SRCS := $$(sort $$(foreach exe,$$(EXES),$$(EXE_$$(exe)_SRCS)))
+$(1)_SRCS := $$(COMMON_SRCS) $$($(1)_ENTRY_SRCS)
+$(1)_OBJS := $$($(1)_SRCS:%.cc=$$($(1)_DIR)/%.o)
+$(1)_DEPS := $$($(1)_OBJS:.o=.d)
 $(1)_COMMON_OBJS := $$(COMMON_SRCS:%.cc=$$($(1)_DIR)/%.o)
-$(1)_MAIN_OBJS := $$($(1)_DIR)/main.o $$($(1)_COMMON_OBJS)
-$(1)_RAND_POLY_OBJS := $$($(1)_DIR)/rand_poly_gen_driver.o $$($(1)_COMMON_OBJS)
-$(1)_DRIVER_OBJS := $$($(1)_DIR)/driver.o $$($(1)_COMMON_OBJS)
 
 $$($(1)_DIR):
 	mkdir -p $$@
 
-$$($(1)_DIR)/main: $$($(1)_MAIN_OBJS)
-	$$(CXX) $$($(2)) -o $$@ $$($(1)_MAIN_OBJS)
+$$($(1)_DIR)/%.o: %.cc | $$($(1)_DIR)
+	mkdir -p $$(dir $$@)
+	$$(CXX) $$($(3)) $$(DEPFLAGS) -c $$< -o $$@
 
-$$($(1)_DIR)/rand_poly_gen_driver: $$($(1)_RAND_POLY_OBJS)
-	$$(CXX) $$($(2)) -o $$@ $$($(1)_RAND_POLY_OBJS)
+$$(foreach exe,$$(EXES),$$(eval $$(call EXE_RULE,$(1),$$(exe),$(3))))
 
-$$($(1)_DIR)/driver: $$($(1)_DRIVER_OBJS)
-	$$(CXX) $$($(2)) -o $$@ $$($(1)_DRIVER_OBJS)
-
-$$($(1)_DIR)/main.o: main.cc logger.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/rand_poly_gen_driver.o: rand_poly_gen_driver.cc | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/driver.o: driver.cc | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/die.o: die.cc die.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/point.o: point.cc point.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/triangle.o: triangle.cc triangle.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/polygon_new.o: polygon_new.cc polygon_new.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/line.o: line.cc line.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/helper.o: helper.cc helper.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/choice.o: choice.cc choice.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/ear_clipping_triangulation.o: ear_clipping_triangulation.cc ear_clipping_triangulation.h logger.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/random_polygon_generator.o: random_polygon_generator.cc random_polygon_generator.h polygon_new.h logger.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
-
-$$($(1)_DIR)/delaunay.o: delaunay.cc delaunay.h triangle.h | $$($(1)_DIR)
-	$$(CXX) $$($(2)) -c $$< -o $$@
+-include $$($(1)_DEPS)
 endef
 
-$(eval $(call BUILD_CONFIG,release,RELEASE_CXXFLAGS))
-$(eval $(call BUILD_CONFIG,debug,DEBUG_CXXFLAGS))
+$(eval $(call BUILD_CONFIG,DEV_NORMAL,build/development/normal,RELEASE_CXXFLAGS))
+$(eval $(call BUILD_CONFIG,DEV_DEBUG,build/development/debug,DEBUG_CXXFLAGS))
+$(eval $(call BUILD_CONFIG,RELEASE,build/release,RELEASE_CXXFLAGS))
 
-clean: clean-release clean-debug
+development-normal: $(DEV_NORMAL_TARGETS)
+development-debug: $(DEV_DEBUG_TARGETS)
+release: $(RELEASE_TARGETS)
+
+test-suite: build/development/normal/tester
+	./build/development/normal/tester
+
+help:
+	@echo "Common targets:"
+	@echo "  make development-normal"
+	@echo "  make development-debug"
+	@echo "  make release"
+	@echo "  make test-suite"
+	@echo ""
+	@echo "To add a new executable:"
+	@echo "  1) Add its name to EXES"
+	@echo "  2) Define EXE_<name>_SRCS with its entry .cc files"
+	@echo "To add shared code: add .cc files to COMMON_SRCS"
+
+clean: clean-development clean-release
+
+clean-development: clean-development-normal clean-development-debug
+
+clean-development-normal:
+	rm -rf build/development/normal
+
+clean-development-debug:
+	rm -rf build/development/debug
 
 clean-release:
 	rm -rf build/release
-
-clean-debug:
-	rm -rf build/debug

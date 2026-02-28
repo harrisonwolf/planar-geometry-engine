@@ -3,16 +3,19 @@
 #include "point.h"
 #include "triangle.h"
 //#include "polygon.h"
-#include "polygon_new.h"
+#include "polygon.h"
 #include "line.h"
 #include "helper.h"
 #include <random>
 #include "choice.h"
 #include "logger.h"
+#include "random_polygon_generator.h"
 
 using namespace std;
 
-int main(){
+int main(int argc, char* argv[]){
+
+	logger::apply_runtime_inputs(argc, argv);
 
 	system("clear");
 
@@ -68,7 +71,7 @@ int main(){
 		print_choices();
 		int choice;
 		cin >> choice;
-		if(choice < 1 or choice > 5) break;
+		if(choice < 1 or choice > 7) break;
 
 		if(choice == 1){ //make a triangle
 			Triangle t = read_triangle();
@@ -157,32 +160,32 @@ int main(){
 				cin >> n;
 			}
 
-			cout << "Please enter a lower bound for the coordinates:\n";
-			double lower = 0.0;
-			cin >> lower;
-			cout << "Please enter an upper bound for the coordinates:\n";
-			double upper = 0.0;
-			cin >> upper;
 
-			random_device rd;
-			mt19937 gen(rd());
-			uniform_real_distribution<double> unif(lower,upper);
-
-			list<Point> random_points;
-			for(int i=0; i<n; i++){
-				double random_x = unif(gen);
-				double random_y = unif(gen);
-				Point p(random_x, random_y);
-				random_points.push_back(p);
-			}
-
-			Polygon rand_poly(random_points);
+			Polygon rand_poly = generate_random_polygon(n);
 			//store it
 			stored_polygons.push_back(rand_poly);
 			//now print it
 			cout << "Your polygon:\n" << rand_poly.to_string() << "\n\n";
 
-		}else if(choice == 6){ //quit (currently)
+		}else if(choice == 6){ //export polygon to desmos bridge
+			if(stored_polygons.empty()){
+				cout << "No stored polygons to export. Create one first.\n";
+			}else{
+				const Polygon& latest = stored_polygons.back();
+				string output_path = "tools/desmos-bridge/polygon-export.json";
+				string bridge_path = "tools/desmos-bridge/index.html";
+				if(write_polygon_schema_file(latest, "poly1", output_path)){
+					cout << "Exported polygon schema to " << output_path << "\n";
+					if(!open_desmos_bridge_page(bridge_path)){
+						cout << "If the browser did not open, manually open " << bridge_path
+						     << " and click 'Load polygon-export.json'.\n";
+					}
+				}else{
+					cout << "Failed to write polygon export file.\n";
+				}
+			}
+
+		}else if(choice == 7){ //quit
 			return 0;
 		}
 

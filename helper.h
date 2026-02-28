@@ -8,9 +8,10 @@
 #include "point.h"
 #include "triangle.h"
 //#include "polygon.h"
-#include "polygon_new.h"
+#include "polygon.h"
 #include "line.h"
 #include <utility> //for std::pair
+#include <string>
 
 /*
  * Reads a point
@@ -56,6 +57,18 @@ Polygon read_polygon();
 std::vector<Polygon> read_polygons(int n);
 
 /*
+ * Writes a polygon schema JSON file suitable for the Desmos bridge page.
+ */
+bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygon_id,
+                               const std::string& output_path);
+
+/*
+ * Attempts to open the local Desmos bridge page in the default browser.
+ * Returns true if an opener command succeeded, false otherwise.
+ */
+bool open_desmos_bridge_page(const std::string& bridge_path);
+
+/*
  * Returns true if p is inside t; false otherwise
  */
 bool is_inside(Point p, Triangle t);
@@ -67,11 +80,11 @@ bool is_inside(Point p, Triangle t);
 bool is_inside(Point p, Point a, Point b, Point c);
 
 /*
- * Checks if the line segment btwn one pair of points collides with that between another pair
+ * Checks if the line segment btwn one pair of points collides with that between another pair 
  */
 bool collides(std::pair<Point,Point> pair1, std::pair<Point,Point> pair2);
 
-/*
- * Checks if a given point is between two others
- */
+/* Does not count collision at endpoint */ 
+bool strict_collides(std::pair<Point,Point> pair1, std::pair<Point,Point> pair2);
+
 #endif
