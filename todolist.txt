@@ -1,10 +1,8 @@
 Stuff I need to do for the project
 
 PRIMARY
--Fix random poly generator
-	-Seems to be generating a colinear point by design. or a vertex very close to being colinear with an existing edge
+-Fix random poly generator, ear clipper
 -Refactor makefile to do auto-dependency checking
--TDD suite
 
 -Delauany triangulation algs
 -Visualize
