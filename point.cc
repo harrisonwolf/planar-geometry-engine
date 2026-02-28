@@ -93,8 +93,8 @@ bool Point::is_between(Point p1, Point p2) const{
 
 	//check if the point is basically one of the endpoints given
 	/*
-	if(fabs(this->x - p1.get_x() < eps) and fabs(this->y - p1.get_y() < eps) or 
-	  fabs(this->x - p2.get_x() < eps) and fabs(this->y - p2.get_y() < eps)){
+	if((fabs(this->x - p1.get_x()) < eps and fabs(this->y - p1.get_y()) < eps) or 
+	  (fabs(this->x - p2.get_x()) < eps and fabs(this->y - p2.get_y()) < eps)){
 		return false;
 	}
 	*/
@@ -129,8 +129,8 @@ bool Point::strict_is_between(Point p1, Point p2) const{
     double eps = 1e-12 * scale;
 
 	//check if the point is basically one of the endpoints given
-	if(fabs(this->x - p1.get_x() < eps) and fabs(this->y - p1.get_y() < eps) or 
-	  fabs(this->x - p2.get_x() < eps) and fabs(this->y - p2.get_y() < eps)){
+	if((fabs(this->x - p1.get_x()) < eps and fabs(this->y - p1.get_y()) < eps) or 
+	  (fabs(this->x - p2.get_x()) < eps and fabs(this->y - p2.get_y()) < eps)){
 		return false;
 	}
 

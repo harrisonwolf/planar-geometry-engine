@@ -109,6 +109,43 @@ void run_point_is_between_suite(TestRunSummary& summary){
     expect_true(summary, b.is_between(a, b), suite_name, "right endpoint", "Endpoint should be between.");
 }
 
+void run_point_strict_is_between_suite(TestRunSummary& summary){
+    const std::string suite_name = "Point::strict_is_between";
+
+    Point a(0.0, 0.0);
+    Point b(10.0, 10.0);
+
+    expect_true(summary,
+                Point(5.0, 5.0).strict_is_between(a, b),
+                suite_name,
+                "strict interior",
+                "Interior collinear point should be strictly between endpoints.");
+
+    expect_true(summary,
+                !a.strict_is_between(a, b),
+                suite_name,
+                "left endpoint excluded",
+                "Left endpoint should not be strictly between.");
+
+    expect_true(summary,
+                !b.strict_is_between(a, b),
+                suite_name,
+                "right endpoint excluded",
+                "Right endpoint should not be strictly between.");
+
+    expect_true(summary,
+                !Point(12.0, 12.0).strict_is_between(a, b),
+                suite_name,
+                "outside collinear",
+                "Collinear point outside segment bounds should not be strictly between.");
+
+    expect_true(summary,
+                !Point(5.0, 4.5).strict_is_between(a, b),
+                suite_name,
+                "non-collinear",
+                "Non-collinear point should not be strictly between.");
+}
+
 void run_helper_collides_suite(TestRunSummary& summary){
     const std::string suite_name = "helper::collides";
     std::mt19937 rng(4242);
@@ -169,6 +206,40 @@ void run_helper_collides_suite(TestRunSummary& summary){
                 suite_name,
                 "shared endpoint",
                 "Segments sharing an endpoint should collide.");
+}
+
+void run_helper_strict_collides_suite(TestRunSummary& summary){
+    const std::string suite_name = "helper::strict_collides";
+
+    Point a1(0.0, 0.0);
+    Point a2(4.0, 4.0);
+    Point b1(0.0, 4.0);
+    Point b2(4.0, 0.0);
+    expect_true(summary,
+                strict_collides({a1, a2}, {b1, b2}),
+                suite_name,
+                "interior intersection",
+                "Segments with a shared interior intersection should strictly collide.");
+
+    Point c1(0.0, 0.0);
+    Point c2(2.0, 2.0);
+    Point d1(2.0, 2.0);
+    Point d2(3.0, 1.0);
+    expect_true(summary,
+                !strict_collides({c1, c2}, {d1, d2}),
+                suite_name,
+                "shared endpoint",
+                "Segments touching only at endpoints should not strictly collide.");
+
+    Point e1(0.0, 0.0);
+    Point e2(1.0, 0.0);
+    Point f1(2.0, -1.0);
+    Point f2(3.0, 0.0);
+    expect_true(summary,
+                !strict_collides({e1, e2}, {f1, f2}),
+                suite_name,
+                "disjoint segments",
+                "Non-intersecting segments should not strictly collide.");
 }
 
 void run_helper_is_inside_suite(TestRunSummary& summary){
@@ -294,7 +365,9 @@ void run_polygon_geometry_suite(TestRunSummary& summary){
 TestRunSummary run_geometry_tdd_suite(){
     TestRunSummary summary;
     run_point_is_between_suite(summary);
+    run_point_strict_is_between_suite(summary);
     run_helper_collides_suite(summary);
+    run_helper_strict_collides_suite(summary);
     run_helper_is_inside_suite(summary);
     run_triangle_geometry_suite(summary);
     run_polygon_geometry_suite(summary);
