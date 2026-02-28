@@ -9,7 +9,7 @@
 #include <vector>
 #include "point.h"
 #include "helper.h"
-#include "polygon_new.h"
+#include "polygon.h"
 
 using namespace std;
 

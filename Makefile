@@ -9,7 +9,7 @@ COMMON_SRCS := \
 	die.cc \
 	point.cc \
 	triangle.cc \
-	polygon_new.cc \
+	polygon.cc \
 	line.cc \
 	helper.cc \
 	choice.cc \
@@ -84,7 +84,7 @@ $$($(1)_DIR)/point.o: point.cc point.h | $$($(1)_DIR)
 $$($(1)_DIR)/triangle.o: triangle.cc triangle.h | $$($(1)_DIR)
 	$$(CXX) $$($(3)) -c $$< -o $$@
 
-$$($(1)_DIR)/polygon_new.o: polygon_new.cc polygon_new.h | $$($(1)_DIR)
+$$($(1)_DIR)/polygon.o: polygon.cc polygon.h | $$($(1)_DIR)
 	$$(CXX) $$($(3)) -c $$< -o $$@
 
 $$($(1)_DIR)/line.o: line.cc line.h | $$($(1)_DIR)
@@ -99,7 +99,7 @@ $$($(1)_DIR)/choice.o: choice.cc choice.h | $$($(1)_DIR)
 $$($(1)_DIR)/ear_clipping_triangulation.o: ear_clipping_triangulation.cc ear_clipping_triangulation.h logger.h | $$($(1)_DIR)
 	$$(CXX) $$($(3)) -c $$< -o $$@
 
-$$($(1)_DIR)/random_polygon_generator.o: random_polygon_generator.cc random_polygon_generator.h polygon_new.h logger.h | $$($(1)_DIR)
+$$($(1)_DIR)/random_polygon_generator.o: random_polygon_generator.cc random_polygon_generator.h polygon.h logger.h | $$($(1)_DIR)
 	$$(CXX) $$($(3)) -c $$< -o $$@
 
 $$($(1)_DIR)/delaunay.o: delaunay.cc delaunay.h triangle.h | $$($(1)_DIR)

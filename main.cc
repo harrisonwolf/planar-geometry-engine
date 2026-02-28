@@ -3,7 +3,7 @@
 #include "point.h"
 #include "triangle.h"
 //#include "polygon.h"
-#include "polygon_new.h"
+#include "polygon.h"
 #include "line.h"
 #include "helper.h"
 #include <random>
