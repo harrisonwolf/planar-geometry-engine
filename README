@@ -1,4 +1,4 @@
-Library for planar geometry
+Library/computation engine for planar geometry
 
 Notes: The calculations herein depend on the assumption of general position; that is, no two points
 have the same x-coord (equivalently, that no two points lie on the same vertical line), and that no three points are colinear.
