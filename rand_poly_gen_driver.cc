@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <string>
-#include "polygon_new.h"
+#include "polygon.h"
 #include "random_polygon_generator.h"
 #include "helper.h"
 #include "logger.h"

@@ -8,7 +8,7 @@
 
 #include "../helper.h"
 #include "../point.h"
-#include "../polygon_new.h"
+#include "../polygon.h"
 #include "../triangle.h"
 
 namespace {

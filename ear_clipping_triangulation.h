@@ -3,7 +3,7 @@
 #define EAR_CLIPPING_TRIANGULATION_H
 
 #include "triangle.h"
-#include "polygon_new.h"
+#include "polygon.h"
 #include <vector>
 
 std::vector<Triangle> triangulate(Polygon curr_polygon, std::vector<Triangle> &current_ears);
