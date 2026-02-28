@@ -93,7 +93,7 @@ bool polygon_is_simple(const vector<Point>& points){
 			if((j + 1) % n == i) continue;
 			if((i + 1) % n == j) continue;
 			Point b1 = points.at(j);
-			Point b2 = points((j + 1) % n);
+			Point b2 = points.at((j + 1) % n);
 			if(segments_intersect(a1, a2, b1, b2)) return false;
 		}
 	}
