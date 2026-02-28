@@ -3,7 +3,6 @@
 #include "logger.h"
 #include <random>
 #include <vector>
-#include <algorithm>
 #include <cmath>
 
 using namespace std;
@@ -11,10 +10,97 @@ using namespace std;
 namespace {
 
 constexpr double kDefaultBound = 100.0;
-constexpr double kEpsilonX = 1e-6;
+constexpr double kEps = 1e-9;
+constexpr int kMaxVertexAttempts = 20000;
+constexpr int kMaxWholePolygonAttempts = 200;
+
+struct Segment {
+	Point a;
+	Point b;
+};
+
+bool almost_equal(double a, double b){
+	return fabs(a - b) < kEps;
+}
+
+bool same_point(const Point& a, const Point& b){
+	return almost_equal(a.get_x(), b.get_x()) && almost_equal(a.get_y(), b.get_y());
+}
+
+double orient2d(const Point& a, const Point& b, const Point& c){
+	return (b.get_x() - a.get_x()) * (c.get_y() - a.get_y()) -
+	       (b.get_y() - a.get_y()) * (c.get_x() - a.get_x());
+}
+
+bool on_segment(const Point& a, const Point& b, const Point& p){
+	if(fabs(orient2d(a, b, p)) > kEps) return false;
+	double min_x = min(a.get_x(), b.get_x()) - kEps;
+	double max_x = max(a.get_x(), b.get_x()) + kEps;
+	double min_y = min(a.get_y(), b.get_y()) - kEps;
+	double max_y = max(a.get_y(), b.get_y()) + kEps;
+	return p.get_x() >= min_x && p.get_x() <= max_x && p.get_y() >= min_y && p.get_y() <= max_y;
+}
+
+bool segments_intersect(const Point& p1, const Point& p2, const Point& q1, const Point& q2){
+	double o1 = orient2d(p1, p2, q1);
+	double o2 = orient2d(p1, p2, q2);
+	double o3 = orient2d(q1, q2, p1);
+	double o4 = orient2d(q1, q2, p2);
+
+	if(((o1 > kEps && o2 < -kEps) || (o1 < -kEps && o2 > kEps)) &&
+	   ((o3 > kEps && o4 < -kEps) || (o3 < -kEps && o4 > kEps))){
+		return true;
+	}
+
+	if(fabs(o1) <= kEps && on_segment(p1, p2, q1)) return true;
+	if(fabs(o2) <= kEps && on_segment(p1, p2, q2)) return true;
+	if(fabs(o3) <= kEps && on_segment(q1, q2, p1)) return true;
+	if(fabs(o4) <= kEps && on_segment(q1, q2, p2)) return true;
+	return false;
+}
+
+bool intersects_disallowing_shared_endpoint(const Segment& s1, const Segment& s2, const Point& allowed_shared){
+	if(!segments_intersect(s1.a, s1.b, s2.a, s2.b)) return false;
+
+	// If intersection is only at the allowed shared endpoint, that's OK.
+	bool s1_has_allowed = same_point(s1.a, allowed_shared) || same_point(s1.b, allowed_shared);
+	bool s2_has_allowed = same_point(s2.a, allowed_shared) || same_point(s2.b, allowed_shared);
+	if(s1_has_allowed && s2_has_allowed){
+		Point other1 = same_point(s1.a, allowed_shared) ? s1.b : s1.a;
+		Point other2 = same_point(s2.a, allowed_shared) ? s2.b : s2.a;
+		if(!same_point(other1, other2)) return false;
+	}
+
+	return true;
+}
+
+bool point_is_usable(const Point& p, const vector<Point>& points){
+	for(const Point& existing: points){
+		if(same_point(existing, p)) return false;
+		if(almost_equal(existing.get_x(), p.get_x())) return false; // avoid vertical-line degeneracy in this codebase
+	}
+	return true;
+}
+
+bool polygon_is_simple(const vector<Point>& points){
+	if(points.size() < 3) return false;
+	int n = static_cast<int>(points.size());
+	for(int i = 0; i < n; ++i){
+		Point a1 = points[i];
+		Point a2 = points[(i + 1) % n];
+		for(int j = i + 1; j < n; ++j){
+			if(j == i) continue;
+			if((j + 1) % n == i) continue;
+			if((i + 1) % n == j) continue;
+			Point b1 = points[j];
+			Point b2 = points[(j + 1) % n];
+			if(segments_intersect(a1, a2, b1, b2)) return false;
+		}
+	}
+	return true;
+}
 
 Polygon generate_random_polygon_with_bounds(int n, double min_coord, double max_coord){
-	DBG("Entered generate_random_polygon function\n");
 	if(n < 3){
 		cout << "Error: Called generate_random_polygon with n less than 3. Exiting.\n";
 		exit(1);
@@ -26,52 +112,106 @@ Polygon generate_random_polygon_with_bounds(int n, double min_coord, double max_
 
 	random_device rd;
 	mt19937 gen(rd());
+	uniform_real_distribution<double> unif(min_coord, max_coord);
 
-	double coord_span = max_coord - min_coord;
-	double center_x = (min_coord + max_coord) / 2.0;
-	double center_y = (min_coord + max_coord) / 2.0;
-	double max_radius = 0.45 * coord_span;
-	double min_radius = 0.10 * coord_span;
+	for(int polygon_attempt = 0; polygon_attempt < kMaxWholePolygonAttempts; ++polygon_attempt){
+		vector<Point> points;
+		points.reserve(n);
 
-	const double two_pi = 2.0 * acos(-1.0);
-	uniform_real_distribution<double> angle_dist(0.0, two_pi);
-	uniform_real_distribution<double> radius_dist(min_radius, max_radius);
-
-	vector<double> angles;
-	angles.reserve(n);
-	for(int i = 0; i < n; ++i){
-		angles.push_back(angle_dist(gen));
-	}
-	sort(angles.begin(), angles.end());
-
-	vector<Point> generated;
-	generated.reserve(n);
-	for(int i = 0; i < n; ++i){
-		double r = radius_dist(gen);
-		double x = center_x + r * cos(angles[i]);
-		double y = center_y + r * sin(angles[i]);
-
-		// avoid identical x-values to keep line constructors happy
-		for(size_t j = 0; j < generated.size(); ++j){
-			if(fabs(generated[j].get_x() - x) < kEpsilonX){
-				x += (j + 1) * kEpsilonX;
+		// First 3 points
+		while(points.size() < 3){
+			Point candidate(unif(gen), unif(gen));
+			if(!point_is_usable(candidate, points)) continue;
+			points.push_back(candidate);
+			if(points.size() == 3 && fabs(orient2d(points[0], points[1], points[2])) <= kEps){
+				points.pop_back();
 			}
 		}
 
-		generated.emplace_back(x, y);
+		bool failed = false;
+
+		// Sequentially generate vertices 4..(n-1)
+		for(int i = 3; i < n - 1; ++i){
+			bool placed = false;
+			for(int attempts = 0; attempts < kMaxVertexAttempts; ++attempts){
+				Point candidate(unif(gen), unif(gen));
+				if(!point_is_usable(candidate, points)) continue;
+
+				Segment candidate_edge{points.back(), candidate};
+				bool collides = false;
+				for(size_t e = 0; e + 1 < points.size(); ++e){
+					Segment existing{points[e], points[e + 1]};
+					if(intersects_disallowing_shared_endpoint(candidate_edge, existing, points.back())){
+						collides = true;
+						break;
+					}
+				}
+				if(collides) continue;
+				points.push_back(candidate);
+				placed = true;
+				break;
+			}
+			if(!placed){
+				failed = true;
+				break;
+			}
+		}
+
+		if(failed) continue;
+
+		// Final vertex must connect safely to both first and current last
+		bool placed_last = false;
+		for(int attempts = 0; attempts < kMaxVertexAttempts; ++attempts){
+			Point candidate(unif(gen), unif(gen));
+			if(!point_is_usable(candidate, points)) continue;
+
+			Segment edge_to_last{points.back(), candidate};
+			Segment edge_to_first{candidate, points.front()};
+			bool collides = false;
+
+			for(size_t e = 0; e + 1 < points.size(); ++e){
+				Segment existing{points[e], points[e + 1]};
+				if(intersects_disallowing_shared_endpoint(edge_to_last, existing, points.back())){
+					collides = true;
+					break;
+				}
+				if(intersects_disallowing_shared_endpoint(edge_to_first, existing, points.front())){
+					collides = true;
+					break;
+				}
+			}
+			if(collides) continue;
+
+			if(segments_intersect(edge_to_last.a, edge_to_last.b, edge_to_first.a, edge_to_first.b)){
+				// These share candidate endpoint; anything beyond that means degenerate overlap.
+				if(on_segment(edge_to_last.a, edge_to_last.b, edge_to_first.b) ||
+				   on_segment(edge_to_first.a, edge_to_first.b, edge_to_last.a)){
+					continue;
+				}
+			}
+
+			points.push_back(candidate);
+			placed_last = true;
+			break;
+		}
+
+		if(!placed_last) continue;
+		if(!polygon_is_simple(points)) continue;
+
+		list<Point> point_list(points.begin(), points.end());
+		return Polygon(point_list);
 	}
 
-	list<Point> points(generated.begin(), generated.end());
-	DBG_TAG("poly.rand_gen", ANSI::BOLD_GREEN << "Successfully finished gen function!\n" << ANSI::RESET);
-	return Polygon(points);
+	cout << "Error: Failed to generate a valid random polygon after many attempts.\n";
+	exit(1);
 }
 
 } // namespace
 
 Polygon generate_random_polygon(){
-	uniform_int_distribution<int> v_dist(4, 99);
 	random_device rd;
 	mt19937 gen(rd());
+	uniform_int_distribution<int> v_dist(4, 99);
 	return generate_random_polygon(v_dist(gen));
 }
 
