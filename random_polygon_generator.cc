@@ -104,7 +104,7 @@ restart_curr_rand_gen:
 			curr2 = *it;
 			iterating_pair = {curr1,curr2};
 			if(collides(iterating_pair,potential_new_pair)){ //we have a collision
-				//DBG_TAG("poly.rand_gen.collision", "Found collision btwn pot new and " << iterating_pair.first.to_string() << "--" << iterating_pair.second.to_string() << "\n");
+				DBG_TAG("poly.rand_gen.collision", ANSI::RED << "Found collision btwn pot new and " << iterating_pair.first.to_string() << "--" << iterating_pair.second.to_string() << ANSI::RESET << "\n");
 				it--; //reset iterator
 					  //i doesn't need to be reset since not using continue statement
 				goto restart_curr_rand_gen;
@@ -122,6 +122,7 @@ restart_curr_rand_gen:
 	pair<Point,Point> potential_new_pair_1 = {Point(0,0),Point(0,0)};
 	pair<Point,Point> potential_new_pair_2 = {Point(0,0),Point(0,0)};
 	Point first = points.front();
+	DBG_TAG("poly.rand_gen",ANSI::CYAN << "About to begin last vertex gen.\n" << ANSI::RESET);
 	while(1){ //keep trying till get vertex that sees first vertex in list 
 			  //and last in list
 while_start:
@@ -154,6 +155,7 @@ while_start:
 			//if j == 0 or j == n-3, need strict collides
 			if(j == 0 or j == n-3){
 				if(strict_collides(iterating_pair,potential_new_pair_1) or strict_collides(iterating_pair,potential_new_pair_2)){ //we have a collision
+					DBG_TAG("poly.rand_gen.while", ANSI::RED << "Found collision btwn last pot vertex and first or last edges\n" << ANSI::RESET);
 					it--; //reset iterator
 						  //i doesn't need to be reset since not using continue statement
 					goto while_start;
@@ -161,6 +163,7 @@ while_start:
 
 			}else{
 				if(collides(iterating_pair,potential_new_pair_1) or collides(iterating_pair,potential_new_pair_2)){ //we have a collision
+					DBG_TAG("poly.rand_gen.while", ANSI::RED << "Found collision btwn last pot vertex and one of the middle edges.\n" << ANSI::RESET);
 					it--; //reset iterator
 						  //i doesn't need to be reset since not using continue statement
 					goto while_start;
@@ -172,6 +175,7 @@ while_start:
 		xvals.insert(rand_x);
 		break;
 	}
+	DBG_TAG("poly.rand_gen",ANSI::BOLD_GREEN << "Successfully finished gen function!\n" << ANSI::RESET);
 
 	DBG_TAG("poly.rand_gen", "In rand poly generator, about to attempt initialization of polygon with rand gen points.\n");
 	return Polygon(points); 
