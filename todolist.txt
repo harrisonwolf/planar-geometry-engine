@@ -9,6 +9,8 @@ PRIMARY
 -Make way to port large pointsets into program as input
 
 SECONDARY
+-Make random gen smarter by calculating what angles would be available (ie. how occluded the next line of sight would be) when generating a pot new vertex
+-Make some sort of line of sight logic
 -Organize directory into subdirectories eg shell scripts, test files
 -Update README
 -Implement Delaunay triangulation alg, then voronoi diagram is easy corollary
