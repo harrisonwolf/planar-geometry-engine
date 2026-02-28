@@ -15,6 +15,7 @@ const std::string PURPLE = "\e[0;35m";
 const std::string CYAN = "\e[0;36m";
 const std::string WHITE = "\e[0;37m";
 const std::string RESET = "\e[0m";
+const std::string BOLD_GREEN = "\e[1;32m";
 }
 
 #include <algorithm>
