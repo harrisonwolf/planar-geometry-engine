@@ -86,14 +86,14 @@ bool polygon_is_simple(const vector<Point>& points){
 	if(points.size() < 3) return false;
 	int n = static_cast<int>(points.size());
 	for(int i = 0; i < n; ++i){
-		Point a1 = points[i];
-		Point a2 = points[(i + 1) % n];
+		Point a1 = points.at(i);
+		Point a2 = points.at((i + 1) % n);
 		for(int j = i + 1; j < n; ++j){
 			if(j == i) continue;
 			if((j + 1) % n == i) continue;
 			if((i + 1) % n == j) continue;
-			Point b1 = points[j];
-			Point b2 = points[(j + 1) % n];
+			Point b1 = points.at(j);
+			Point b2 = points((j + 1) % n);
 			if(segments_intersect(a1, a2, b1, b2)) return false;
 		}
 	}

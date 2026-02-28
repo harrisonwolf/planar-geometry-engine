@@ -1,7 +1,8 @@
 Stuff I need to do for the project
 
--prune superfluous polygon_new/polygon
--auto-generate dependencies in makefile
+-fix rand poly gen
+-export triangulation of polygon to desmos w/ polygon
+-fix triang alg
 
 PRIMARY
 -Fix random poly generator, ear clipper
