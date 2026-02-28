@@ -2,6 +2,7 @@ Stuff I need to do for the project
 
 PRIMARY
 -Fix random poly generator
+	-Seems to be generating a colinear point by design. or a vertex very close to being colinear with an existing edge
 -Refactor makefile to do auto-dependency checking
 -TDD suite
 

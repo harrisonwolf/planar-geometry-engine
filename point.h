@@ -52,6 +52,7 @@ public:
 				   //edge of) Polygon p
 				 
 	bool is_between(Point p1, Point p2) const; //checks if this point is between two others
+	bool strict_is_between(Point p1, Point p2) const; //checks if this point is strictly between two others
 };
 
 

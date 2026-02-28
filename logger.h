@@ -1,5 +1,21 @@
 // logger.h
+// ----------- DEBUG TAGS --------------
+// poly.gen
+//
 #pragma once
+
+// ANSI Escape Code Defs
+namespace ANSI {
+const std::string RED = "\e[0;31m";
+const std::string BLACK = "\e[0;30m";
+const std::string GREEN = "\e[0;32m";
+const std::string YELLOW = "\e[0;33m";
+const std::string BLUE = "\e[0;34m";
+const std::string PURPLE = "\e[0;35m";
+const std::string CYAN = "\e[0;36m";
+const std::string WHITE = "\e[0;37m";
+const std::string RESET = "\e[0m";
+}
 
 #include <algorithm>
 #include <cctype>
@@ -144,6 +160,6 @@ inline void log_debug(std::string_view tag, Args&&... fmt) {
 
 #define DBG_TAG(tag, msg) do { \
 	if(::logger::is_tag_enabled(tag)) { \
-		std::cerr << std::fixed << std::setprecision(20) << "[DEBUG][" << tag << "] " << msg; \
+		std::cerr << std::fixed << std::setprecision(20) << ANSI::YELLOW << "[DEBUG][" << tag << "] " << ANSI::RESET << msg; \
 	} \
 } while(0)
