@@ -72,3 +72,32 @@ Examples:
 Backward compatibility:
 - Existing untagged `DBG(...)` callsites are mapped to the fallback tag `legacy`.
 - With `-DDEBUG`, the default enabled tag is `legacy` to preserve previous behavior.
+
+
+Adding new debug statements
+---------------------------
+Use tagged logging for all new debug output so logs can be filtered by subsystem at runtime.
+
+Recommended tag style:
+- Use dotted namespaces by area, e.g. `poly.gen`, `poly.validate`, `triangulate.ear`.
+- Keep tags stable once introduced so scripts and workflows remain predictable.
+
+How to log:
+- Preferred for new code: `DBG_TAG("poly.gen", "generated vertex " << v.to_string() << "\n");`
+- Legacy-compatible macro still works: `DBG("old debug message\n");` (maps to `legacy`).
+
+How filtering works:
+- `--debug-tags=poly.gen` enables exact `poly.gen` plus children like `poly.gen.step1` when prefix matching is enabled (default).
+- `--debug-tags=*` enables every tag.
+- `--debug-match-prefix=false` switches matching to exact-only.
+
+Example workflow while adding logs:
+1. Add a new statement with `DBG_TAG("poly.validate", ... )` near the code path you are investigating.
+2. Build debug binaries: `make development-debug`.
+3. Run with focused logging: `./build/development/debug/main --debug-tags=poly.validate`.
+4. If you need broader scope temporarily: `--debug-tags=poly`.
+
+Environment-variable equivalents:
+- `GEOM_DEBUG_TAGS=poly.validate`
+- `GEOM_DEBUG_MATCH_PREFIX=true|false`
+- Optional global switch: `GEOM_DEBUG=true|false`
