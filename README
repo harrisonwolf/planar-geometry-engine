@@ -45,3 +45,30 @@ Current coverage:
 
 Run with:
 `make test-suite`
+
+Debug logging tags
+------------------
+Debug logging is now configured at runtime (in addition to build-time `-DDEBUG` defaults).
+
+Supported runtime inputs:
+- CLI: `--debug-tags=poly.gen,poly.validate`
+- ENV: `GEOM_DEBUG_TAGS=poly.gen,poly.validate`
+- Optional prefix behavior: `--debug-match-prefix=true|false` or `GEOM_DEBUG_MATCH_PREFIX=true|false`
+
+Behavior:
+- Debug logs are disabled when `debug_enabled` is false.
+- `*` enables all tags.
+- A configured tag matches either exact tags or (by default) nested tags via prefix matching.
+  Example: `poly` matches `poly.gen` when prefix matching is enabled.
+
+Examples:
+- Focus on polygon generation logs only:
+  `./build/development/debug/rand_poly_gen_driver --debug-tags=poly.gen`
+- Enable all debug logs:
+  `./build/development/debug/main --debug-tags=*`
+- Use env vars for one shell session:
+  `GEOM_DEBUG_TAGS=poly.validate ./build/development/debug/main`
+
+Backward compatibility:
+- Existing untagged `DBG(...)` callsites are mapped to the fallback tag `legacy`.
+- With `-DDEBUG`, the default enabled tag is `legacy` to preserve previous behavior.

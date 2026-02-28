@@ -13,7 +13,9 @@
 
 using namespace std;
 
-int main(){
+int main(int argc, char* argv[]){
+
+	logger::apply_runtime_inputs(argc, argv);
 
 	system("clear");
 
