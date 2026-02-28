@@ -40,6 +40,8 @@ A growing TDD-style validation suite lives under `testing/`.
 Current coverage:
 - `Point::is_between`
 - `collides(...)` helper function
+- `is_inside(...)` helper functions
+- `Triangle::` geometry calculations 
 
 Run with:
 `make test-suite`
