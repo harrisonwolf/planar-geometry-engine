@@ -1,11 +1,10 @@
 Stuff I need to do for the project
 
 CURR TASK SHORTLIST
--auto-generate dependencies in makefile
+-add triangulation to desmos bridge
 
 PRIMARY
--Fix random poly generator, ear clipper
--Refactor makefile to do auto-dependency checking
+-Refactor/debug rand gen alg and ear clipping alg
 
 -Delauany triangulation algs
 -Visualize
@@ -13,6 +12,7 @@ PRIMARY
 
 SECONDARY
 -Make random gen smarter by calculating what angles would be available (ie. how occluded the next line of sight would be) when generating a pot new vertex
+	-Perhaps calculate 3 pot next verts at a time before committing the next one, like a chess engine
 -Make some sort of line of sight logic
 -Organize directory into subdirectories eg shell scripts, test files
 -Update README
