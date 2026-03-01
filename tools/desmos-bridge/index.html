@@ -27,12 +27,12 @@
   <main>
     <section class="panel">
       <div class="row">
-        <label for="fileInput">Import schema JSON file</label>
+        <label for="fileInput">Import polygon or triangulation schema JSON file</label>
         <input id="fileInput" type="file" accept="application/json,.json" />
       </div>
 
       <div class="row">
-        <label for="endpointInput">Or fetch schema from local endpoint URL</label>
+        <label for="endpointInput">Or fetch polygon/triangulation schema from local endpoint URL</label>
         <input id="endpointInput" type="text" placeholder="http://localhost:8080/polygon.json" />
         <button id="fetchBtn" type="button">Fetch & Import</button>
       </div>
@@ -48,7 +48,7 @@
       </div>
 
       <div class="row">
-        <strong>Detected polygon schema</strong>
+        <strong>Detected schema</strong>
         <pre id="schemaPreview">(none)</pre>
       </div>
     </section>
@@ -118,19 +118,83 @@
       return { type: 'polygon', id: schema.id, points };
     }
 
+    function parseTriangulationSchema(input) {
+      const schema = typeof input === 'string' ? JSON.parse(input) : input;
+      if (!schema || schema.type !== 'triangulation') {
+        throw new Error('Expected schema object with type="triangulation"');
+      }
+      if (typeof schema.id !== 'string' || schema.id.length === 0) {
+        throw new Error('Triangulation schema must include non-empty string id');
+      }
+      if (!Array.isArray(schema.triangles) || schema.triangles.length === 0) {
+        throw new Error('Triangulation schema must include non-empty triangles array');
+      }
+
+      const triangles = schema.triangles.map((triangleSchema, idx) => {
+        const parsedTriangle = parsePolygonSchema(triangleSchema);
+        if (parsedTriangle.points.length !== 3) {
+          throw new Error(`Triangle at index ${idx} must have exactly 3 vertices`);
+        }
+        return parsedTriangle;
+      });
+
+      return { type: 'triangulation', id: schema.id, triangles };
+    }
+
     function pointsToLatex(points) {
       return `polygon(${points.map(([x, y]) => `(${x},${y})`).join(',')})`;
     }
 
-    function importSchema(schema) {
+    function importPolygonSchema(schema) {
       if (!calculator) {
         throw new Error('Desmos calculator is not initialized yet.');
       }
       const parsed = parsePolygonSchema(schema);
       const latex = pointsToLatex(parsed.points);
       calculator.setExpression({ id: parsed.id, latex });
-      schemaPreviewElt.textContent = JSON.stringify(parsed, null, 2);
-      setStatus(`Imported ${parsed.id} with ${parsed.points.length} vertices.`);
+      return parsed;
+    }
+
+    function importTriangulationSchema(schema) {
+      if (!calculator) {
+        throw new Error('Desmos calculator is not initialized yet.');
+      }
+      const parsed = parseTriangulationSchema(schema);
+      parsed.triangles.forEach((triangle, idx) => {
+        const latex = pointsToLatex(triangle.points);
+        calculator.setExpression({
+          id: triangle.id || `${parsed.id}_tri_${idx + 1}`,
+          latex,
+          color: '#6f4ff2',
+          fillOpacity: 0.05,
+          lineOpacity: 0.8,
+          lineWidth: 1,
+        });
+      });
+      return parsed;
+    }
+
+    function importSchema(schema) {
+      const parsed = typeof schema === 'string' ? JSON.parse(schema) : schema;
+      if (!parsed || typeof parsed.type !== 'string') {
+        throw new Error('Schema must include a string type field');
+      }
+
+      if (parsed.type === 'polygon') {
+        const imported = importPolygonSchema(parsed);
+        schemaPreviewElt.textContent = JSON.stringify(imported, null, 2);
+        setStatus(`Imported polygon ${imported.id} with ${imported.points.length} vertices.`);
+        return;
+      }
+
+      if (parsed.type === 'triangulation') {
+        const imported = importTriangulationSchema(parsed);
+        schemaPreviewElt.textContent = JSON.stringify(imported, null, 2);
+        setStatus(`Imported triangulation ${imported.id} with ${imported.triangles.length} triangles.`);
+        return;
+      }
+
+      throw new Error(`Unsupported schema type: ${parsed.type}`);
     }
 
     fileInputElt.addEventListener('change', async (event) => {

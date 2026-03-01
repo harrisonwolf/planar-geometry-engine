@@ -37,7 +37,7 @@ public:
 	std::unordered_map<double,Point> get_reflex_vertices(){ return reflex_vertices; }
 	std::unordered_map<double,Point> get_convex_vertices(){ return convex_vertices; }
 	double get_area(){ return area; }
-	std::vector<Triangle> get_triangulation(){ return triangulation; }
+	std::vector<Triangle> get_triangulation() const { return triangulation; }
 
 	/*
 	 * Actually calculates the area (using triangulation)

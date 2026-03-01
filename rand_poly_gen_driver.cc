@@ -31,12 +31,18 @@ int main(int argc, char* argv[]){
 	if(1){ //export to desmos API
 	  //can be annoying when just trying to run program
 		string output_path = "tools/desmos-bridge/polygon-export.json";
+		string triangulation_output_path = "tools/desmos-bridge/triangulation-export.json";
 		string bridge_path = "tools/desmos-bridge/index.html";
 		if(write_polygon_schema_file(p, "poly1", output_path)){
 			cout << "Exported polygon schema to " << output_path << "\n";
+			if(write_triangulation_schema_file(p, "poly1_triangulation", triangulation_output_path)){
+				cout << "Exported triangulation schema to " << triangulation_output_path << "\n";
+			}else{
+				cout << "Failed to write triangulation export file.\n";
+			}
 			if(!open_desmos_bridge_page(bridge_path)){
 				cout << "If the browser did not open, manually open " << bridge_path
-					<< " and click 'Load polygon-export.json'.\n";
+					<< " and load polygon-export.json, then triangulation-export.json.\n";
 			}
 		}else{
 			cout << "Failed to write polygon export file.\n";
