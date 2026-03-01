@@ -2,6 +2,7 @@ Stuff I need to do for the project
 
 CURR TASK SHORTLIST
 -add triangulation to desmos bridge
+-refactor rand gen alg and triang alg
 
 PRIMARY
 -Refactor/debug rand gen alg and ear clipping alg
