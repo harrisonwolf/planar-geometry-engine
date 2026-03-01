@@ -68,6 +68,11 @@
       'http://localhost:8765',
     ];
 
+    const AUTO_IMPORT_BUNDLE_ENDPOINTS = [
+      'http://127.0.0.1:8765/bundle',
+      'http://localhost:8765/bundle',
+    ];
+
     const AUTO_IMPORT_SCHEMAS = [
       { type: 'polygon', filename: 'polygon-export.json' },
       { type: 'triangulation', filename: 'triangulation-export.json' },
@@ -191,12 +196,23 @@
       return parsed;
     }
 
-    async function fetchAndImportSchema(endpoint) {
-      const response = await fetch(endpoint);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} for ${endpoint}`);
+
+    async function fetchJsonWithTimeout(endpoint, timeoutMs = 3000) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(endpoint, { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return await response.json();
+      } finally {
+        clearTimeout(timeoutId);
       }
-      importSchema(await response.json());
+    }
+
+    async function fetchAndImportSchema(endpoint) {
+      importSchema(await fetchJsonWithTimeout(endpoint));
     }
 
     function importSchema(schema) {
@@ -237,11 +253,8 @@
 
       for (const endpoint of candidates) {
         try {
-          const response = await fetch(endpoint);
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          return { endpoint, schema: await response.json() };
+          const schema = await fetchJsonWithTimeout(endpoint);
+          return { endpoint, schema };
         } catch (error) {
           errors.push(`${endpoint} (${error.message})`);
         }
@@ -250,24 +263,74 @@
       throw new Error(`No readable source found for ${filename}. Tried: ${errors.join(' ; ')}`);
     }
 
+    async function tryAutoImportBundle() {
+      const errors = [];
+
+      for (const endpoint of AUTO_IMPORT_BUNDLE_ENDPOINTS) {
+        try {
+          const payload = await fetchJsonWithTimeout(endpoint);
+          const polygon = payload.loaded && payload.loaded.polygon_export;
+          const triangulation = payload.loaded && payload.loaded.triangulation_export;
+          const imported = [];
+
+          if (polygon) {
+            importSchema(polygon);
+            imported.push('polygon');
+          }
+          if (triangulation) {
+            importSchema(triangulation);
+            imported.push('triangulation');
+          }
+
+          if (imported.length > 0) {
+            return { endpoint, imported };
+          }
+
+          const helperErrors = payload.errors ? JSON.stringify(payload.errors) : 'missing loaded schemas';
+          throw new Error(`No schemas in bundle payload: ${helperErrors}`);
+        } catch (error) {
+          errors.push(`${endpoint} (${error.message})`);
+        }
+      }
+
+      return { errors };
+    }
+
     async function autoImportDefaultSchemas() {
       const imported = [];
       const failures = [];
 
-      for (const schemaSpec of AUTO_IMPORT_SCHEMAS) {
+      const bundleResult = await tryAutoImportBundle();
+      if (bundleResult.imported && bundleResult.imported.length > 0) {
+        imported.push(...bundleResult.imported.map((schemaType) => `${schemaType} via ${bundleResult.endpoint}`));
+      } else if (bundleResult.errors) {
+        failures.push(`bundle: ${bundleResult.errors.join(' ; ')}`);
+      }
+
+      if (!imported.some((entry) => entry.startsWith('polygon'))) {
         try {
-          const { endpoint, schema } = await fetchFirstAvailableSchema(schemaSpec.filename);
+          const { endpoint, schema } = await fetchFirstAvailableSchema('polygon-export.json');
           importSchema(schema);
-          imported.push(`${schemaSpec.type} from ${endpoint}`);
+          imported.push(`polygon from ${endpoint}`);
         } catch (error) {
-          failures.push(`${schemaSpec.type}: ${error.message}`);
+          failures.push(`polygon: ${error.message}`);
+        }
+      }
+
+      if (!imported.some((entry) => entry.startsWith('triangulation'))) {
+        try {
+          const { endpoint, schema } = await fetchFirstAvailableSchema('triangulation-export.json');
+          importSchema(schema);
+          imported.push(`triangulation from ${endpoint}`);
+        } catch (error) {
+          failures.push(`triangulation: ${error.message}`);
         }
       }
 
       if (imported.length > 0) {
-        setStatus(`Auto-imported ${imported.length} schema file(s): ${imported.join(', ')}.`);
+        setStatus(`Auto-imported ${imported.length} schema(s): ${imported.join(', ')}.`);
       } else {
-        setStatus('Auto-import failed for all default schemas. Use the file picker or local bridge helper.', true);
+        setStatus(`Auto-import failed. ${failures.join(' | ')}`, true);
       }
 
       if (failures.length > 0) {

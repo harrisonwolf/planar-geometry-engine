@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Serve Desmos export JSON files from a local folder over HTTP.
-
-This avoids browser sandbox restrictions around directly reading arbitrary
-local/UNC paths from JavaScript.
-"""
+"""Serve Desmos export JSON files from a local folder over HTTP."""
 
 from __future__ import annotations
 
@@ -11,13 +7,23 @@ import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-
+from typing import Any
+from urllib.parse import urlparse
 
 DEFAULT_SOURCE_DIR = Path('/home/wolve/projects/triangulation-v1-repo/tools/desmos-bridge')
-ALLOWED_FILES = {
-    'polygon-export.json',
-    'triangulation-export.json',
-}
+POLYGON_FILE = 'polygon-export.json'
+TRIANGULATION_FILE = 'triangulation-export.json'
+ALLOWED_FILES = {POLYGON_FILE, TRIANGULATION_FILE}
+
+
+def load_json_file(source_dir: Path, filename: str) -> dict[str, Any]:
+    file_path = source_dir / filename
+    if not file_path.exists():
+        raise FileNotFoundError(f'File not found: {file_path}')
+    try:
+        return json.loads(file_path.read_text(encoding='utf-8'))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f'Invalid JSON in {file_path}: {exc}') from exc
 
 
 class JsonBridgeHandler(BaseHTTPRequestHandler):
@@ -34,37 +40,65 @@ class JsonBridgeHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self) -> None:  # noqa: N802
-        if self.path in ('/', ''):
+        path = urlparse(self.path).path
+
+        if path in ('/', ''):
             payload = {
                 'message': 'Desmos local file bridge is running.',
                 'source_dir': str(self.source_dir),
-                'endpoints': sorted(ALLOWED_FILES),
+                'endpoints': ['health', 'bundle', *sorted(ALLOWED_FILES)],
             }
             self._send_json(200, payload)
             return
 
-        filename = self.path.lstrip('/')
-        if filename not in ALLOWED_FILES:
-            self._send_json(404, {'error': f'Unsupported path: {self.path}'})
+        if path == '/health':
+            self._send_json(200, {'ok': True, 'source_dir': str(self.source_dir)})
             return
 
-        file_path = self.source_dir / filename
-        if not file_path.exists():
-            self._send_json(404, {'error': f'File not found: {file_path}'})
+        if path == '/bundle':
+            self._send_bundle()
+            return
+
+        filename = path.lstrip('/')
+        if filename not in ALLOWED_FILES:
+            self._send_json(404, {'error': f'Unsupported path: {path}'})
             return
 
         try:
-            payload = json.loads(file_path.read_text(encoding='utf-8'))
-        except json.JSONDecodeError as exc:
-            self._send_json(500, {'error': f'Invalid JSON in {file_path}: {exc}'})
+            payload = load_json_file(self.source_dir, filename)
+        except FileNotFoundError as exc:
+            self._send_json(404, {'error': str(exc)})
+            return
+        except ValueError as exc:
+            self._send_json(500, {'error': str(exc)})
             return
 
         self._send_json(200, payload)
 
+    def _send_bundle(self) -> None:
+        result: dict[str, Any] = {
+            'source_dir': str(self.source_dir),
+            'loaded': {},
+            'errors': {},
+        }
+
+        for filename in sorted(ALLOWED_FILES):
+            key = filename.replace('.json', '').replace('-', '_')
+            try:
+                result['loaded'][key] = load_json_file(self.source_dir, filename)
+            except (FileNotFoundError, ValueError) as exc:
+                result['errors'][key] = str(exc)
+
+        if len(result['loaded']) == 0:
+            self._send_json(404, result)
+            return
+
+        self._send_json(200, result)
+
     def log_message(self, fmt: str, *args) -> None:
         return
 
-    def _send_json(self, code: int, payload: dict) -> None:
+    def _send_json(self, code: int, payload: dict[str, Any]) -> None:
         body = json.dumps(payload).encode('utf-8')
         self.send_response(code)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
@@ -87,6 +121,7 @@ def main() -> None:
 
     print(f'Desmos local file bridge listening on http://{args.host}:{args.port}')
     print(f'Serving JSON files from: {source_dir}')
+    print('Bundle endpoint: /bundle')
     try:
         server.serve_forever()
     except KeyboardInterrupt:

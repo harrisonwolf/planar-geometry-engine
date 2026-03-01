@@ -35,10 +35,12 @@ Bridge import behavior:
 - On page load, after the Desmos API initializes, the bridge auto-fetches and imports:
   - `polygon-export.json`
   - `triangulation-export.json`
-- Default fetch candidates are:
-  - relative files from the same served directory (e.g. `./polygon-export.json`)
-  - `http://127.0.0.1:8765/...`
-  - `http://localhost:8765/...`
+- Default fetch strategy is:
+  1. Try helper bundle endpoint first: `http://127.0.0.1:8765/bundle` then `http://localhost:8765/bundle`
+  2. Fallback to per-file candidates:
+     - relative files from the same served directory (e.g. `./polygon-export.json`)
+     - `http://127.0.0.1:8765/...`
+     - `http://localhost:8765/...`
 - Manual imports are still available via file picker or explicit endpoint URL.
 - Triangulations are rendered as a list of polygons in one Desmos expression.
 
@@ -48,6 +50,11 @@ Local-machine path bridge helper (recommended for WSL/UNC paths):
   without user file selection due browser sandbox rules.
 - Run the helper to expose that folder over localhost HTTP:
   - `python3 tools/desmos-bridge/local_file_bridge.py`
+- The helper now exposes:
+  - `/bundle` (loads both schema files in one request)
+  - `/polygon-export.json`
+  - `/triangulation-export.json`
+  - `/health`
 - Optional explicit path:
   - `python3 tools/desmos-bridge/local_file_bridge.py --source-dir /home/wolve/projects/triangulation-v1-repo/tools/desmos-bridge`
 
