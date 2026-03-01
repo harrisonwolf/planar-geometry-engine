@@ -148,6 +148,10 @@
       return `polygon(${points.map(([x, y]) => `(${x},${y})`).join(',')})`;
     }
 
+    function polygonsToLatexList(polygons) {
+      return `[${polygons.map((polygon) => pointsToLatex(polygon.points)).join(',')}]`;
+    }
+
     function importPolygonSchema(schema) {
       if (!calculator) {
         throw new Error('Desmos calculator is not initialized yet.');
@@ -163,19 +167,43 @@
         throw new Error('Desmos calculator is not initialized yet.');
       }
       const parsed = parseTriangulationSchema(schema);
-      parsed.polygons.forEach((polygon, idx) => {
-        const latex = pointsToLatex(polygon.points);
-        calculator.setExpression({
-          id: `${parsed.id}_tri_${idx + 1}`,
-          latex,
-          color: '#6f4ff2',
-          fill: false,
-          fillOpacity: 0,
-          lineOpacity: 1,
-          lineWidth: 2,
-        });
+      const latex = polygonsToLatexList(parsed.polygons);
+      calculator.setExpression({
+        id: parsed.id,
+        latex,
+        color: '#6f4ff2',
+        fill: false,
+        fillOpacity: 0,
+        lineOpacity: 1,
+        lineWidth: 2,
       });
       return parsed;
+    }
+
+    async function fetchAndImportSchema(endpoint) {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} for ${endpoint}`);
+      }
+      importSchema(await response.json());
+    }
+
+    async function autoImportDefaultSchemas() {
+      const polygonEndpoint = 'polygon-export.json';
+      const triangulationEndpoint = 'triangulation-export.json';
+      try {
+        await fetchAndImportSchema(polygonEndpoint);
+      } catch (error) {
+        setStatus(`Ready. Auto-import skipped: ${error.message}`, true);
+        return;
+      }
+
+      try {
+        await fetchAndImportSchema(triangulationEndpoint);
+        setStatus(`Auto-imported ${polygonEndpoint} and ${triangulationEndpoint}.`);
+      } catch (error) {
+        setStatus(`Imported ${polygonEndpoint}; triangulation auto-import skipped: ${error.message}`, true);
+      }
     }
 
     function importSchema(schema) {
@@ -222,11 +250,7 @@
       }
 
       try {
-        const response = await fetch(endpoint);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        importSchema(await response.json());
+        await fetchAndImportSchema(endpoint);
       } catch (error) {
         setStatus(`Fetch/import failed: ${error.message}`, true);
       }
@@ -271,7 +295,9 @@
         return;
       }
       calculator = Desmos.GraphingCalculator(calculatorElt, { expressions: true });
-      setStatus('Ready. Choose a schema JSON file to import.');
+      endpointInputElt.value = 'polygon-export.json';
+      setStatus('Ready. Trying to auto-import polygon-export.json then triangulation-export.json...');
+      autoImportDefaultSchemas();
     });
   </script>
 </body>
