@@ -64,8 +64,8 @@
 
     const AUTO_IMPORT_BASE_PATHS = [
       '.',
-      'file:///home/wolve/projects/triangulation-v1-repo/tools/desmos-bridge',
-      'file://wsl.localhost/Ubuntu/home/wolve/projects/triangulation-v1-repo/tools/desmos-bridge',
+      'http://127.0.0.1:8765',
+      'http://localhost:8765',
     ];
 
     const AUTO_IMPORT_SCHEMAS = [
@@ -266,6 +266,8 @@
 
       if (imported.length > 0) {
         setStatus(`Auto-imported ${imported.length} schema file(s): ${imported.join(', ')}.`);
+      } else {
+        setStatus('Auto-import failed for all default schemas. Use the file picker or local bridge helper.', true);
       }
 
       if (failures.length > 0) {
@@ -339,7 +341,7 @@
         return;
       }
       calculator = Desmos.GraphingCalculator(calculatorElt, { expressions: true });
-      endpointInputElt.value = 'polygon-export.json';
+      endpointInputElt.value = 'http://127.0.0.1:8765/polygon-export.json';
       setStatus('Ready. Importing available schema JSON files...');
       autoImportDefaultSchemas();
     });
