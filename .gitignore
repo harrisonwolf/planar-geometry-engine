@@ -1,6 +1,5 @@
 # Runtime output
-tools/desmos-bridge/triangulation-export.json
-tools/desmos-bridge/polygon-export.json
+tools/desmos-bridge/*.json
 
 # Build output directories
 build/
