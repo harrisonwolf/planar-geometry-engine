@@ -44,11 +44,12 @@ Bridge import behavior:
 - Manual imports are still available via file picker or explicit endpoint URL.
 - Triangulations are rendered as a list of polygons in one Desmos expression.
 
-Local-machine path bridge helper (recommended for WSL/UNC paths):
-- Browser JS cannot reliably read arbitrary local paths like
-  `\wsl.localhost\Ubuntu\home\wolve\projects\triangulation-v1-repo\tools\desmos-bridge`
-  without user file selection due browser sandbox rules.
-- Run the helper to expose that folder over localhost HTTP:
+Local-machine path options for WSL/UNC paths:
+- Browser JS cannot silently emulate OS file-explorer selection for arbitrary local paths.
+- Bridge UI button: `Connect export folder (one-time permission)`.
+  - Uses File System Access API on user click (browser requirement).
+  - Saves folder permission in IndexedDB; if permission stays granted, future page loads auto-import from that folder without opening file explorer again.
+- Alternative: run the helper to expose that folder over localhost HTTP:
   - `python3 tools/desmos-bridge/local_file_bridge.py`
 - The helper now exposes:
   - `/bundle` (loads both schema files in one request)

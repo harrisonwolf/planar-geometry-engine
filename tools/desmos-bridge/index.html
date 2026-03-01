@@ -29,6 +29,7 @@
       <div class="row">
         <label for="fileInput">Import polygon or triangulation schema JSON file</label>
         <input id="fileInput" type="file" accept="application/json,.json" />
+        <button id="connectDirBtn" type="button">Connect export folder (one-time permission)</button>
       </div>
 
       <div class="row">
@@ -61,6 +62,7 @@
     const schemaPreviewElt = document.getElementById('schemaPreview');
     const fileInputElt = document.getElementById('fileInput');
     const endpointInputElt = document.getElementById('endpointInput');
+    const connectDirBtnElt = document.getElementById('connectDirBtn');
 
     const AUTO_IMPORT_BASE_PATHS = [
       '.',
@@ -79,6 +81,12 @@
     ];
 
     let calculator = null;
+
+
+    const DIRECTORY_HANDLE_DB_NAME = 'desmosBridgeFs';
+    const DIRECTORY_HANDLE_STORE = 'handles';
+    const DIRECTORY_HANDLE_KEY = 'exportDir';
+
 
     function setStatus(message, isError = false) {
       statusElt.className = isError ? 'error' : 'success';
@@ -197,6 +205,92 @@
     }
 
 
+
+    function supportsDirectoryHandlePersistence() {
+      return 'showDirectoryPicker' in window && 'indexedDB' in window;
+    }
+
+    function openHandleDb() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DIRECTORY_HANDLE_DB_NAME, 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(DIRECTORY_HANDLE_STORE)) {
+            db.createObjectStore(DIRECTORY_HANDLE_STORE);
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error('Failed to open IndexedDB'));
+      });
+    }
+
+    async function saveDirectoryHandle(handle) {
+      const db = await openHandleDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(DIRECTORY_HANDLE_STORE, 'readwrite');
+        tx.objectStore(DIRECTORY_HANDLE_STORE).put(handle, DIRECTORY_HANDLE_KEY);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error || new Error('Failed to save directory handle'));
+      });
+      db.close();
+    }
+
+    async function loadDirectoryHandle() {
+      const db = await openHandleDb();
+      const handle = await new Promise((resolve, reject) => {
+        const tx = db.transaction(DIRECTORY_HANDLE_STORE, 'readonly');
+        const request = tx.objectStore(DIRECTORY_HANDLE_STORE).get(DIRECTORY_HANDLE_KEY);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error || new Error('Failed to load directory handle'));
+      });
+      db.close();
+      return handle;
+    }
+
+    async function importFromDirectoryHandle(directoryHandle) {
+      const imported = [];
+      const failures = [];
+
+      for (const schemaSpec of AUTO_IMPORT_SCHEMAS) {
+        try {
+          const fileHandle = await directoryHandle.getFileHandle(schemaSpec.filename);
+          const file = await fileHandle.getFile();
+          importSchema(await file.text());
+          imported.push(schemaSpec.type);
+        } catch (error) {
+          failures.push(`${schemaSpec.type}: ${error.message}`);
+        }
+      }
+
+      return { imported, failures };
+    }
+
+    async function tryAutoImportFromSavedDirectory() {
+      if (!supportsDirectoryHandlePersistence()) {
+        return { skipped: 'directory picker API unavailable in this browser' };
+      }
+
+      const handle = await loadDirectoryHandle();
+      if (!handle) {
+        return { skipped: 'no saved export-folder permission' };
+      }
+
+      const permission = await handle.queryPermission({ mode: 'read' });
+      if (permission !== 'granted') {
+        return { skipped: `saved folder permission is ${permission}` };
+      }
+
+      const result = await importFromDirectoryHandle(handle);
+      if (result.imported.length === 0) {
+        return { errors: [`saved export folder contained no importable schemas (${result.failures.join(' ; ')})`] };
+      }
+
+      return {
+        imported: result.imported.map((schemaType) => `${schemaType} via saved export folder permission`),
+        failures: result.failures,
+      };
+    }
+
     async function fetchJsonWithTimeout(endpoint, timeoutMs = 3000) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -300,6 +394,21 @@
       const imported = [];
       const failures = [];
 
+      try {
+        const savedDirectoryResult = await tryAutoImportFromSavedDirectory();
+        if (savedDirectoryResult.imported && savedDirectoryResult.imported.length > 0) {
+          imported.push(...savedDirectoryResult.imported);
+        }
+        if (savedDirectoryResult.failures && savedDirectoryResult.failures.length > 0) {
+          failures.push(...savedDirectoryResult.failures.map((message) => `saved-folder: ${message}`));
+        }
+        if (savedDirectoryResult.errors && savedDirectoryResult.errors.length > 0) {
+          failures.push(...savedDirectoryResult.errors.map((message) => `saved-folder: ${message}`));
+        }
+      } catch (error) {
+        failures.push(`saved-folder: ${error.message}`);
+      }
+
       const bundleResult = await tryAutoImportBundle();
       if (bundleResult.imported && bundleResult.imported.length > 0) {
         imported.push(...bundleResult.imported.map((schemaType) => `${schemaType} via ${bundleResult.endpoint}`));
@@ -362,6 +471,33 @@
         await fetchAndImportSchema(endpoint);
       } catch (error) {
         setStatus(`Fetch/import failed: ${error.message}`, true);
+      }
+    });
+
+
+    connectDirBtnElt.addEventListener('click', async () => {
+      if (!supportsDirectoryHandlePersistence()) {
+        setStatus('This browser does not support folder permission APIs. Use file picker or localhost helper.', true);
+        return;
+      }
+
+      try {
+        const directoryHandle = await window.showDirectoryPicker({ mode: 'read' });
+        const permission = await directoryHandle.requestPermission({ mode: 'read' });
+        if (permission !== 'granted') {
+          setStatus('Folder permission not granted. Auto-import from folder is disabled.', true);
+          return;
+        }
+
+        await saveDirectoryHandle(directoryHandle);
+        const result = await importFromDirectoryHandle(directoryHandle);
+        if (result.imported.length > 0) {
+          setStatus(`Connected folder and imported: ${result.imported.join(', ')}.`);
+        } else {
+          setStatus(`Folder connected, but no schemas imported: ${result.failures.join(' | ')}`, true);
+        }
+      } catch (error) {
+        setStatus(`Failed to connect folder: ${error.message}`, true);
       }
     });
 
