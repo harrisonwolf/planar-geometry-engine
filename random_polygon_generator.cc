@@ -15,14 +15,47 @@
 #include <vector>
 #include <list>
 #include <unordered_set>
+#include <stdexcept>
+#include <cmath>
 
 using namespace std;
+
+namespace {
+
+constexpr int MAX_CANDIDATE_ATTEMPTS_PER_VERTEX = 5000;
+
+bool has_duplicate_point(const list<Point>& points, const Point& candidate){
+	for(const Point& p: points){
+		if(p == candidate) return true;
+	}
+	return false;
+}
+
+bool has_duplicate_x(const unordered_set<double>& xvals, double x){
+	return xvals.count(x) > 0;
+}
+
+bool validate_generated_vertex_order(const list<Point>& points){
+	if(points.size() < 3) return false;
+	vector<Point> pts(points.begin(), points.end());
+	int n = static_cast<int>(pts.size());
+	for(int i = 0; i < n; ++i){
+		pair<Point,Point> edge1{pts[i], pts[(i+1)%n]};
+		for(int j = i + 1; j < n; ++j){
+			if(abs(i-j) <= 1 || (i == 0 && j == n-1)) continue;
+			pair<Point,Point> edge2{pts[j], pts[(j+1)%n]};
+			if(collides(edge1, edge2)) return false;
+		}
+	}
+	return true;
+}
+
+}
 
 Polygon generate_random_polygon(int n){
 	DBG("Entered generate_random_polygon function\n");
 	if(n<3){
-		cout << "Error: Called generate_random_polygon with n less than 3. Exiting.\n";
-		exit(1);
+		throw invalid_argument("Called generate_random_polygon with n less than 3.");
 	}	
 	//need to generate n vertices sequentially. first 3 are given, then for each one after, you have to check and make sure the newly created edge would not intersect any
 	//existing edges. Could do it like a vision problem; eg. each say you're at vertex v_i, i>4. You basically can set the new vertex v_i+1 anywhere that v_i can "see"
@@ -47,11 +80,12 @@ Polygon generate_random_polygon(int n){
 		rand_x = unif(gen);	
 		rand_y = unif(gen);
 		//check to make sure point doesn't exist
-		if(xvals.count(rand_x) > 0){ //try again
+		Point candidate(rand_x, rand_y);
+		if(has_duplicate_x(xvals, rand_x) || has_duplicate_point(points, candidate)){ //try again
 			i--;
 			continue;
 		}
-		points.push_back(Point(rand_x,rand_y));
+		points.push_back(candidate);
 		xvals.insert(rand_x);
 	}
 	//check contents
@@ -86,10 +120,17 @@ Polygon generate_random_polygon(int n){
 	for(int i=3; i<n-1; i++){ //start at 3 b/c 3 verts already exist
 							  //N MINUS ONE SINCE LAST VERTEX IS SPECIAL CASE!! HAS TO CONNECT TO FIRST!!
 	DBG_TAG("poly.rand_gen", "Entered loop with i = " << i << ".\n");
+		int attempt_count = 0;
 restart_curr_rand_gen:
+		if(attempt_count++ >= MAX_CANDIDATE_ATTEMPTS_PER_VERTEX){
+			throw runtime_error("generate_random_polygon exceeded max candidate attempts in interior vertex generation");
+		}
 		DBG_TAG("poly.rand_gen","Generating pot new vertex\n");
 		rand_x = unif(gen);		
 		rand_y = unif(gen);		
+		if(has_duplicate_x(xvals, rand_x) || has_duplicate_point(points, Point(rand_x,rand_y))){
+			goto restart_curr_rand_gen;
+		}
 		potential_new.set_x(rand_x);
 		potential_new.set_y(rand_y);
 		last = points.back();
@@ -123,12 +164,19 @@ restart_curr_rand_gen:
 	pair<Point,Point> potential_new_pair_2 = {Point(0,0),Point(0,0)};
 	Point first = points.front();
 	DBG_TAG("poly.rand_gen",ANSI::CYAN << "About to begin last vertex gen.\n" << ANSI::RESET);
+	int final_attempt_count = 0;
 	while(1){ //keep trying till get vertex that sees first vertex in list 
 			  //and last in list
 while_start:
+		if(final_attempt_count++ >= MAX_CANDIDATE_ATTEMPTS_PER_VERTEX){
+			throw runtime_error("generate_random_polygon exceeded max candidate attempts in final vertex generation");
+		}
 		DBG_TAG("poly.rand_gen","Generating LAST pot new vertex\n");
 		rand_x = unif(gen);		
 		rand_y = unif(gen);		
+		if(has_duplicate_x(xvals, rand_x) || has_duplicate_point(points, Point(rand_x,rand_y))){
+			goto while_start;
+		}
 		potential_new.set_x(rand_x);
 		potential_new.set_y(rand_y);
 		last = points.back();
@@ -176,6 +224,9 @@ while_start:
 		break;
 	}
 	DBG_TAG("poly.rand_gen",ANSI::BOLD_GREEN << "Successfully finished gen function!\n" << ANSI::RESET);
+	if(!validate_generated_vertex_order(points)){
+		DBG_TAG("poly.rand_gen", ANSI::RED << "Post-generation validation failed: polygon edges self-intersect.\n" << ANSI::RESET);
+	}
 
 	DBG_TAG("poly.rand_gen", "In rand poly generator, about to attempt initialization of polygon with rand gen points.\n");
 	return Polygon(points); 
