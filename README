@@ -32,13 +32,19 @@ and attempts to open the bridge page in your default browser.
 - `tools/desmos-bridge/triangulation-export.json`
 
 Bridge import behavior:
-- Polygon and triangulation imports are manual (file picker or explicit endpoint URL).
-- There is no automatic fetch/import on page load.
+- On page load, after the Desmos API initializes, the bridge auto-fetches and imports:
+  - `polygon-export.json`
+  - `triangulation-export.json`
+  from the bridge directory when available.
+- Fallback auto-fetch locations also include:
+  - `file:///home/wolve/projects/triangulation-v1-repo/tools/desmos-bridge/...`
+  - `file://wsl.localhost/Ubuntu/home/wolve/projects/triangulation-v1-repo/tools/desmos-bridge/...`
+- Manual imports are still available via file picker or explicit endpoint URL.
 - Triangulations are rendered as a list of polygons in one Desmos expression.
 
 If the automatic browser launch does not work:
 1. Manually open `tools/desmos-bridge/index.html` in a browser.
-2. Use the file picker to import `tools/desmos-bridge/polygon-export.json`.
+2. If auto-import fails (for example, file not found), use the file picker to import `tools/desmos-bridge/polygon-export.json`.
 3. Import `tools/desmos-bridge/triangulation-export.json` to overlay the triangulation.
 
 Tip: if your system opens a file manager instead of a browser, opening
