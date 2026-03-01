@@ -126,19 +126,22 @@
       if (typeof schema.id !== 'string' || schema.id.length === 0) {
         throw new Error('Triangulation schema must include non-empty string id');
       }
-      if (!Array.isArray(schema.triangles) || schema.triangles.length === 0) {
-        throw new Error('Triangulation schema must include non-empty triangles array');
+      if (!Array.isArray(schema.polygons) || schema.polygons.length === 0) {
+        throw new Error('Triangulation schema must include non-empty polygons array');
       }
 
-      const triangles = schema.triangles.map((triangleSchema, idx) => {
-        const parsedTriangle = parsePolygonSchema(triangleSchema);
-        if (parsedTriangle.points.length !== 3) {
-          throw new Error(`Triangle at index ${idx} must have exactly 3 vertices`);
+      const polygons = schema.polygons.map((polygonSchema, idx) => {
+        if (!polygonSchema || polygonSchema.type !== 'polygon') {
+          throw new Error(`Triangulation polygon at index ${idx} must have type="polygon"`);
         }
-        return parsedTriangle;
+        const points = normalizePoints(polygonSchema.points);
+        if (points.length !== 3) {
+          throw new Error(`Triangulation polygon at index ${idx} must have exactly 3 vertices`);
+        }
+        return { type: 'polygon', points };
       });
 
-      return { type: 'triangulation', id: schema.id, triangles };
+      return { type: 'triangulation', id: schema.id, polygons };
     }
 
     function pointsToLatex(points) {
@@ -151,7 +154,7 @@
       }
       const parsed = parsePolygonSchema(schema);
       const latex = pointsToLatex(parsed.points);
-      calculator.setExpression({ id: parsed.id, latex });
+      calculator.setExpression({ id: parsed.id, latex, fillOpacity: 0.2 });
       return parsed;
     }
 
@@ -160,15 +163,16 @@
         throw new Error('Desmos calculator is not initialized yet.');
       }
       const parsed = parseTriangulationSchema(schema);
-      parsed.triangles.forEach((triangle, idx) => {
-        const latex = pointsToLatex(triangle.points);
+      parsed.polygons.forEach((polygon, idx) => {
+        const latex = pointsToLatex(polygon.points);
         calculator.setExpression({
-          id: triangle.id || `${parsed.id}_tri_${idx + 1}`,
+          id: `${parsed.id}_tri_${idx + 1}`,
           latex,
           color: '#6f4ff2',
-          fillOpacity: 0.05,
-          lineOpacity: 0.8,
-          lineWidth: 1,
+          fill: false,
+          fillOpacity: 0,
+          lineOpacity: 1,
+          lineWidth: 2,
         });
       });
       return parsed;
@@ -190,7 +194,7 @@
       if (parsed.type === 'triangulation') {
         const imported = importTriangulationSchema(parsed);
         schemaPreviewElt.textContent = JSON.stringify(imported, null, 2);
-        setStatus(`Imported triangulation ${imported.id} with ${imported.triangles.length} triangles.`);
+        setStatus(`Imported triangulation ${imported.id} with ${imported.polygons.length} polygons.`);
         return;
       }
 

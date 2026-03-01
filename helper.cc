@@ -327,7 +327,7 @@ bool write_triangulation_schema_file(const Polygon& polygon, const std::string& 
 	out << "{\n";
 	out << "  \"type\": \"triangulation\",\n";
 	out << "  \"id\": \"" << json_escape(triangulation_id) << "\",\n";
-	out << "  \"triangles\": [\n";
+	out << "  \"polygons\": [\n";
 	for(size_t i=0; i<triangles.size(); ++i){
 		std::vector<Point> triangle_vertices{triangles[i].get_a(), triangles[i].get_b(), triangles[i].get_c()};
 		if(!normalize_polygon_vertices(std::list<Point>(triangle_vertices.begin(), triangle_vertices.end()),
@@ -338,7 +338,6 @@ bool write_triangulation_schema_file(const Polygon& polygon, const std::string& 
 
 		out << "    {\n";
 		out << "      \"type\": \"polygon\",\n";
-		out << "      \"id\": \"" << json_escape(triangulation_id + "_tri_" + std::to_string(i + 1)) << "\",\n";
 		out << "      \"points\": [\n";
 		for(size_t j=0; j<triangle_vertices.size(); ++j){
 			out << "        [" << triangle_vertices[j].get_x() << "," << triangle_vertices[j].get_y() << "]";
