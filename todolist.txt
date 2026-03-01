@@ -15,7 +15,6 @@ SECONDARY
 	-Perhaps calculate 3 pot next verts at a time before committing the next one, like a chess engine
 -Make some sort of line of sight logic
 -Organize directory into subdirectories eg shell scripts, test files
--Update README
 -Implement Delaunay triangulation alg, then voronoi diagram is easy corollary
 -Save/load files
 -Finish create_convex_polygon.cc -- think this was an attempt I forgot about to do exactly what I have above (make sure rand gen polygon is valid)
