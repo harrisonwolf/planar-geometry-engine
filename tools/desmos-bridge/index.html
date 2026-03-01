@@ -27,12 +27,12 @@
   <main>
     <section class="panel">
       <div class="row">
-        <label for="fileInput">Import schema JSON file</label>
+        <label for="fileInput">Import polygon or triangulation schema JSON file</label>
         <input id="fileInput" type="file" accept="application/json,.json" />
       </div>
 
       <div class="row">
-        <label for="endpointInput">Or fetch schema from local endpoint URL</label>
+        <label for="endpointInput">Or fetch polygon/triangulation schema from local endpoint URL</label>
         <input id="endpointInput" type="text" placeholder="http://localhost:8080/polygon.json" />
         <button id="fetchBtn" type="button">Fetch & Import</button>
       </div>
@@ -48,7 +48,7 @@
       </div>
 
       <div class="row">
-        <strong>Detected polygon schema</strong>
+        <strong>Detected schema</strong>
         <pre id="schemaPreview">(none)</pre>
       </div>
     </section>
@@ -118,19 +118,97 @@
       return { type: 'polygon', id: schema.id, points };
     }
 
+    function parseTriangulationSchema(input) {
+      const schema = typeof input === 'string' ? JSON.parse(input) : input;
+      if (!schema || schema.type !== 'triangulation') {
+        throw new Error('Expected schema object with type="triangulation"');
+      }
+      if (typeof schema.id !== 'string' || schema.id.length === 0) {
+        throw new Error('Triangulation schema must include non-empty string id');
+      }
+      if (!Array.isArray(schema.polygons) || schema.polygons.length === 0) {
+        throw new Error('Triangulation schema must include non-empty polygons array');
+      }
+
+      const polygons = schema.polygons.map((polygonSchema, idx) => {
+        if (!polygonSchema || polygonSchema.type !== 'polygon') {
+          throw new Error(`Triangulation polygon at index ${idx} must have type="polygon"`);
+        }
+        const points = normalizePoints(polygonSchema.points);
+        if (points.length !== 3) {
+          throw new Error(`Triangulation polygon at index ${idx} must have exactly 3 vertices`);
+        }
+        return { type: 'polygon', points };
+      });
+
+      return { type: 'triangulation', id: schema.id, polygons };
+    }
+
     function pointsToLatex(points) {
       return `polygon(${points.map(([x, y]) => `(${x},${y})`).join(',')})`;
     }
 
-    function importSchema(schema) {
+    function polygonsToLatexList(polygons) {
+      return `[${polygons.map((polygon) => pointsToLatex(polygon.points)).join(',')}]`;
+    }
+
+    function importPolygonSchema(schema) {
       if (!calculator) {
         throw new Error('Desmos calculator is not initialized yet.');
       }
       const parsed = parsePolygonSchema(schema);
       const latex = pointsToLatex(parsed.points);
-      calculator.setExpression({ id: parsed.id, latex });
-      schemaPreviewElt.textContent = JSON.stringify(parsed, null, 2);
-      setStatus(`Imported ${parsed.id} with ${parsed.points.length} vertices.`);
+      calculator.setExpression({ id: parsed.id, latex, fillOpacity: 0.2 });
+      return parsed;
+    }
+
+    function importTriangulationSchema(schema) {
+      if (!calculator) {
+        throw new Error('Desmos calculator is not initialized yet.');
+      }
+      const parsed = parseTriangulationSchema(schema);
+      const latex = polygonsToLatexList(parsed.polygons);
+      calculator.setExpression({
+        id: parsed.id,
+        latex,
+        color: '#6f4ff2',
+        fill: false,
+        fillOpacity: 0,
+        lineOpacity: 1,
+        lineWidth: 2,
+      });
+      return parsed;
+    }
+
+    async function fetchAndImportSchema(endpoint) {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} for ${endpoint}`);
+      }
+      importSchema(await response.json());
+    }
+
+    function importSchema(schema) {
+      const parsed = typeof schema === 'string' ? JSON.parse(schema) : schema;
+      if (!parsed || typeof parsed.type !== 'string') {
+        throw new Error('Schema must include a string type field');
+      }
+
+      if (parsed.type === 'polygon') {
+        const imported = importPolygonSchema(parsed);
+        schemaPreviewElt.textContent = JSON.stringify(imported, null, 2);
+        setStatus(`Imported polygon ${imported.id} with ${imported.points.length} vertices.`);
+        return;
+      }
+
+      if (parsed.type === 'triangulation') {
+        const imported = importTriangulationSchema(parsed);
+        schemaPreviewElt.textContent = JSON.stringify(imported, null, 2);
+        setStatus(`Imported triangulation ${imported.id} with ${imported.polygons.length} polygons.`);
+        return;
+      }
+
+      throw new Error(`Unsupported schema type: ${parsed.type}`);
     }
 
     fileInputElt.addEventListener('change', async (event) => {
@@ -154,11 +232,7 @@
       }
 
       try {
-        const response = await fetch(endpoint);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        importSchema(await response.json());
+        await fetchAndImportSchema(endpoint);
       } catch (error) {
         setStatus(`Fetch/import failed: ${error.message}`, true);
       }

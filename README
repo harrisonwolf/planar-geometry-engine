@@ -20,14 +20,26 @@ A local bridge page is available at `tools/desmos-bridge/index.html`.
 Polygon schema format used for import/export:
 `{"type":"polygon","id":"poly1","points":[[x1,y1],[x2,y2],...]}`
 
+Triangulation schema format used for import/export:
+`{"type":"triangulation","id":"poly1_triangulation","polygons":[{"type":"polygon","points":[[x1,y1],[x2,y2],[x3,y3]]},...]}`
+
 In the CLI (`main`), option 6 exports the latest stored polygon to:
 `tools/desmos-bridge/polygon-export.json`
 and attempts to open the bridge page in your default browser.
 
+`rand_poly_gen_driver` exports both:
+- `tools/desmos-bridge/polygon-export.json`
+- `tools/desmos-bridge/triangulation-export.json`
+
+Bridge import behavior:
+- Polygon and triangulation imports are manual (file picker or explicit endpoint URL).
+- There is no automatic fetch/import on page load.
+- Triangulations are rendered as a list of polygons in one Desmos expression.
+
 If the automatic browser launch does not work:
 1. Manually open `tools/desmos-bridge/index.html` in a browser.
-2. Click **Load polygon-export.json**.
-3. Select `tools/desmos-bridge/polygon-export.json`.
+2. Use the file picker to import `tools/desmos-bridge/polygon-export.json`.
+3. Import `tools/desmos-bridge/triangulation-export.json` to overlay the triangulation.
 
 Tip: if your system opens a file manager instead of a browser, opening
 `index.html` directly from the browser (File -> Open File) is the most reliable fallback.

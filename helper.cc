@@ -262,27 +262,38 @@ static std::string json_escape(const std::string& input){
 	return escaped;
 }
 
+static bool normalize_polygon_vertices(const std::list<Point>& raw_vertices,
+                                       std::vector<Point>& normalized_vertices,
+                                       const std::string& error_prefix){
+	normalized_vertices.clear();
+	for(const Point& p: raw_vertices){
+		if(!std::isfinite(p.get_x()) || !std::isfinite(p.get_y())){
+			std::cout << error_prefix << ": non-numeric coordinate detected.\n";
+			return false;
+		}
+		normalized_vertices.push_back(p);
+	}
+
+	if(normalized_vertices.size() > 1){
+		const Point& first = normalized_vertices.front();
+		const Point& last = normalized_vertices.back();
+		if(first == last){
+			normalized_vertices.pop_back();
+		}
+	}
+
+	if(normalized_vertices.size() < 3){
+		std::cout << error_prefix << ": fewer than 3 unique vertices.\n";
+		return false;
+	}
+
+	return true;
+}
+
 bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygon_id,
                                const std::string& output_path){
 	std::vector<Point> vertices;
-	for(const Point& p: polygon.get_vertex_list()){
-		if(!std::isfinite(p.get_x()) || !std::isfinite(p.get_y())){
-			std::cout << "Polygon export error: non-numeric coordinate detected.\n";
-			return false;
-		}
-		vertices.push_back(p);
-	}
-
-	if(vertices.size() > 1){
-		const Point& first = vertices.front();
-		const Point& last = vertices.back();
-		if(first == last){
-			vertices.pop_back();
-		}
-	}
-
-	if(vertices.size() < 3){
-		std::cout << "Polygon export error: fewer than 3 unique vertices.\n";
+	if(!normalize_polygon_vertices(polygon.get_vertex_list(), vertices, "Polygon export error")){
 		return false;
 	}
 
@@ -295,6 +306,47 @@ bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygo
 	for(size_t i=0; i<vertices.size(); ++i){
 		out << "    [" << vertices[i].get_x() << "," << vertices[i].get_y() << "]";
 		if(i + 1 < vertices.size()) out << ",";
+		out << "\n";
+	}
+	out << "  ]\n";
+	out << "}\n";
+	return true;
+}
+
+bool write_triangulation_schema_file(const Polygon& polygon, const std::string& triangulation_id,
+                                     const std::string& output_path){
+	std::vector<Triangle> triangles = polygon.get_triangulation();
+	if(triangles.empty()){
+		std::cout << "Triangulation export error: polygon triangulation is empty.\n";
+		return false;
+	}
+
+	std::ofstream out(output_path);
+	if(!out.is_open()) return false;
+
+	out << "{\n";
+	out << "  \"type\": \"triangulation\",\n";
+	out << "  \"id\": \"" << json_escape(triangulation_id) << "\",\n";
+	out << "  \"polygons\": [\n";
+	for(size_t i=0; i<triangles.size(); ++i){
+		std::vector<Point> triangle_vertices{triangles[i].get_a(), triangles[i].get_b(), triangles[i].get_c()};
+		if(!normalize_polygon_vertices(std::list<Point>(triangle_vertices.begin(), triangle_vertices.end()),
+					      triangle_vertices,
+					      "Triangulation export error")){
+			return false;
+		}
+
+		out << "    {\n";
+		out << "      \"type\": \"polygon\",\n";
+		out << "      \"points\": [\n";
+		for(size_t j=0; j<triangle_vertices.size(); ++j){
+			out << "        [" << triangle_vertices[j].get_x() << "," << triangle_vertices[j].get_y() << "]";
+			if(j + 1 < triangle_vertices.size()) out << ",";
+			out << "\n";
+		}
+		out << "      ]\n";
+		out << "    }";
+		if(i + 1 < triangles.size()) out << ",";
 		out << "\n";
 	}
 	out << "  ]\n";
