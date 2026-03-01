@@ -188,24 +188,6 @@
       importSchema(await response.json());
     }
 
-    async function autoImportDefaultSchemas() {
-      const polygonEndpoint = 'polygon-export.json';
-      const triangulationEndpoint = 'triangulation-export.json';
-      try {
-        await fetchAndImportSchema(polygonEndpoint);
-      } catch (error) {
-        setStatus(`Ready. Auto-import skipped: ${error.message}`, true);
-        return;
-      }
-
-      try {
-        await fetchAndImportSchema(triangulationEndpoint);
-        setStatus(`Auto-imported ${polygonEndpoint} and ${triangulationEndpoint}.`);
-      } catch (error) {
-        setStatus(`Imported ${polygonEndpoint}; triangulation auto-import skipped: ${error.message}`, true);
-      }
-    }
-
     function importSchema(schema) {
       const parsed = typeof schema === 'string' ? JSON.parse(schema) : schema;
       if (!parsed || typeof parsed.type !== 'string') {
@@ -295,9 +277,7 @@
         return;
       }
       calculator = Desmos.GraphingCalculator(calculatorElt, { expressions: true });
-      endpointInputElt.value = 'polygon-export.json';
-      setStatus('Ready. Trying to auto-import polygon-export.json then triangulation-export.json...');
-      autoImportDefaultSchemas();
+      setStatus('Ready. Choose a schema JSON file to import.');
     });
   </script>
 </body>
