@@ -22,8 +22,8 @@ using namespace std;
 
 namespace {
 
-constexpr int LOOKAHEAD_TRIES_PER_LEVEL = 5000;
-constexpr int MAX_COMMIT_ATTEMPTS_PER_VERTEX = 100000;
+constexpr int LOOKAHEAD_TRIES_PER_LEVEL = 500;
+constexpr int MAX_COMMIT_ATTEMPTS_PER_VERTEX = 10000;
 
 bool has_duplicate_point(const list<Point>& points, const Point& candidate){
 	for(const Point& p: points){
@@ -91,6 +91,7 @@ bool validate_generated_vertex_order(const list<Point>& points){
 }
 
 Polygon generate_random_polygon(int n){
+	const int LOOKAHEAD_DEPTH = n/2;
 	DBG("Entered generate_random_polygon function\n");
 	if(n<3){
 		throw invalid_argument("Called generate_random_polygon with n less than 3.");
@@ -139,9 +140,9 @@ Polygon generate_random_polygon(int n){
 			trial_points.push_back(potential_new);
 			trial_xvals.insert(rand_x);
 
-			if(!can_find_lookahead_chain(trial_points, trial_xvals, 2, gen, unif)) continue;
+			if(!can_find_lookahead_chain(trial_points, trial_xvals, LOOKAHEAD_DEPTH, gen, unif)) continue;
 
-			DBG_TAG("poly.rand_gen", ANSI::GREEN << "Accepted vertex after successful 2-step lookahead.\n" << ANSI::RESET);
+			DBG_TAG("easy.poly.rand_gen", ANSI::GREEN << "Accepted vertex " << potential_new.to_string() << " after successful " << LOOKAHEAD_DEPTH << "-step lookahead.\n" << ANSI::RESET);
 			points.push_back(potential_new);
 			xvals.insert(rand_x);
 			committed = true;
@@ -161,10 +162,14 @@ Polygon generate_random_polygon(int n){
 	Point curr1(0,0);
 	Point curr2(0,0);
 	auto it = points.begin();
-	DBG_TAG("poly.rand_gen",ANSI::CYAN << "About to begin last vertex gen.\n" << ANSI::RESET);
+	int last_vertex_gen_attempts = 0;
+	DBG_TAG("easy.poly.rand_gen",ANSI::CYAN << "About to begin last vertex gen.\n" << ANSI::RESET);
 	while(1){
 while_start:
 		DBG_TAG("poly.rand_gen","Generating LAST pot new vertex\n");
+		if(last_vertex_gen_attempts%50000 == 0){
+			DBG_TAG("easy.poly.rand_gen","Gen attempt " << last_vertex_gen_attempts << "\n");
+		}
 		rand_x = unif(gen);
 		rand_y = unif(gen);
 		if(has_duplicate_x(xvals, rand_x) || has_duplicate_point(points, Point(rand_x,rand_y))){
@@ -184,11 +189,13 @@ while_start:
 			iterating_pair = {curr1,curr2};
 			if(j == 0 or j == n-3){
 				if(strict_collides(iterating_pair,potential_new_pair_1) or strict_collides(iterating_pair,potential_new_pair_2)){
+					last_vertex_gen_attempts++;
 					it--;
 					goto while_start;
 				}
 			}else{
 				if(collides(iterating_pair,potential_new_pair_1) or collides(iterating_pair,potential_new_pair_2)){
+					last_vertex_gen_attempts++;
 					it--;
 					goto while_start;
 				}
