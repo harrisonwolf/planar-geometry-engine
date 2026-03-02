@@ -1,7 +1,9 @@
 Stuff I need to do for the project
 
 CURR TASK SHORTLIST
--refactor rand gen alg and triang alg
+-refactor rand gen alg
+	-decide btwn new one and prev one (in codex local branch)
+-refactor ear clipping triang alg
 
 PRIMARY
 -Make desmos bridge page autofetch json files after initializing api
