@@ -9,16 +9,14 @@
 #include "die.h"
 #include <vector>
 #include <algorithm>
-#include <unordered_map>
 #include <sstream>
 #include <list>
 
 class Polygon{
 private:
 	std::list<Point> vertex_list;
-	std::unordered_map<double,Point> dict;
-	std::unordered_map<double,Point> reflex_vertices;
-	std::unordered_map<double,Point> convex_vertices;
+	std::vector<Point> reflex_vertices;
+	std::vector<Point> convex_vertices;
 	//need to add to these as I'm constructing the polygon, using the fact that points are given
 	//in clockwise order, so the inside of the polygon is always to the "right,"
 	//with respect to the movement along the perimeter
@@ -33,9 +31,9 @@ public:
 	Polygon(std::list<Point> vertices);//constructor which takes a given point list
 	
 	/* Accessors */
-	std::list<Point> get_vertex_list() const { return vertex_list; }
-	std::unordered_map<double,Point> get_reflex_vertices(){ return reflex_vertices; }
-	std::unordered_map<double,Point> get_convex_vertices(){ return convex_vertices; }
+	const std::list<Point>& get_vertex_list() const { return vertex_list; }
+	const std::vector<Point>& get_reflex_vertices() const { return reflex_vertices; }
+	const std::vector<Point>& get_convex_vertices() const { return convex_vertices; }
 	double get_area(){ return area; }
 	std::vector<Triangle> get_triangulation() const { return triangulation; }
 
