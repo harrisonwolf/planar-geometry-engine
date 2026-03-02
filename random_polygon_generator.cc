@@ -24,6 +24,8 @@ namespace {
 
 constexpr int LOOKAHEAD_TRIES_PER_LEVEL = 500;
 constexpr int MAX_COMMIT_ATTEMPTS_PER_VERTEX = 10000;
+constexpr int MAX_LAST_VERTEX_ATTEMPTS = 250000;
+constexpr int MAX_POLYGON_RESTARTS = 200;
 
 bool has_duplicate_point(const list<Point>& points, const Point& candidate){
 	for(const Point& p: points){
@@ -91,7 +93,7 @@ bool validate_generated_vertex_order(const list<Point>& points){
 }
 
 Polygon generate_random_polygon(int n){
-	const int LOOKAHEAD_DEPTH = n/2;
+	const int LOOKAHEAD_DEPTH = std::max(2, std::min(10, n/4));
 	DBG("Entered generate_random_polygon function\n");
 	if(n<3){
 		throw invalid_argument("Called generate_random_polygon with n less than 3.");
@@ -99,117 +101,99 @@ Polygon generate_random_polygon(int n){
 	random_device rd;
 	mt19937 gen(rd());
 	uniform_real_distribution<double> unif(-100,100);
-	list<Point> points;
-	unordered_set<double> xvals;
-	double rand_x = 0;
-	double rand_y = 0;
-	rand_x = unif(gen);
-	rand_y = unif(gen);
-	points.push_back(Point(rand_x,rand_y));
-	xvals.insert(rand_x);
-	DBG_TAG("poly.rand_gen.outer","Points list and xvals set initialized, first point added. \nFirst point: " << points.front().to_string() << "\n");
-	for(int i=0; i<2; i++){
-		rand_x = unif(gen);
-		rand_y = unif(gen);
-		Point candidate(rand_x, rand_y);
-		if(has_duplicate_x(xvals, rand_x) || has_duplicate_point(points, candidate)){
-			i--;
-			continue;
-		}
-		points.push_back(candidate);
+	for(int restart = 0; restart < MAX_POLYGON_RESTARTS; ++restart){
+		list<Point> points;
+		unordered_set<double> xvals;
+		double rand_x = unif(gen);
+		double rand_y = unif(gen);
+		points.push_back(Point(rand_x,rand_y));
 		xvals.insert(rand_x);
-	}
-	DBG_TAG("poly.rand_gen.outer","First 3 points: \n");
-	for(auto it=points.begin(); it!=points.end(); it++){
-		DBG_TAG("poly.rand_gen.outer",(*it).to_string() << "\n");
-	}
 
-	DBG_TAG("poly.rand_gen", "About to begin random point generation outer loop.\n");
-	for(int i=3; i<n-1; i++){
-		DBG_TAG("poly.rand_gen", "Entered loop with i = " << i << ".\n");
-		bool committed = false;
-		for(int commit_attempt = 0; commit_attempt < MAX_COMMIT_ATTEMPTS_PER_VERTEX; ++commit_attempt){
+		for(int i=0; i<2; i++){
+			rand_x = unif(gen);
+			rand_y = unif(gen);
+			Point candidate(rand_x, rand_y);
+			if(has_duplicate_x(xvals, rand_x) || has_duplicate_point(points, candidate)){
+				i--;
+				continue;
+			}
+			points.push_back(candidate);
+			xvals.insert(rand_x);
+		}
+
+		bool interior_generation_failed = false;
+		for(int i=3; i<n-1; i++){
+			bool committed = false;
+			for(int commit_attempt = 0; commit_attempt < MAX_COMMIT_ATTEMPTS_PER_VERTEX; ++commit_attempt){
+				rand_x = unif(gen);
+				rand_y = unif(gen);
+				Point potential_new(rand_x, rand_y);
+				if(has_duplicate_x(xvals, rand_x) || has_duplicate_point(points, potential_new)) continue;
+				if(append_would_collide(points, potential_new)) continue;
+
+				list<Point> trial_points = points;
+				unordered_set<double> trial_xvals = xvals;
+				trial_points.push_back(potential_new);
+				trial_xvals.insert(rand_x);
+
+				if(!can_find_lookahead_chain(trial_points, trial_xvals, LOOKAHEAD_DEPTH, gen, unif)) continue;
+
+				points.push_back(potential_new);
+				xvals.insert(rand_x);
+				committed = true;
+				break;
+			}
+			if(!committed){
+				interior_generation_failed = true;
+				break;
+			}
+		}
+		if(interior_generation_failed) continue;
+
+		Point first = points.front();
+		Point last(points.back());
+		bool finalized = false;
+		for(int attempt = 0; attempt < MAX_LAST_VERTEX_ATTEMPTS; ++attempt){
 			rand_x = unif(gen);
 			rand_y = unif(gen);
 			Point potential_new(rand_x, rand_y);
 			if(has_duplicate_x(xvals, rand_x) || has_duplicate_point(points, potential_new)) continue;
-			if(append_would_collide(points, potential_new)) continue;
 
-			list<Point> trial_points = points;
-			unordered_set<double> trial_xvals = xvals;
-			trial_points.push_back(potential_new);
-			trial_xvals.insert(rand_x);
+			pair<Point,Point> potential_new_pair_1{last,potential_new};
+			pair<Point,Point> potential_new_pair_2{first,potential_new};
+			auto it = points.begin();
+			bool collides_existing_edge = false;
 
-			if(!can_find_lookahead_chain(trial_points, trial_xvals, LOOKAHEAD_DEPTH, gen, unif)) continue;
-
-			DBG_TAG("easy.poly.rand_gen", ANSI::GREEN << "Accepted vertex " << potential_new.to_string() << " after successful " << LOOKAHEAD_DEPTH << "-step lookahead.\n" << ANSI::RESET);
-			points.push_back(potential_new);
-			xvals.insert(rand_x);
-			committed = true;
-			break;
-		}
-		if(!committed){
-			throw runtime_error("generate_random_polygon could not commit an interior vertex after lookahead-guided search");
-		}
-	}
-
-	pair<Point,Point> potential_new_pair_1 = {Point(0,0),Point(0,0)};
-	pair<Point,Point> potential_new_pair_2 = {Point(0,0),Point(0,0)};
-	Point first = points.front();
-	Point potential_new(0,0);
-	Point last(points.back());
-	pair<Point,Point> iterating_pair{{0,0},{0,0}};
-	Point curr1(0,0);
-	Point curr2(0,0);
-	auto it = points.begin();
-	int last_vertex_gen_attempts = 0;
-	DBG_TAG("easy.poly.rand_gen",ANSI::CYAN << "About to begin last vertex gen.\n" << ANSI::RESET);
-	while(1){
-while_start:
-		DBG_TAG("poly.rand_gen","Generating LAST pot new vertex\n");
-		if(last_vertex_gen_attempts%50000 == 0){
-			DBG_TAG("easy.poly.rand_gen","Gen attempt " << last_vertex_gen_attempts << "\n");
-		}
-		rand_x = unif(gen);
-		rand_y = unif(gen);
-		if(has_duplicate_x(xvals, rand_x) || has_duplicate_point(points, Point(rand_x,rand_y))){
-			goto while_start;
-		}
-		potential_new.set_x(rand_x);
-		potential_new.set_y(rand_y);
-		last = points.back();
-		potential_new_pair_1 = {last,potential_new};
-		potential_new_pair_2 = {first,potential_new};
-		it = points.begin();
-
-		for(int j=0; j<n-2; j++){
-			curr1 = *it;
-			it++;
-			curr2 = *it;
-			iterating_pair = {curr1,curr2};
-			if(j == 0 or j == n-3){
-				if(strict_collides(iterating_pair,potential_new_pair_1) or strict_collides(iterating_pair,potential_new_pair_2)){
-					last_vertex_gen_attempts++;
-					it--;
-					goto while_start;
-				}
-			}else{
-				if(collides(iterating_pair,potential_new_pair_1) or collides(iterating_pair,potential_new_pair_2)){
-					last_vertex_gen_attempts++;
-					it--;
-					goto while_start;
+			for(int j=0; j<n-2; j++){
+				Point curr1 = *it;
+				it++;
+				Point curr2 = *it;
+				pair<Point,Point> iterating_pair{curr1,curr2};
+				if(j == 0 || j == n-3){
+					if(strict_collides(iterating_pair,potential_new_pair_1) || strict_collides(iterating_pair,potential_new_pair_2)){
+						collides_existing_edge = true;
+						break;
+					}
+				}else{
+					if(collides(iterating_pair,potential_new_pair_1) || collides(iterating_pair,potential_new_pair_2)){
+						collides_existing_edge = true;
+						break;
+					}
 				}
 			}
+
+			if(collides_existing_edge) continue;
+
+			points.push_back(potential_new);
+			xvals.insert(rand_x);
+			finalized = true;
+			break;
 		}
-		points.push_back(potential_new);
-		xvals.insert(rand_x);
-		break;
-	}
-	DBG_TAG("poly.rand_gen",ANSI::BOLD_GREEN << "Successfully finished gen function!\n" << ANSI::RESET);
-	if(!validate_generated_vertex_order(points)){
-		DBG_TAG("poly.rand_gen", ANSI::RED << "Post-generation validation failed: polygon edges self-intersect.\n" << ANSI::RESET);
+
+		if(!finalized) continue;
+		if(!validate_generated_vertex_order(points)) continue;
+		return Polygon(points);
 	}
 
-	DBG_TAG("poly.rand_gen", "In rand poly generator, about to attempt initialization of polygon with rand gen points.\n");
-	return Polygon(points);
+	throw runtime_error("generate_random_polygon exhausted restart budget while searching for a valid polygon");
 }
