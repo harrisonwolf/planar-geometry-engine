@@ -22,7 +22,7 @@ using namespace std;
 
 namespace {
 
-constexpr int MAX_CANDIDATE_ATTEMPTS_PER_VERTEX = 5000;
+constexpr int MAX_CANDIDATE_ATTEMPTS_PER_VERTEX = 500000000;
 
 bool has_duplicate_point(const list<Point>& points, const Point& candidate){
 	for(const Point& p: points){
@@ -185,10 +185,12 @@ while_start:
 		it = points.begin();
 		DBG_TAG("poly.rand_gen","Generated LAST pot new vertex" << potential_new.to_string() << "\n");
 
+		/*
 		DBG_TAG("poly.rand_gen","Current existing vertices: \n");
 		for(auto foo = points.begin(); foo != points.end(); foo++){
 			cerr << (*foo).to_string() << "\n";			
 		}
+		*/
 		// in the following loop, collisions have to be checked not just between
 		// last and pot new but also first and pot new
 		// this keeps detecting collisions with the first edge even when it's just 

@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
 	cout << "Testing first 3 points insertion...\n";
 	Polygon p = generate_random_polygon(NUMBER_OF_VERTICES);
 	cout << "Random polygon generated: \n" << p.to_string() << endl;
-	if(1){ //export to desmos API //change 1 to 0 to turn off
+	if(0){ //export to desmos API //change 1 to 0 to turn off
 	  //can be annoying when just trying to run program
 		string output_path = "tools/desmos-bridge/polygon-export.json";
 		string triangulation_output_path = "tools/desmos-bridge/triangulation-export.json";
