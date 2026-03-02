@@ -388,9 +388,8 @@ bool collides(pair<Point,Point> pair1, pair<Point,Point> pair2){
 	//is on BOTH line segments... but may run into precision errors
 	Line l1(pair1.first,pair1.second);
 	Line l2(pair2.first,pair2.second);
-	if(!(l1.intersects(l2))){ //sanity check
-		cout << "Error: in helper.cc collides, checking if parallel or superimposed line segments collide.\n";
-		exit(1);
+	if(!(l1.intersects(l2))){ //parallel and disjoint lines do not collide
+		return false;
 	}
 	Point poi = l1.intersection(l2);
 	DBG("Calculated virtual poi as " << poi.to_string() << ".\n");
@@ -406,9 +405,8 @@ bool strict_collides(pair<Point,Point> pair1, pair<Point,Point> pair2){
 	//is on BOTH line segments... but may run into precision errors
 	Line l1(pair1.first,pair1.second);
 	Line l2(pair2.first,pair2.second);
-	if(!(l1.intersects(l2))){ //sanity check
-		cout << "Error: in helper.cc strict_collides, checking if parallel or superimposed line segments collide.\n";
-		exit(1);
+	if(!(l1.intersects(l2))){ //parallel and disjoint lines do not collide
+		return false;
 	}
 	Point poi = l1.intersection(l2);
 	DBG("Calculated virtual poi as " << poi.to_string() << ".\n");
