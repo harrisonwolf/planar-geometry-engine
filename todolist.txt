@@ -1,10 +1,10 @@
 Stuff I need to do for the project
 
 CURR TASK SHORTLIST
--make desmos bridge page autofetch json files after initializing api
 -refactor rand gen alg and triang alg
 
 PRIMARY
+-Make desmos bridge page autofetch json files after initializing api
 -Refactor/debug rand gen alg and ear clipping alg
 
 -Delauany triangulation algs
