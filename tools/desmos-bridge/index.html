@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Desmos Bridge</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #f8fafc;
+        color: #111827;
+      }
+
+      main {
+        padding: 24px;
+      }
+
+      .provenance {
+        position: fixed;
+        right: 12px;
+        bottom: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(17, 24, 39, 0.9);
+        color: #f9fafb;
+        font-size: 12px;
+        line-height: 1;
+      }
+
+      .provenance button {
+        border: 0;
+        border-radius: 999px;
+        padding: 3px 8px;
+        font-size: 11px;
+        cursor: pointer;
+        background: #374151;
+        color: #f9fafb;
+      }
+
+      .provenance button:hover {
+        background: #4b5563;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Desmos Bridge</h1>
+      <p>Use this shell to import/export planar geometry artifacts.</p>
+    </main>
+
+    <div class="provenance" id="provenance" hidden>
+      <span id="provenance-text"></span>
+      <button id="copy-provenance" type="button">Copy provenance</button>
+    </div>
+
+    <script src="./build-info.js"></script>
+    <script>
+      (function () {
+        const info = window.__BUILD_INFO__;
+        if (!info) {
+          return;
+        }
+
+        const branch = info.branch || "unknown";
+        const shortSha = (info.commit && info.commit.short) || "unknown";
+        const dirtyLabel = info.dirty ? " (dirty)" : "";
+        const builtAt = info.buildTimeUtc || "unknown";
+        const text = `${branch} @ ${shortSha}${dirtyLabel} • built ${builtAt}`;
+
+        const badge = document.getElementById("provenance");
+        const textNode = document.getElementById("provenance-text");
+        const copyButton = document.getElementById("copy-provenance");
+
+        textNode.textContent = `Generated from ${text}`;
+        badge.hidden = false;
+
+        copyButton.addEventListener("click", async function () {
+          try {
+            await navigator.clipboard.writeText(text);
+            copyButton.textContent = "Copied";
+            setTimeout(function () {
+              copyButton.textContent = "Copy provenance";
+            }, 1200);
+          } catch (_err) {
+            copyButton.textContent = "Copy failed";
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

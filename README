@@ -36,6 +36,17 @@ Bridge import behavior:
 - There is no automatic fetch/import on page load.
 - Triangulations are rendered as a list of polygons in one Desmos expression.
 
+Build provenance in demo shell:
+- The demo shell reads a single generated source: `tools/desmos-bridge/build-info.js`.
+- Generate/update it with: `make generate-build-info`.
+- Value resolution order is environment first, then local git fallback:
+  - `GIT_COMMIT` (fallback: `git rev-parse HEAD`)
+  - `GIT_BRANCH` (fallback: `git rev-parse --abbrev-ref HEAD`)
+  - dirty flag from `git status --porcelain`
+  - `BUILD_TIME_UTC` (fallback: current UTC timestamp)
+- `tools/desmos-bridge/index.html` renders a small “Generated from …” badge and includes a copy button for bug reports.
+- Polygon/triangulation export JSON remains unchanged (provenance is not duplicated into those artifacts).
+
 If the automatic browser launch does not work:
 1. Manually open `tools/desmos-bridge/index.html` in a browser.
 2. Use the file picker to import `tools/desmos-bridge/polygon-export.json`.
