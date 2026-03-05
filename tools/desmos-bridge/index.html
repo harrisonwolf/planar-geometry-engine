@@ -12,8 +12,91 @@
         color: #111827;
       }
 
-      main {
+      .page {
+        max-width: 1060px;
+        margin: 0 auto;
         padding: 24px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+      }
+
+      .subtitle {
+        margin: 0 0 20px;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px;
+      }
+
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      button,
+      input[type='url'] {
+        font: inherit;
+      }
+
+      button {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 6px 10px;
+        background: #fff;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #f3f4f6;
+      }
+
+      input[type='url'] {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 6px 8px;
+      }
+
+      #status {
+        margin: 0 0 14px;
+        font-size: 14px;
+      }
+
+      #status.error {
+        color: #991b1b;
+      }
+
+      #status.ok {
+        color: #065f46;
+      }
+
+      #calculator {
+        height: min(72vh, 780px);
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #fff;
+      }
+
+      .hidden-input {
+        display: none;
       }
 
       .provenance {
@@ -29,6 +112,13 @@
         color: #f9fafb;
         font-size: 12px;
         line-height: 1;
+        max-width: calc(100vw - 24px);
+      }
+
+      .provenance span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .provenance button {
@@ -40,17 +130,48 @@
         background: #374151;
         color: #f9fafb;
       }
-
-      .provenance button:hover {
-        background: #4b5563;
-      }
     </style>
+    <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=desmos"></script>
   </head>
   <body>
-    <main>
+    <div class="page">
       <h1>Desmos Bridge</h1>
-      <p>Use this shell to import/export planar geometry artifacts.</p>
-    </main>
+      <p class="subtitle">Import polygon/triangulation JSON and render in Desmos.</p>
+
+      <div class="controls">
+        <section class="card">
+          <h2>Polygon</h2>
+          <div class="row">
+            <button type="button" id="polygon-file-btn">Import polygon file</button>
+            <button type="button" id="polygon-default-btn">Load polygon-export.json</button>
+          </div>
+          <input class="hidden-input" type="file" id="polygon-file" accept="application/json,.json" />
+        </section>
+
+        <section class="card">
+          <h2>Triangulation</h2>
+          <div class="row">
+            <button type="button" id="tri-file-btn">Import triangulation file</button>
+            <button type="button" id="tri-default-btn">Load triangulation-export.json</button>
+          </div>
+          <input class="hidden-input" type="file" id="tri-file" accept="application/json,.json" />
+        </section>
+
+        <section class="card">
+          <h2>Import from URL</h2>
+          <div class="row" style="flex-direction: column; align-items: stretch">
+            <input type="url" id="url-input" placeholder="http://localhost:8000/path/to/file.json" />
+            <div class="row">
+              <button type="button" id="url-polygon-btn">Load as polygon</button>
+              <button type="button" id="url-tri-btn">Load as triangulation</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <p id="status">Ready.</p>
+      <div id="calculator"></div>
+    </div>
 
     <div class="provenance" id="provenance" hidden>
       <span id="provenance-text"></span>
@@ -60,35 +181,188 @@
     <script src="./build-info.js"></script>
     <script>
       (function () {
-        const info = window.__BUILD_INFO__;
-        if (!info) {
-          return;
+        const statusEl = document.getElementById('status');
+        const calculatorHost = document.getElementById('calculator');
+        const hasDesmos = typeof window.Desmos !== 'undefined' && typeof window.Desmos.GraphingCalculator === 'function';
+        const calculator = hasDesmos
+          ? window.Desmos.GraphingCalculator(calculatorHost, { expressionsCollapsed: false, settingsMenu: false })
+          : null;
+
+        if (!hasDesmos) {
+          calculatorHost.innerHTML =
+            '<div style="padding:12px;color:#7f1d1d">Desmos API failed to load. You can still validate imports, but graph rendering is unavailable.</div>'
         }
 
-        const branch = info.branch || "unknown";
-        const shortSha = (info.commit && info.commit.short) || "unknown";
-        const dirtyLabel = info.dirty ? " (dirty)" : "";
-        const builtAt = info.buildTimeUtc || "unknown";
-        const text = `${branch} @ ${shortSha}${dirtyLabel} • built ${builtAt}`;
+        function setStatus(message, kind) {
+          statusEl.textContent = message;
+          statusEl.className = kind || '';
+        }
 
-        const badge = document.getElementById("provenance");
-        const textNode = document.getElementById("provenance-text");
-        const copyButton = document.getElementById("copy-provenance");
+        function asPointPairs(points) {
+          if (!Array.isArray(points)) return null;
+          return points
+            .filter((pt) => Array.isArray(pt) && pt.length >= 2)
+            .map((pt) => [Number(pt[0]), Number(pt[1])])
+            .filter((pt) => Number.isFinite(pt[0]) && Number.isFinite(pt[1]));
+        }
 
-        textNode.textContent = `Generated from ${text}`;
-        badge.hidden = false;
+        function renderPolygon(points, idPrefix) {
+          const valid = asPointPairs(points);
+          if (!valid || valid.length < 3) {
+            throw new Error('Polygon must contain at least 3 valid [x,y] points.');
+          }
 
-        copyButton.addEventListener("click", async function () {
+          const withClose = valid.concat([valid[0]]);
+          const latex = withClose
+            .map((pt) => `(${pt[0]},${pt[1]})`)
+            .join(',');
+
+          if (!calculator) {
+            return;
+          }
+
+          calculator.setExpression({
+            id: `${idPrefix}_outline`,
+            type: 'expression',
+            latex: `\\operatorname{polygon}\\left(${latex}\\right)`
+          });
+        }
+
+        function renderTriangulation(polygons, idPrefix) {
+          if (!Array.isArray(polygons)) {
+            throw new Error('Triangulation payload must contain a polygons array.');
+          }
+          polygons.forEach((poly, index) => {
+            renderPolygon(poly.points, `${idPrefix}_triangle_${index}`);
+          });
+        }
+
+        function parseAndRender(raw, mode, sourceLabel) {
+          let parsed;
           try {
-            await navigator.clipboard.writeText(text);
-            copyButton.textContent = "Copied";
-            setTimeout(function () {
-              copyButton.textContent = "Copy provenance";
-            }, 1200);
+            parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
           } catch (_err) {
-            copyButton.textContent = "Copy failed";
+            throw new Error('Invalid JSON payload.');
+          }
+
+          if (mode === 'polygon') {
+            const points = parsed && parsed.points;
+            renderPolygon(points, 'polygon');
+            setStatus(
+              hasDesmos
+                ? `Loaded polygon from ${sourceLabel}.`
+                : `Validated polygon from ${sourceLabel}, but rendering is unavailable (Desmos API not loaded).`,
+              hasDesmos ? 'ok' : 'error'
+            );
+            return;
+          }
+
+          const polygons = parsed && parsed.polygons;
+          renderTriangulation(polygons, 'triangulation');
+          setStatus(
+            hasDesmos
+              ? `Loaded triangulation from ${sourceLabel}.`
+              : `Validated triangulation from ${sourceLabel}, but rendering is unavailable (Desmos API not loaded).`,
+            hasDesmos ? 'ok' : 'error'
+          );
+        }
+
+        async function loadTextFromFile(fileInput) {
+          const file = fileInput.files && fileInput.files[0];
+          if (!file) return null;
+          return await file.text();
+        }
+
+        async function loadFromUrl(url) {
+          const res = await fetch(url);
+          if (!res.ok) {
+            throw new Error(`Failed to fetch URL (${res.status}).`);
+          }
+          return await res.text();
+        }
+
+        function wireFileButton(buttonId, inputId, mode) {
+          const button = document.getElementById(buttonId);
+          const input = document.getElementById(inputId);
+          button.addEventListener('click', () => input.click());
+          input.addEventListener('change', async () => {
+            try {
+              const text = await loadTextFromFile(input);
+              if (!text) return;
+              parseAndRender(text, mode, input.files[0].name);
+            } catch (err) {
+              setStatus(err.message, 'error');
+            } finally {
+              input.value = '';
+            }
+          });
+        }
+
+        wireFileButton('polygon-file-btn', 'polygon-file', 'polygon');
+        wireFileButton('tri-file-btn', 'tri-file', 'tri');
+
+        document.getElementById('polygon-default-btn').addEventListener('click', async () => {
+          try {
+            const text = await loadFromUrl('./polygon-export.json');
+            parseAndRender(text, 'polygon', 'polygon-export.json');
+          } catch (err) {
+            setStatus(err.message, 'error');
           }
         });
+
+        document.getElementById('tri-default-btn').addEventListener('click', async () => {
+          try {
+            const text = await loadFromUrl('./triangulation-export.json');
+            parseAndRender(text, 'tri', 'triangulation-export.json');
+          } catch (err) {
+            setStatus(err.message, 'error');
+          }
+        });
+
+        async function loadFromUrlInput(mode) {
+          const url = document.getElementById('url-input').value.trim();
+          if (!url) {
+            setStatus('Please enter a URL.', 'error');
+            return;
+          }
+          try {
+            const text = await loadFromUrl(url);
+            parseAndRender(text, mode, url);
+          } catch (err) {
+            setStatus(err.message, 'error');
+          }
+        }
+
+        document.getElementById('url-polygon-btn').addEventListener('click', () => loadFromUrlInput('polygon'));
+        document.getElementById('url-tri-btn').addEventListener('click', () => loadFromUrlInput('tri'));
+
+        const info = window.__BUILD_INFO__;
+        if (info) {
+          const branch = info.branch || 'unknown';
+          const shortSha = (info.commit && info.commit.short) || 'unknown';
+          const dirtyLabel = info.dirty ? ' (dirty)' : '';
+          const builtAt = info.buildTimeUtc || 'unknown';
+          const text = `${branch} @ ${shortSha}${dirtyLabel} • built ${builtAt}`;
+
+          const badge = document.getElementById('provenance');
+          const textNode = document.getElementById('provenance-text');
+          const copyButton = document.getElementById('copy-provenance');
+
+          textNode.textContent = `Generated from ${text}`;
+          badge.hidden = false;
+
+          copyButton.addEventListener('click', async function () {
+            try {
+              await navigator.clipboard.writeText(text);
+              copyButton.textContent = 'Copied';
+              setTimeout(function () {
+                copyButton.textContent = 'Copy provenance';
+              }, 1200);
+            } catch (_err) {
+              copyButton.textContent = 'Copy failed';
+            }
+          });
+        }
       })();
     </script>
   </body>

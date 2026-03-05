@@ -1,9 +1,9 @@
 window.__BUILD_INFO__ = {
   commit: {
-    full: "52310ed73cd29883a6e16465bbe9f391299d21a0",
-    short: "52310ed"
+    full: "91a9ca20aefb95adbb31666c2f8f07d59a18b368",
+    short: "91a9ca2"
   },
   branch: "work",
   dirty: true,
-  buildTimeUtc: "2026-03-05T23:07:29Z"
+  buildTimeUtc: "2026-03-05T23:39:53Z"
 };
