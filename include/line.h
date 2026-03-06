@@ -39,7 +39,7 @@ public:
 					//if any such point exists (if the lines are the same, 
 					//it will simply return their y-intercept
 	void print(); //prints the line
-	std::string to_string(); //returns a formatted string with the line's information
+	std::string to_string() const; //returns a formatted string with the line's information
 };
 
 

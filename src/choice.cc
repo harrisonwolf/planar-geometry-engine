@@ -4,12 +4,12 @@ using namespace std;
 
 void print_choices(){ //print available choices
 
-	cout << "\033[1mPlease select an option:\n\033[0m";
-	cout << "1: Create a Triangle\n";
-	cout << "2: Find the intersection of 2 lines:\n";
-	cout << "3: View Created Points, Lines, Triangles, or Polygons\n";
-	cout << "4: Create a Polygon\n";
-	cout << "5: Create a Polygon with randomly selected vertices\n";
-	cout << "6: Export latest polygon to Desmos bridge\n";
+	cout << "\033[1mPlanar Geometry Demo\n\033[0m";
+	cout << "1: Run sample demo\n";
+	cout << "2: Create polygon manually\n";
+	cout << "3: Generate sample/random polygon\n";
+	cout << "4: View stored geometry\n";
+	cout << "5: Export latest result to visualizer\n";
+	cout << "6: About / version\n";
 	cout << "7: Quit\n";
 }

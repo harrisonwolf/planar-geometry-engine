@@ -4,6 +4,7 @@ tools/desmos-bridge/*.js
 
 # Build output directories
 build/
+dist/
 bin/
 out/
 

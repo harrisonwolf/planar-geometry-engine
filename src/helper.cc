@@ -6,6 +6,7 @@
 #include <sstream>
 #include <cmath>
 #include <filesystem>
+#include <chrono>
 #include <vector>
 
 using namespace std;
@@ -290,8 +291,30 @@ static bool normalize_polygon_vertices(const std::list<Point>& raw_vertices,
 	return true;
 }
 
-bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygon_id,
-                               const std::string& output_path){
+static const char* artifact_type_name(GeometryArtifactType type){
+	switch(type){
+		case GeometryArtifactType::Polygon:
+			return "polygon";
+		case GeometryArtifactType::Triangulation:
+			return "triangulation";
+		case GeometryArtifactType::DelaunayTriangulation:
+			return "delaunay_triangulation";
+		case GeometryArtifactType::VoronoiDiagram:
+			return "voronoi_diagram";
+	}
+
+	return "unknown";
+}
+
+static void write_schema_preamble(std::ofstream& out, GeometryArtifactType type, const std::string& artifact_id){
+	out << "{\n";
+	out << "  \"schemaVersion\": 1,\n";
+	out << "  \"type\": \"" << artifact_type_name(type) << "\",\n";
+	out << "  \"id\": \"" << json_escape(artifact_id) << "\"";
+}
+
+static bool write_polygon_payload(const Polygon& polygon, const std::string& polygon_id,
+                                  const std::string& output_path){
 	std::vector<Point> vertices;
 	if(!normalize_polygon_vertices(polygon.get_vertex_list(), vertices, "Polygon export error")){
 		return false;
@@ -299,9 +322,8 @@ bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygo
 
 	std::ofstream out(output_path);
 	if(!out.is_open()) return false;
-	out << "{\n";
-	out << "  \"type\": \"polygon\",\n";
-	out << "  \"id\": \"" << json_escape(polygon_id) << "\",\n";
+	write_schema_preamble(out, GeometryArtifactType::Polygon, polygon_id);
+	out << ",\n";
 	out << "  \"points\": [\n";
 	for(size_t i=0; i<vertices.size(); ++i){
 		out << "    [" << vertices[i].get_x() << "," << vertices[i].get_y() << "]";
@@ -313,8 +335,8 @@ bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygo
 	return true;
 }
 
-bool write_triangulation_schema_file(const Polygon& polygon, const std::string& triangulation_id,
-                                     const std::string& output_path){
+static bool write_triangulation_payload(const Polygon& polygon, const std::string& triangulation_id,
+                                        const std::string& output_path){
 	std::vector<Triangle> triangles = polygon.get_triangulation();
 	if(triangles.empty()){
 		std::cout << "Triangulation export error: polygon triangulation is empty.\n";
@@ -324,9 +346,8 @@ bool write_triangulation_schema_file(const Polygon& polygon, const std::string& 
 	std::ofstream out(output_path);
 	if(!out.is_open()) return false;
 
-	out << "{\n";
-	out << "  \"type\": \"triangulation\",\n";
-	out << "  \"id\": \"" << json_escape(triangulation_id) << "\",\n";
+	write_schema_preamble(out, GeometryArtifactType::Triangulation, triangulation_id);
+	out << ",\n";
 	out << "  \"polygons\": [\n";
 	for(size_t i=0; i<triangles.size(); ++i){
 		std::vector<Point> triangle_vertices{triangles[i].get_a(), triangles[i].get_b(), triangles[i].get_c()};
@@ -354,21 +375,135 @@ bool write_triangulation_schema_file(const Polygon& polygon, const std::string& 
 	return true;
 }
 
-bool open_desmos_bridge_page(const std::string& bridge_path){
+bool write_geometry_artifact_file(const Polygon& polygon, const GeometryArtifactExport& export_spec){
+	switch(export_spec.type){
+		case GeometryArtifactType::Polygon:
+			return write_polygon_payload(polygon, export_spec.artifact_id, export_spec.output_path);
+		case GeometryArtifactType::Triangulation:
+			return write_triangulation_payload(polygon, export_spec.artifact_id, export_spec.output_path);
+		case GeometryArtifactType::DelaunayTriangulation:
+		case GeometryArtifactType::VoronoiDiagram:
+			std::cout << "Export artifact type '" << artifact_type_name(export_spec.type)
+			          << "' is not implemented yet.\n";
+			return false;
+	}
+
+	return false;
+}
+
+bool write_bridge_autoload_file(const Polygon& polygon, const std::string& output_path){
+	std::vector<Point> vertices;
+	if(!normalize_polygon_vertices(polygon.get_vertex_list(), vertices, "Bridge autoload export error")){
+		return false;
+	}
+
+	std::vector<Triangle> triangles = polygon.get_triangulation();
+	if(triangles.empty()){
+		std::cout << "Bridge autoload export error: polygon triangulation is empty.\n";
+		return false;
+	}
+
+	std::ofstream out(output_path);
+	if(!out.is_open()) return false;
+
+	out << "window.__GEOM_AUTOLOAD__ = {\n";
+	out << "  schemaVersion: 1,\n";
+	out << "  artifacts: [\n";
+	out << "    {\n";
+	out << "      type: \"polygon\",\n";
+	out << "      id: \"poly1\",\n";
+	out << "      points: [\n";
+	for(size_t i = 0; i < vertices.size(); ++i){
+		out << "        [" << vertices[i].get_x() << "," << vertices[i].get_y() << "]";
+		if(i + 1 < vertices.size()) out << ",";
+		out << "\n";
+	}
+	out << "      ]\n";
+	out << "    },\n";
+	out << "    {\n";
+	out << "      type: \"triangulation\",\n";
+	out << "      id: \"poly1_triangulation\",\n";
+	out << "      polygons: [\n";
+	for(size_t i = 0; i < triangles.size(); ++i){
+		std::vector<Point> triangle_vertices{triangles[i].get_a(), triangles[i].get_b(), triangles[i].get_c()};
+		if(!normalize_polygon_vertices(std::list<Point>(triangle_vertices.begin(), triangle_vertices.end()),
+					      triangle_vertices,
+					      "Bridge autoload export error")){
+			return false;
+		}
+
+		out << "        {\n";
+		out << "          type: \"polygon\",\n";
+		out << "          points: [\n";
+		for(size_t j = 0; j < triangle_vertices.size(); ++j){
+			out << "            [" << triangle_vertices[j].get_x() << "," << triangle_vertices[j].get_y() << "]";
+			if(j + 1 < triangle_vertices.size()) out << ",";
+			out << "\n";
+		}
+		out << "          ]\n";
+		out << "        }";
+		if(i + 1 < triangles.size()) out << ",";
+		out << "\n";
+	}
+	out << "      ]\n";
+	out << "    }\n";
+	out << "  ]\n";
+	out << "};\n";
+	return true;
+}
+
+bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygon_id,
+                               const std::string& output_path){
+	return write_geometry_artifact_file(polygon,
+		GeometryArtifactExport{GeometryArtifactType::Polygon, polygon_id, output_path});
+}
+
+bool write_triangulation_schema_file(const Polygon& polygon, const std::string& triangulation_id,
+                                     const std::string& output_path){
+	return write_geometry_artifact_file(polygon,
+		GeometryArtifactExport{GeometryArtifactType::Triangulation, triangulation_id, output_path});
+}
+
+static std::string make_file_url(const std::filesystem::path& absolute_path){
+	std::string generic_path = absolute_path.generic_string();
+	if(generic_path.empty()){
+		return std::string();
+	}
+	if(generic_path.front() != '/'){
+		generic_path.insert(generic_path.begin(), '/');
+	}
+	return "file://" + generic_path;
+}
+
+bool open_desmos_bridge_page(const std::string& bridge_path, bool autoload_latest){
 	std::filesystem::path canonical_bridge_path = std::filesystem::absolute(std::filesystem::path(bridge_path));
 	std::string resolved_path = canonical_bridge_path.string();
+	std::string open_target = make_file_url(canonical_bridge_path);
+	if(open_target.empty()){
+		open_target = resolved_path;
+	}
+	if(autoload_latest){
+		const auto now = std::chrono::system_clock::now().time_since_epoch();
+		const auto nonce = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+		open_target += "?autoload=session&artifactSet=latest&nonce=" + std::to_string(nonce);
+	}
 
 	std::vector<std::string> commands;
-	commands.push_back("xdg-open '" + resolved_path + "' >/dev/null 2>&1");
-	commands.push_back("gio open '" + resolved_path + "' >/dev/null 2>&1");
-	commands.push_back("open '" + resolved_path + "' >/dev/null 2>&1");
+	commands.push_back("xdg-open '" + open_target + "' >/dev/null 2>&1");
+	commands.push_back("gio open '" + open_target + "' >/dev/null 2>&1");
+	commands.push_back("open '" + open_target + "' >/dev/null 2>&1");
+	if(!autoload_latest){
+		commands.push_back("xdg-open '" + resolved_path + "' >/dev/null 2>&1");
+		commands.push_back("gio open '" + resolved_path + "' >/dev/null 2>&1");
+		commands.push_back("open '" + resolved_path + "' >/dev/null 2>&1");
+	}
 
 	for(const std::string& command: commands){
 		int rc = system(command.c_str());
 		if(rc == 0) return true;
 	}
 
-	std::cout << "Could not automatically open browser. Please open: " << resolved_path << "\n";
+	std::cout << "Could not automatically open browser. Please open: " << open_target << "\n";
 	return false;
 }
 

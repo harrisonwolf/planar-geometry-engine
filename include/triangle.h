@@ -56,9 +56,9 @@ public:
 	 * "center: (x,y)\n"
 	 * "area: A" //note there is no carriage return here
 	 */ 
-	std::string to_string(); 
+	std::string to_string() const; 
 	bool contains(Point p);
-	std::string to_desmos_polygon();
+	std::string to_desmos_polygon() const;
 };
 
 #endif

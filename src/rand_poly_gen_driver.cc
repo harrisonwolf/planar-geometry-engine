@@ -39,7 +39,7 @@ int main(int argc, char* argv[]){
 			}else{
 				cout << "Failed to write triangulation export file.\n";
 			}
-			if(!open_desmos_bridge_page(bridge_path)){
+			if(!open_desmos_bridge_page(bridge_path, true)){
 				cout << "If the browser did not open, manually open " << bridge_path
 					<< " and load polygon-export.json, then triangulation-export.json.\n";
 			}

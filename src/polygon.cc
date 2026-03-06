@@ -117,7 +117,7 @@ vector<Triangle> Polygon::calculate_triangulation(){ //returns a set of triangle
  * Area:
  * Convex/Concave
  */
-string Polygon::to_string(){
+string Polygon::to_string() const{
 	DBG("Entered Polygon::to_string() function\n");
 	string concavity = "";
 	if(convex) concavity = "Convex";
@@ -132,7 +132,7 @@ string Polygon::to_string(){
         return ss.str();
 }
 
-string Polygon::to_desmos(){
+string Polygon::to_desmos() const{
 	DBG("Entered Polygon::to_desmos() function\n");
 	stringstream ss;
 	ss << fixed << setprecision(6);
@@ -146,7 +146,7 @@ string Polygon::to_desmos(){
 	return ss.str();
 }
 
-void Polygon::print_triangulation(){
+void Polygon::print_triangulation() const{
 	for(Triangle t: triangulation)
 		cout << t.to_string() << "\n";
 }

@@ -27,10 +27,17 @@ if [[ -z "$build_time_utc" ]]; then
   build_time_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 fi
 
-porcelain_status="$(safe_git status --porcelain)"
-dirty="false"
-if [[ -n "$porcelain_status" ]]; then
+dirty="${GIT_DIRTY:-}"
+if [[ -z "$dirty" ]]; then
+  porcelain_status="$(safe_git status --porcelain)"
+  dirty="false"
+  if [[ -n "$porcelain_status" ]]; then
+    dirty="true"
+  fi
+elif [[ "$dirty" == "1" || "$dirty" == "true" || "$dirty" == "TRUE" ]]; then
   dirty="true"
+else
+  dirty="false"
 fi
 
 if [[ -z "$commit_full" ]]; then

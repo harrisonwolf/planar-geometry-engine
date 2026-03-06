@@ -64,9 +64,9 @@ public:
 	 * Area:
 	 * Convex/Concave (TODO)
 	 */
-	std::string to_string();
-	std::string to_desmos(); //prints table-ready desmos version
-	void print_triangulation();
+	std::string to_string() const;
+	std::string to_desmos() const; //prints table-ready desmos version
+	void print_triangulation() const;
 	void print_triangulation_desmos();
 	bool contains(Point p); //returns true if p is inside of (or comprises an edge or vertex of)
 				//this->polygon

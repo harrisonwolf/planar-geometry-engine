@@ -114,7 +114,7 @@ void Triangle::transpose(double x, double y){
 	center_of_mass.transpose(x,y);
 }
 
-string Triangle::to_string(){
+string Triangle::to_string() const{
 	stringstream s;
 	s << "{" << a.to_string() << ", " << b.to_string() << ", " << c.to_string() << "}\n";
 	s << "Center: " << center_of_mass.to_string() << "\n";
@@ -124,7 +124,7 @@ string Triangle::to_string(){
 
 }
 
-string Triangle::to_desmos_polygon(){
+string Triangle::to_desmos_polygon() const{
 	stringstream ss;
 	ss << "polygon(" << a.to_string() << "," << b.to_string() << "," << c.to_string() << ")";
 	return ss.str();

@@ -76,7 +76,7 @@ void Line::print(){ //print the line as follows: "y = [slope]x + [y-intercept]"
 	cout << "y = " << slope << "x + " << y_intercept;
 }
 
-string Line::to_string(){
+string Line::to_string() const{
 	stringstream ss("");
 	ss << "y = " << slope << "x + " << y_intercept;
 	return ss.str();

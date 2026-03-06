@@ -3,12 +3,26 @@ BASE_CXXFLAGS := -Wall -Wextra -std=c++17
 DEPFLAGS := -MMD -MP
 RELEASE_CXXFLAGS := $(BASE_CXXFLAGS) -O2
 DEBUG_CXXFLAGS := $(BASE_CXXFLAGS) -g -O0 -DDEBUG
+GIT_COMMIT := $(shell git rev-parse HEAD 2>/dev/null || printf unknown)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || printf unknown)
+BUILD_TIME_UTC ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+GIT_DIRTY := $(shell if [ -n "$$(git status --porcelain 2>/dev/null)" ]; then printf 1; else printf 0; fi)
+BUILD_INFO_CPPFLAGS := \
+	-DGEOM_BUILD_COMMIT=\"$(GIT_COMMIT)\" \
+	-DGEOM_BUILD_BRANCH=\"$(GIT_BRANCH)\" \
+	-DGEOM_BUILD_TIME_UTC=\"$(BUILD_TIME_UTC)\" \
+	-DGEOM_BUILD_DIRTY=$(GIT_DIRTY)
 
 # Add/remove executable names in one place.
 EXES := main rand_poly_gen_driver driver tester
 
 SRC_DIR := src
 INCLUDE_DIR := include
+INTERVIEW_DIR := dist/interview
+INTERVIEW_BIN_DIR := $(INTERVIEW_DIR)/bin
+INTERVIEW_EXAMPLES_DIR := $(INTERVIEW_DIR)/examples
+INTERVIEW_BRIDGE_DIR := $(INTERVIEW_DIR)/tools/desmos-bridge
+INTERVIEW_APP_NAME := planar-geometry-demo
 
 # Per-executable entry sources (files containing main/test harness code).
 EXE_main_SRCS := $(SRC_DIR)/main.cc
@@ -41,9 +55,9 @@ COMMON_SRCS := \
 	$(SRC_DIR)/random_polygon_generator.cc \
 	$(SRC_DIR)/delaunay.cc
 
-.PHONY: all development development-normal development-debug release clean \
-	clean-development clean-development-normal clean-development-debug clean-release \
-	test-suite help generate-build-info
+.PHONY: all development development-normal development-debug release interview-release \
+	interview-smoke clean clean-development clean-development-normal clean-development-debug \
+	clean-release clean-interview test-suite help generate-build-info
 
 all: development release
 
@@ -74,16 +88,16 @@ $$($(1)_DIR):
 
 $$($(1)_DIR)/%.o: %.cc | $$($(1)_DIR)
 	mkdir -p $$(dir $$@)
-	$$(CXX) $$($(3)) -I$(INCLUDE_DIR) $$(DEPFLAGS) -c $$< -o $$@
+	$$(CXX) $$($(3)) $(BUILD_INFO_CPPFLAGS) -DGEOM_BUILD_PROFILE=\"$(4)\" -I$(INCLUDE_DIR) $$(DEPFLAGS) -c $$< -o $$@
 
 $$(foreach exe,$$(EXES),$$(eval $$(call EXE_RULE,$(1),$$(exe),$(3))))
 
 -include $$($(1)_DEPS)
 endef
 
-$(eval $(call BUILD_CONFIG,DEV_NORMAL,build/development/normal,RELEASE_CXXFLAGS))
-$(eval $(call BUILD_CONFIG,DEV_DEBUG,build/development/debug,DEBUG_CXXFLAGS))
-$(eval $(call BUILD_CONFIG,RELEASE,build/release,RELEASE_CXXFLAGS))
+$(eval $(call BUILD_CONFIG,DEV_NORMAL,build/development/normal,RELEASE_CXXFLAGS,development-normal))
+$(eval $(call BUILD_CONFIG,DEV_DEBUG,build/development/debug,DEBUG_CXXFLAGS,development-debug))
+$(eval $(call BUILD_CONFIG,RELEASE,build/release,RELEASE_CXXFLAGS,release))
 
 development-normal: $(DEV_NORMAL_TARGETS)
 development-debug: $(DEV_DEBUG_TARGETS)
@@ -94,21 +108,43 @@ test-suite: build/development/normal/tester
 
 
 generate-build-info:
-	./scripts/generate_build_info.sh tools/desmos-bridge/build-info.js
+	GIT_COMMIT="$(GIT_COMMIT)" GIT_BRANCH="$(GIT_BRANCH)" BUILD_TIME_UTC="$(BUILD_TIME_UTC)" GIT_DIRTY="$(GIT_DIRTY)" ./scripts/generate_build_info.sh tools/desmos-bridge/build-info.js
+
+interview-release: test-suite release generate-build-info
+	rm -rf $(INTERVIEW_DIR)
+	mkdir -p $(INTERVIEW_BIN_DIR)
+	mkdir -p $(INTERVIEW_EXAMPLES_DIR)
+	mkdir -p $(INTERVIEW_BRIDGE_DIR)
+	cp build/release/main $(INTERVIEW_BIN_DIR)/$(INTERVIEW_APP_NAME)
+	cp packaging/interview/run-demo.sh $(INTERVIEW_DIR)/run-demo.sh
+	cp packaging/interview/QUICKSTART.md $(INTERVIEW_DIR)/QUICKSTART.md
+	cp examples/interview-demo-polygon.txt $(INTERVIEW_EXAMPLES_DIR)/interview-demo-polygon.txt
+	cp tools/desmos-bridge/index.html $(INTERVIEW_BRIDGE_DIR)/index.html
+	cp tools/desmos-bridge/build-info.js $(INTERVIEW_BRIDGE_DIR)/build-info.js
+	chmod +x $(INTERVIEW_BIN_DIR)/$(INTERVIEW_APP_NAME)
+	chmod +x $(INTERVIEW_DIR)/run-demo.sh
+	cd $(INTERVIEW_DIR) && ./bin/$(INTERVIEW_APP_NAME) --run-sample-demo --no-browser-launch >/dev/null
+
+interview-smoke: interview-release
+	bash ./scripts/interview_smoke.sh $(INTERVIEW_DIR)
 
 help:
 	@echo "Common targets:"
 	@echo "  make development-normal"
 	@echo "  make development-debug"
 	@echo "  make release"
+	@echo "  make interview-release"
+	@echo "  make interview-smoke"
 	@echo "  make test-suite"
+	@echo ""
+	@echo "See README.md for developer and interview packaging workflows."
 	@echo ""
 	@echo "To add a new executable:"
 	@echo "  1) Add its name to EXES"
 	@echo "  2) Define EXE_<name>_SRCS with its entry .cc files"
 	@echo "To add shared code: add .cc files to COMMON_SRCS"
 
-clean: clean-development clean-release
+clean: clean-development clean-release clean-interview
 
 clean-development: clean-development-normal clean-development-debug
 
@@ -120,3 +156,6 @@ clean-development-debug:
 
 clean-release:
 	rm -rf build/release
+
+clean-interview:
+	rm -rf $(INTERVIEW_DIR)

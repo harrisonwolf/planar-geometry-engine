@@ -142,7 +142,7 @@
           <h2>Polygon</h2>
           <div class="row">
             <button type="button" id="polygon-file-btn">Import polygon file</button>
-            <button type="button" id="polygon-default-btn">Load polygon-export.json</button>
+            <button type="button" id="polygon-default-btn">Load current polygon export</button>
           </div>
           <input class="hidden-input" type="file" id="polygon-file" accept="application/json,.json" />
         </section>
@@ -151,7 +151,7 @@
           <h2>Triangulation</h2>
           <div class="row">
             <button type="button" id="tri-file-btn">Import triangulation file</button>
-            <button type="button" id="tri-default-btn">Load triangulation-export.json</button>
+            <button type="button" id="tri-default-btn">Load current triangulation export</button>
           </div>
           <input class="hidden-input" type="file" id="tri-file" accept="application/json,.json" />
         </section>
@@ -309,7 +309,69 @@
           });
         }
 
-        function parseAndRender(raw, mode, sourceLabel) {
+        function clearScene() {
+          if (!calculator) {
+            return;
+          }
+          calculator.removeExpression({ id: 'polygon_outline' });
+          calculator.removeExpression({ id: 'triangulation_list' });
+        }
+
+        function clearArtifact(type) {
+          if (!calculator) {
+            return;
+          }
+          if (type === 'polygon') {
+            calculator.removeExpression({ id: 'polygon_outline' });
+            return;
+          }
+          if (type === 'triangulation') {
+            calculator.removeExpression({ id: 'triangulation_list' });
+          }
+        }
+
+        const artifactHandlers = {
+          polygon: {
+            defaultPrefix: 'polygon',
+            render(parsed) {
+              renderPolygon(parsed && parsed.points, 'polygon');
+            },
+            successMessage(sourceLabel) {
+              return hasDesmos
+                ? `Loaded polygon from ${sourceLabel}.`
+                : `Validated polygon from ${sourceLabel}, but rendering is unavailable (Desmos API not loaded).`;
+            }
+          },
+          triangulation: {
+            defaultPrefix: 'triangulation',
+            render(parsed) {
+              renderTriangulation(parsed && parsed.polygons, 'triangulation');
+            },
+            successMessage(sourceLabel) {
+              return hasDesmos
+                ? `Loaded triangulation from ${sourceLabel}.`
+                : `Validated triangulation from ${sourceLabel}, but rendering is unavailable (Desmos API not loaded).`;
+            }
+          }
+        };
+
+        function resolveArtifactType(parsed, fallbackMode) {
+          if (parsed && typeof parsed.type === 'string' && artifactHandlers[parsed.type]) {
+            return parsed.type;
+          }
+
+          if (fallbackMode === 'tri') {
+            return 'triangulation';
+          }
+
+          if (fallbackMode === 'polygon') {
+            return 'polygon';
+          }
+
+          throw new Error('Unsupported artifact type.');
+        }
+
+        function parseAndRender(raw, fallbackMode, sourceLabel) {
           let parsed;
           try {
             parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
@@ -317,24 +379,19 @@
             throw new Error('Invalid JSON payload.');
           }
 
-          if (mode === 'polygon') {
-            const points = parsed && parsed.points;
-            renderPolygon(points, 'polygon');
-            setStatus(
-              hasDesmos
-                ? `Loaded polygon from ${sourceLabel}.`
-                : `Validated polygon from ${sourceLabel}, but rendering is unavailable (Desmos API not loaded).`,
-              hasDesmos ? 'ok' : 'error'
-            );
-            return;
+          const artifactType = resolveArtifactType(parsed, fallbackMode);
+          const handler = artifactHandlers[artifactType];
+          if (!handler) {
+            throw new Error(`Unsupported artifact type: ${artifactType}`);
           }
 
-          const polygons = parsed && parsed.polygons;
-          renderTriangulation(polygons, 'triangulation');
+          if (parsed && parsed.schemaVersion && parsed.schemaVersion !== 1) {
+            throw new Error(`Unsupported schemaVersion: ${parsed.schemaVersion}`);
+          }
+
+          handler.render(parsed);
           setStatus(
-            hasDesmos
-              ? `Loaded triangulation from ${sourceLabel}.`
-              : `Validated triangulation from ${sourceLabel}, but rendering is unavailable (Desmos API not loaded).`,
+            handler.successMessage(sourceLabel),
             hasDesmos ? 'ok' : 'error'
           );
         }
@@ -346,11 +403,86 @@
         }
 
         async function loadFromUrl(url) {
-          const res = await fetch(url);
+          const res = await fetch(url, { cache: 'no-store' });
           if (!res.ok) {
             throw new Error(`Failed to fetch URL (${res.status}).`);
           }
           return await res.text();
+        }
+
+        async function loadCurrentSessionPayload() {
+          const nonce = Date.now().toString();
+          delete window.__GEOM_AUTOLOAD__;
+          await injectScript(`./latest-session.js?nonce=${encodeURIComponent(nonce)}`);
+          const payload = window.__GEOM_AUTOLOAD__;
+          if (!payload || !Array.isArray(payload.artifacts)) {
+            throw new Error('Missing bridge autoload payload.');
+          }
+          if (payload.schemaVersion && payload.schemaVersion !== 1) {
+            throw new Error(`Unsupported schemaVersion: ${payload.schemaVersion}`);
+          }
+          return payload;
+        }
+
+        function getDefaultArtifactPath(type, artifactSet) {
+          if (artifactSet === 'latest') {
+            if (type === 'polygon') {
+              return './latest-polygon-export.json';
+            }
+            if (type === 'triangulation') {
+              return './latest-triangulation-export.json';
+            }
+          }
+
+          if (type === 'polygon') {
+            return './polygon-export.json';
+          }
+          return './triangulation-export.json';
+        }
+
+        async function autoLoadLatestExports() {
+          const params = new URLSearchParams(window.location.search);
+          const autoload = (params.get('autoload') || '').trim();
+          const artifactSet = (params.get('artifactSet') || 'latest').trim();
+          if (!autoload) {
+            return;
+          }
+
+          if (autoload === 'session') {
+            try {
+              const payload = await loadCurrentSessionPayload();
+              clearScene();
+              for (const artifact of payload.artifacts) {
+                parseAndRender(artifact, artifact.type === 'triangulation' ? 'tri' : artifact.type, 'latest-session.js');
+              }
+            } catch (err) {
+              setStatus(err.message, 'error');
+            }
+            return;
+          }
+
+          const requestedTypes = autoload.split(',').map((item) => item.trim()).filter(Boolean);
+          if (requestedTypes.length === 0) {
+            return;
+          }
+
+          clearScene();
+          for (const type of requestedTypes) {
+            try {
+              if (type === 'polygon') {
+                const path = getDefaultArtifactPath('polygon', artifactSet);
+                const text = await loadFromUrl(`${path}?nonce=${encodeURIComponent(params.get('nonce') || Date.now().toString())}`);
+                parseAndRender(text, 'polygon', path.replace('./', ''));
+              } else if (type === 'triangulation') {
+                const path = getDefaultArtifactPath('triangulation', artifactSet);
+                const text = await loadFromUrl(`${path}?nonce=${encodeURIComponent(params.get('nonce') || Date.now().toString())}`);
+                parseAndRender(text, 'tri', path.replace('./', ''));
+              }
+            } catch (err) {
+              setStatus(err.message, 'error');
+              return;
+            }
+          }
         }
 
         function wireFileButton(buttonId, inputId, mode) {
@@ -361,6 +493,7 @@
             try {
               const text = await loadTextFromFile(input);
               if (!text) return;
+              clearArtifact(mode === 'tri' ? 'triangulation' : mode);
               parseAndRender(text, mode, input.files[0].name);
             } catch (err) {
               setStatus(err.message, 'error');
@@ -375,8 +508,13 @@
 
         document.getElementById('polygon-default-btn').addEventListener('click', async () => {
           try {
-            const text = await loadFromUrl('./polygon-export.json');
-            parseAndRender(text, 'polygon', 'polygon-export.json');
+            clearArtifact('polygon');
+            const payload = await loadCurrentSessionPayload();
+            const polygonArtifact = payload.artifacts.find((artifact) => artifact.type === 'polygon');
+            if (!polygonArtifact) {
+              throw new Error('No polygon artifact is available in the current session.');
+            }
+            parseAndRender(polygonArtifact, 'polygon', 'latest-session.js');
           } catch (err) {
             setStatus(err.message, 'error');
           }
@@ -384,8 +522,13 @@
 
         document.getElementById('tri-default-btn').addEventListener('click', async () => {
           try {
-            const text = await loadFromUrl('./triangulation-export.json');
-            parseAndRender(text, 'tri', 'triangulation-export.json');
+            clearArtifact('triangulation');
+            const payload = await loadCurrentSessionPayload();
+            const triangulationArtifact = payload.artifacts.find((artifact) => artifact.type === 'triangulation');
+            if (!triangulationArtifact) {
+              throw new Error('No triangulation artifact is available in the current session.');
+            }
+            parseAndRender(triangulationArtifact, 'tri', 'latest-session.js');
           } catch (err) {
             setStatus(err.message, 'error');
           }
@@ -409,7 +552,7 @@
         document.getElementById('url-tri-btn').addEventListener('click', () => loadFromUrlInput('tri'));
 
 
-        initializeCalculator();
+        initializeCalculator().then(autoLoadLatestExports);
 
         const info = window.__BUILD_INFO__;
         if (info) {

@@ -13,6 +13,19 @@
 #include <utility> //for std::pair
 #include <string>
 
+enum class GeometryArtifactType {
+	Polygon,
+	Triangulation,
+	DelaunayTriangulation,
+	VoronoiDiagram
+};
+
+struct GeometryArtifactExport {
+	GeometryArtifactType type;
+	std::string artifact_id;
+	std::string output_path;
+};
+
 /*
  * Reads a point
  */
@@ -69,10 +82,22 @@ bool write_triangulation_schema_file(const Polygon& polygon, const std::string& 
                                      const std::string& output_path);
 
 /*
+ * Writes an export artifact by type. Polygon and triangulation are currently supported.
+ * Future release surfaces can add Delaunay/Voronoi artifacts without changing callers.
+ */
+bool write_geometry_artifact_file(const Polygon& polygon, const GeometryArtifactExport& export_spec);
+
+/*
+ * Writes a JS bridge session file containing the latest polygon and triangulation artifacts
+ * so the browser visualizer can load them directly on page open.
+ */
+bool write_bridge_autoload_file(const Polygon& polygon, const std::string& output_path);
+
+/*
  * Attempts to open the local Desmos bridge page in the default browser.
  * Returns true if an opener command succeeded, false otherwise.
  */
-bool open_desmos_bridge_page(const std::string& bridge_path);
+bool open_desmos_bridge_page(const std::string& bridge_path, bool autoload_latest = false);
 
 /*
  * Returns true if p is inside t; false otherwise
