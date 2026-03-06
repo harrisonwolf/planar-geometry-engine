@@ -189,7 +189,7 @@
           const params = new URLSearchParams(window.location.search);
           const urlKey = (params.get('desmosApiKey') || '').trim();
           const storedKey = (window.localStorage && localStorage.getItem('desmosApiKey') || '').trim();
-          const defaultKey = 'cb317bdd77f24b85a01c36f5d8337dcf';
+          const defaultKey = '8b15cf51fb804d80a5d3d2278786f64c';
           const apiKey = urlKey || storedKey || defaultKey;
           const versions = ['v1.11', 'v1.10'];
           return versions.map((version) => ({
@@ -263,16 +263,22 @@
             .filter((pt) => Number.isFinite(pt[0]) && Number.isFinite(pt[1]));
         }
 
-        function renderPolygon(points, idPrefix) {
+        function polygonLatex(points) {
           const valid = asPointPairs(points);
           if (!valid || valid.length < 3) {
             throw new Error('Polygon must contain at least 3 valid [x,y] points.');
           }
 
           const withClose = valid.concat([valid[0]]);
-          const latex = withClose
+          const pointList = withClose
             .map((pt) => `(${pt[0]},${pt[1]})`)
             .join(',');
+
+          return `\\operatorname{polygon}\\left(${pointList}\\right)`;
+        }
+
+        function renderPolygon(points, idPrefix) {
+          const latex = polygonLatex(points);
 
           if (!calculator) {
             return;
@@ -281,7 +287,7 @@
           calculator.setExpression({
             id: `${idPrefix}_outline`,
             type: 'expression',
-            latex: `\\operatorname{polygon}\\left(${latex}\\right)`
+            latex
           });
         }
 
@@ -289,8 +295,17 @@
           if (!Array.isArray(polygons)) {
             throw new Error('Triangulation payload must contain a polygons array.');
           }
-          polygons.forEach((poly, index) => {
-            renderPolygon(poly.points, `${idPrefix}_triangle_${index}`);
+
+          const listItems = polygons.map((poly) => polygonLatex(poly.points));
+
+          if (!calculator) {
+            return;
+          }
+
+          calculator.setExpression({
+            id: `${idPrefix}_list`,
+            type: 'expression',
+            latex: `[${listItems.join(',')}]`
           });
         }
 
