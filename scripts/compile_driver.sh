@@ -1,1 +1,2 @@
-g++ -Iinclude -o driver src/driver.cc src/die.cc src/point.cc src/line.cc src/triangle.cc src/polygon.cc src/helper.cc src/ear_clipping_triangulation.cc src/choice.cc src/random_polygon_generator.cc src/delaunay.cc
+mkdir -p build/development/normal
+g++ -Iinclude -o build/development/normal/driver src/driver.cc src/die.cc src/point.cc src/line.cc src/triangle.cc src/polygon.cc src/helper.cc src/ear_clipping_triangulation.cc src/choice.cc src/random_polygon_generator.cc src/delaunay.cc

@@ -31,3 +31,10 @@ gmon.out
 .DS_Store
 Thumbs.db
 
+# Legacy root executables (now built under build/)
+/main
+/driver
+/rand_poly_gen_driver
+/contains_driver
+/ear_clipper
+/create_convex_polygon
