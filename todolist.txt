@@ -10,7 +10,6 @@ PRIMARY
 -Refactor/debug rand gen alg and ear clipping alg
 
 -Delauany triangulation algs
--Visualize
 -Make way to port large pointsets into program as input
 
 SECONDARY
