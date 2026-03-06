@@ -63,6 +63,12 @@ bool write_polygon_schema_file(const Polygon& polygon, const std::string& polygo
                                const std::string& output_path);
 
 /*
+ * Writes a triangulation schema JSON file suitable for the Desmos bridge page.
+ */
+bool write_triangulation_schema_file(const Polygon& polygon, const std::string& triangulation_id,
+                                     const std::string& output_path);
+
+/*
  * Attempts to open the local Desmos bridge page in the default browser.
  * Returns true if an opener command succeeded, false otherwise.
  */

@@ -1,5 +1,6 @@
 # Runtime output
-tools/desmos-bridge/polygon-export.json
+tools/desmos-bridge/*.json
+tools/desmos-bridge/*.js
 
 # Build output directories
 build/

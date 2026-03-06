@@ -20,14 +20,37 @@ A local bridge page is available at `tools/desmos-bridge/index.html`.
 Polygon schema format used for import/export:
 `{"type":"polygon","id":"poly1","points":[[x1,y1],[x2,y2],...]}`
 
+Triangulation schema format used for import/export:
+`{"type":"triangulation","id":"poly1_triangulation","polygons":[{"type":"polygon","points":[[x1,y1],[x2,y2],[x3,y3]]},...]}`
+
 In the CLI (`main`), option 6 exports the latest stored polygon to:
 `tools/desmos-bridge/polygon-export.json`
 and attempts to open the bridge page in your default browser.
 
+`rand_poly_gen_driver` exports both:
+- `tools/desmos-bridge/polygon-export.json`
+- `tools/desmos-bridge/triangulation-export.json`
+
+Bridge import behavior:
+- Polygon and triangulation imports are manual (file picker or explicit endpoint URL).
+- There is no automatic fetch/import on page load.
+- Triangulations are rendered as a list of polygons in one Desmos expression.
+
+Build provenance in demo shell:
+- The demo shell reads a single generated source: `tools/desmos-bridge/build-info.js`.
+- Generate/update it with: `make generate-build-info`.
+- Value resolution order is environment first, then local git fallback:
+  - `GIT_COMMIT` (fallback: `git rev-parse HEAD`)
+  - `GIT_BRANCH` (fallback: `git rev-parse --abbrev-ref HEAD`)
+  - dirty flag from `git status --porcelain`
+  - `BUILD_TIME_UTC` (fallback: current UTC timestamp)
+- `tools/desmos-bridge/index.html` renders a small “Generated from …” badge and includes a copy button for bug reports.
+- Polygon/triangulation export JSON remains unchanged (provenance is not duplicated into those artifacts).
+
 If the automatic browser launch does not work:
 1. Manually open `tools/desmos-bridge/index.html` in a browser.
-2. Click **Load polygon-export.json**.
-3. Select `tools/desmos-bridge/polygon-export.json`.
+2. Use the file picker to import `tools/desmos-bridge/polygon-export.json`.
+3. Import `tools/desmos-bridge/triangulation-export.json` to overlay the triangulation.
 
 Tip: if your system opens a file manager instead of a browser, opening
 `index.html` directly from the browser (File -> Open File) is the most reliable fallback.
@@ -101,3 +124,83 @@ Environment-variable equivalents:
 - `GEOM_DEBUG_TAGS=poly.validate`
 - `GEOM_DEBUG_MATCH_PREFIX=true|false`
 - Optional global switch: `GEOM_DEBUG=true|false`
+
+Build system (Makefile) usage and maintenance
+--------------------------------------------
+The project Makefile is designed to support three build configurations and to
+automatically track header dependencies.
+
+Common targets:
+- `make development-normal`
+  - Builds all executables under `build/development/normal/` with optimized flags
+    suitable for regular local runs.
+- `make development-debug`
+  - Builds all executables under `build/development/debug/` with debug flags
+    (`-g -O0 -DDEBUG`).
+- `make release`
+  - Builds all executables under `build/release/` with optimized flags.
+- `make development`
+  - Builds both normal and debug development variants.
+- `make all`
+  - Builds development + release outputs.
+- `make test-suite`
+  - Builds/runs the `tester` executable from development-normal.
+- `make clean`
+  - Removes all build outputs.
+- `make help`
+  - Prints quick maintenance guidance.
+
+Current executable outputs:
+- `build/development/normal/main`
+- `build/development/normal/rand_poly_gen_driver`
+- `build/development/normal/driver`
+- `build/development/normal/tester`
+(and matching paths in `build/development/debug/` and `build/release/`).
+
+How automatic dependency generation works:
+- Each compilation emits a dependency file beside its object file using
+  compiler flags `-MMD -MP`.
+- Example: building `build/development/debug/helper.o` also produces
+  `build/development/debug/helper.d`.
+- The Makefile includes generated `.d` files, so changing a header (or changing
+  `#include` relationships) automatically triggers recompilation of affected
+  objects on the next `make`.
+- You do NOT need to manually write header prerequisites in the Makefile.
+
+What to update when adding code:
+1) Add a new shared class/algorithm (`.cc` + `.h`) used by executables
+- Add the new `.cc` file to `COMMON_SRCS`.
+- Include its header from relevant sources as usual.
+- No manual dependency rule updates are needed.
+
+2) Add a new executable
+- Add the executable name to `EXES`.
+- Add a source mapping variable in the form:
+  - `EXE_<name>_SRCS := path/to/entry_or_harness.cc [more .cc files if needed]`
+- After that, `make development-normal`, `make development-debug`, and
+  `make release` will all build it automatically in their respective output
+  directories.
+
+3) Add more source files for an existing executable
+- Update `EXE_<name>_SRCS` for that executable with the new `.cc` file(s).
+- If the new file is shared by all executables instead, place it in
+  `COMMON_SRCS`.
+
+Recommended workflow after Makefile edits:
+1. `make clean`
+2. `make development-normal`
+3. `make development-debug`
+4. `make release`
+5. Optional dependency sanity check:
+   - `touch <some_header>.h`
+   - `make -n build/development/debug/<some_executable>`
+   - Confirm dependent objects are listed for rebuild.
+
+Troubleshooting tips:
+- If a new executable is not being built, verify both:
+  - It appears in `EXES`.
+  - A correctly named `EXE_<name>_SRCS` variable exists.
+- If a source file fails to compile due to path errors, verify the path is
+  relative to the repository root (same convention as other `.cc` entries).
+- If make behavior seems stale, run `make clean` once to reset generated
+  objects/dependency files.
