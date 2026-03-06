@@ -4,7 +4,7 @@
 #include <string>
 
 #include "tdd_suite.h"
-#include "../point.h"
+#include "point.h"
 
 void expect_true(TestRunSummary& summary,
                  bool condition,

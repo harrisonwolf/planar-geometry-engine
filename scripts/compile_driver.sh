@@ -1,1 +1,1 @@
-g++ -o driver driver.cc die.cc point.cc line.cc triangle.cc polygon.cc
+g++ -Iinclude -o driver src/driver.cc src/die.cc src/point.cc src/line.cc src/triangle.cc src/polygon.cc src/helper.cc src/ear_clipping_triangulation.cc src/choice.cc src/random_polygon_generator.cc src/delaunay.cc

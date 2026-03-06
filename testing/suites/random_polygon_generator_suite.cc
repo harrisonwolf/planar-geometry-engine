@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "../test_assertions.h"
-#include "../../random_polygon_generator.h"
+#include "random_polygon_generator.h"
 
 namespace {
 

@@ -3,7 +3,7 @@
 #include <list>
 
 #include "../test_assertions.h"
-#include "../../polygon.h"
+#include "polygon.h"
 
 void run_polygon_geometry_suite(TestRunSummary& summary){
     const std::string suite_name = "Polygon";
