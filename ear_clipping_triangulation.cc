@@ -5,23 +5,61 @@
 #include "point.h"
 #include <list>
 #include <iostream>
+#include <vector>
+#include <cmath>
 //
 using namespace std;
 
-/*
- * Outline:
- * 1: Iterate over vertex list, find all vertices that determine ears
- * 	1.1 For each vertex V_i (0<i<n), create a triangle using it and the two vertices 
- * 	adjacent to it in order
- * 	1.2: Test all other vertices to see if any are inside the current triangle.
- * 	If none inside, current vertex determines an ear
- *
- * For each recursive iteration, pass the current polygon and current clipped ears vector
- */
+namespace {
 
-//function will originally be called as follows:
-// assume Polygon p has been initialized
-// vector<Triangle> triangulation = triangulate(p)
+// Methodology:
+// - Compute polygon orientation from signed area each clipping round.
+// - A vertex is an ear candidate only if it is convex with respect to current winding.
+// - Candidate ear triangle must contain no other polygon vertices.
+// - Once an ear is found, clip it and continue until only one triangle remains.
+//
+// This stays faithful to ear clipping while using explicit geometric predicates
+// (orientation tests) for robust logic under floating-point noise.
+
+// Shoelace signed area: >0 for CCW, <0 for CW
+double signed_area(const vector<Point>& vertices){
+	double area2 = 0.0;
+	if(vertices.size() < 3) return 0.0;
+	for(size_t i = 0; i < vertices.size(); ++i){
+		const Point& a = vertices.at(i);
+		const Point& b = vertices.at((i + 1) % vertices.size());
+		area2 += (a.get_x() * b.get_y()) - (b.get_x() * a.get_y());
+	}
+	return 0.5 * area2;
+}
+
+// Signed turn test for ordered triplet (a,b,c).
+double orient2d(const Point& a, const Point& b, const Point& c){
+	return (b.get_x() - a.get_x()) * (c.get_y() - a.get_y()) -
+	       (b.get_y() - a.get_y()) * (c.get_x() - a.get_x());
+}
+
+// Inclusive point-in-triangle test using orientation signs.
+bool point_in_triangle(const Point& p, const Point& a, const Point& b, const Point& c){
+	const double eps = 1e-10;
+	double o1 = orient2d(a, b, p);
+	double o2 = orient2d(b, c, p);
+	double o3 = orient2d(c, a, p);
+
+	bool has_neg = (o1 < -eps) || (o2 < -eps) || (o3 < -eps);
+	bool has_pos = (o1 > eps) || (o2 > eps) || (o3 > eps);
+	return !(has_neg && has_pos);
+}
+
+// Convexity depends on current polygon winding.
+bool is_convex_vertex(const Point& prev_p, const Point& p, const Point& next_p, bool is_ccw){
+	double turn = orient2d(prev_p, p, next_p);
+	const double eps = 1e-10;
+	if(is_ccw) return turn > eps;
+	return turn < -eps;
+}
+
+} // namespace
 
 vector<Triangle> triangulate(Polygon p){
 	DBG("Calling initial triangulate.\n");
@@ -30,144 +68,56 @@ vector<Triangle> triangulate(Polygon p){
 }
 
 vector<Triangle> triangulate(Polygon curr_polygon, vector<Triangle> &current_ears){ 
-	DBG("Recursing on polygon of " << curr_polygon.get_vertex_list().size() << " vertices.\n");
-	DBG("curr_polygon: " << curr_polygon.to_string() << "\n");
-	//base case 3 vertices
-	if(curr_polygon.get_vertex_list().size() == 3){
-		DBG("Hit base case in triangulate recursion.\n");
-		//make the remaining 3 vertices into a triangle, add it to ears, return ears
-		vector<Point> points;
-		for(Point p: curr_polygon.get_vertex_list()){
-			points.push_back(p);
-		}
-		if(points.size() > 3){ //sanity check
-			cout << "In triangulate recursion, base case polygon was turned into a triangle, and the resulting triangle has more than 3 vertices...\n";
-			die();
-		}else{ //so far, so good
-		       Point p1 = points.at(0);
-		       Point p2 = points.at(1);
-		       Point p3 = points.at(2);
-		       Triangle t(p1,p2,p3);
-		       current_ears.push_back(t);
-		       return current_ears;
-		}
-	}else{ //We still have vertices to contend with
-		//find an ear, clip it, recurse with new smaller polygon and bigger ear vector
-		
-		// 1. Find an ear
-		// 	1.1 Take current vertex, construct a triangle from it and its neighboring
-		// 	vertices
-		// 	1.2 Check all other vertices (excluding these 3) to see if they are 
-		// 	within this triangle
-		// 		1.2.1 If a vertex is, this vertex does not determine an ear;
-		// 		move on
-		// 		1.2.2 If no other vertex is within; this is an ear
-		// 			1.2.2.1 Add this triangle to ears vector
-		// 			1.2.2.2 Remove this vertex from the polygon, connect 
-		// 			its neighbors (careful with this step - linked list)
-		// 			1.2.2.3 Recurse on new polygon and ears vector
+	list<Point> curr_vertices_list = curr_polygon.get_vertex_list();
+	vector<Point> vertices(curr_vertices_list.begin(), curr_vertices_list.end());
 
-		list<Point> curr_vertices = curr_polygon.get_vertex_list();
+	DBG("Starting ear clipping on polygon of " << vertices.size() << " vertices.\n");
 
-		for(auto it = curr_vertices.begin(); it != curr_vertices.end(); it++){
-			//std::next and std::prev (ex. next(it,1) ) return an iterator;
-			//still need to dereference it! Don't forget
-continue2:
-			Point p = *it;
-			Point prev_p;
-			Point next_p;
-			Triangle t;
-			//FIRST!! DETERMINE IF REFLEX VERTEX
-			//We do not consider reflex vertices since the triangle formed by
-			//a reflex vertex and its neighbors will always be outside of
-			//the actual polygon
-			//Since points are given in clockwise order, the interior of the
-			//polygon is always to the right (positive x)
-
-			//first check if this vertex is the first or last
-			if(p == curr_vertices.front()){ //first vertex; connect to next and last
-				next_p = *next(it,1);
-				prev_p = curr_vertices.back();
-				//you never actually set this!!! you just made the triangle out of
-				//the back point but then you tried using prev_p without actually
-				//having set it
-				t = Triangle(p, next_p, prev_p); 
-				DBG("p = front - prev_p = back() = " << curr_vertices.back().to_string() << "\n");
-			}else if(p == curr_vertices.back()){ //last vertex; connect to prev and first
-				next_p = curr_vertices.front();
-				prev_p = *prev(it,1);
-				t = Triangle(p, prev_p, next_p);
-				DBG("p = back() = " << p.to_string() << "\n");
-			}else{ //general case; connect to prev and next
-			       	next_p = *next(it,1);
-				prev_p = *prev(it,1);
-				DBG("General case - prev_p = " << prev_p.to_string() << "\n");
-				t = Triangle(p, next_p, prev_p);
-			}
-
-			//now the curr vertex and its triangle have been set
-			//check all other vertices to see if they are inside
-			//FIXME: FIRST MAKE SURE THIS VERTEX IS CONVEX
-			//IF IT IS NOT, SKIP IT
-
-			DBG("Checking if vertex " << p.to_string() << " determines an ear.\n");
-			DBG("First checking if convex:\n");
-			if(curr_polygon.get_reflex_vertices().count(p.get_x()) > 0){
-				DBG("Vertex reflex, continuing...\n");
-			       	continue;
-			}
-					//this vertex is reflex; skip it
-					//Note: map::contains is only C++20 and later
-
-			DBG(p.to_string() << " convex, now see if any other vertices inside.\n");
-			for(auto it_2 = curr_vertices.begin(); it_2 != curr_vertices.end(); it_2++){
-				Point test_vertex = *it_2; //this is the vertex we're testing to
-							 //see if it's in our potential ear
-				//first make sure it's not one of the vertices of the triangle
-				DBG("test_vertex: " << test_vertex.to_string() << "\n");
-				DBG("prev_p : " << prev_p.to_string() << "\n");
-				DBG("next_p : " << next_p.to_string() << "\n");
-				if(test_vertex == p or test_vertex == next_p or test_vertex == prev_p) continue;
-				//not a vertex of the triangle - keep going
-
-				if(t.contains(test_vertex)){
-					DBG(p.to_string() << " contains " << test_vertex.to_string() << ".\n");
-					//need to jump back to start of outer for loop but
-					//can't just put this right at the end (and let the loop
-					//itself increment stuff and handle things) because then
-					//I end up "skipping past" an initialization of a polygon,
-					//which the compiler does't like
-					it++;
-					//may need to check the outer loop conditional here
-					//but it should be ok (since every polygon should theoret.
-					//have at least one ear
-					goto continue2;
-				       	//break; //DO NOT BREAK HERE
-					       //NEED TO RESTART FROM BEGINNING OF FIRST
-					       //FOR LOOP WITH NEXT P
-				}
-				//if the vertex we're looking at is in the potential ear triangle,
-				//it's not an ear; break out and look at the next potential ear
-				//if we get to the end of the vertices and none are in the potential
-				//ear, we found one! Add it to ears, remove the vertex from P,
-				//and recurse
-
-
-			}
-
-			//if we still have a potential ear after testing all other vertices,
-			//this one is an ear
-
-			current_ears.push_back(t);
-			curr_vertices.erase(it);
-			Polygon new_p(curr_vertices);
-			return triangulate(new_p,current_ears);
-
-		}
-
-
-		cout << "Never recursed in the ear clipping triangulation...";
-		cout << " Something's gone wrong.\n";
-		exit(1);
+	if(vertices.size() < 3){
+		cout << "Cannot triangulate polygon with fewer than 3 vertices.\n";
+		die();
 	}
+
+	// Iteratively clip one ear at a time until triangle base case.
+	while(vertices.size() > 3){
+		bool clipped_any_ear = false;
+		bool is_ccw = signed_area(vertices) > 0.0;
+
+		for(size_t i = 0; i < vertices.size(); ++i){
+			size_t prev_i = (i + vertices.size() - 1) % vertices.size();
+			size_t next_i = (i + 1) % vertices.size();
+
+			const Point& prev_p = vertices.at(prev_i);
+			const Point& p = vertices.at(i);
+			const Point& next_p = vertices.at(next_i);
+
+			if(!is_convex_vertex(prev_p, p, next_p, is_ccw)){
+				continue;
+			}
+
+			bool any_inside = false;
+			for(size_t j = 0; j < vertices.size(); ++j){
+				if(j == prev_i || j == i || j == next_i) continue;
+				if(point_in_triangle(vertices.at(j), prev_p, p, next_p)){
+					any_inside = true;
+					break;
+				}
+			}
+
+			if(any_inside) continue;
+
+			current_ears.push_back(Triangle(prev_p, p, next_p));
+			vertices.erase(vertices.begin() + static_cast<long>(i));
+			clipped_any_ear = true;
+			break;
+		}
+
+		if(!clipped_any_ear){
+			cout << "Failed to find an ear during ear clipping triangulation.\n";
+			die();
+		}
+	}
+
+	current_ears.push_back(Triangle(vertices.at(0), vertices.at(1), vertices.at(2)));
+	return current_ears;
 }
