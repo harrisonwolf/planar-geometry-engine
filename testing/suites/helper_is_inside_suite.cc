@@ -1,7 +1,7 @@
 #include "suites.h"
 
 #include "../test_assertions.h"
-#include "../../helper.h"
+#include "helper.h"
 
 void run_helper_is_inside_suite(TestRunSummary& summary){
     const std::string suite_name = "helper::is_inside";

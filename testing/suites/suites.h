@@ -2,8 +2,8 @@
 #define TEST_SUITES_H
 
 #include "../tdd_suite.h"
-#include "../../point.h"
-#include "../../triangle.h"
+#include "point.h"
+#include "triangle.h"
 
 void run_point_is_between_suite(TestRunSummary& summary);
 void run_point_strict_is_between_suite(TestRunSummary& summary);

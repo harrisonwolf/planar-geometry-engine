@@ -7,10 +7,13 @@ DEBUG_CXXFLAGS := $(BASE_CXXFLAGS) -g -O0 -DDEBUG
 # Add/remove executable names in one place.
 EXES := main rand_poly_gen_driver driver tester
 
+SRC_DIR := src
+INCLUDE_DIR := include
+
 # Per-executable entry sources (files containing main/test harness code).
-EXE_main_SRCS := main.cc
-EXE_rand_poly_gen_driver_SRCS := rand_poly_gen_driver.cc
-EXE_driver_SRCS := driver.cc
+EXE_main_SRCS := $(SRC_DIR)/main.cc
+EXE_rand_poly_gen_driver_SRCS := $(SRC_DIR)/rand_poly_gen_driver.cc
+EXE_driver_SRCS := $(SRC_DIR)/driver.cc
 EXE_tester_SRCS := \
 	testing/tester.cc \
 	testing/tdd_suite.cc \
@@ -27,16 +30,16 @@ EXE_tester_SRCS := \
 
 # Shared implementation sources linked into each executable.
 COMMON_SRCS := \
-	die.cc \
-	point.cc \
-	triangle.cc \
-	polygon.cc \
-	line.cc \
-	helper.cc \
-	choice.cc \
-	ear_clipping_triangulation.cc \
-	random_polygon_generator.cc \
-	delaunay.cc
+	$(SRC_DIR)/die.cc \
+	$(SRC_DIR)/point.cc \
+	$(SRC_DIR)/triangle.cc \
+	$(SRC_DIR)/polygon.cc \
+	$(SRC_DIR)/line.cc \
+	$(SRC_DIR)/helper.cc \
+	$(SRC_DIR)/choice.cc \
+	$(SRC_DIR)/ear_clipping_triangulation.cc \
+	$(SRC_DIR)/random_polygon_generator.cc \
+	$(SRC_DIR)/delaunay.cc
 
 .PHONY: all development development-normal development-debug release clean \
 	clean-development clean-development-normal clean-development-debug clean-release \
@@ -62,16 +65,16 @@ $(1)_DIR := $(2)
 $(1)_TARGETS := $$(addprefix $$($(1)_DIR)/,$$(EXES))
 $(1)_ENTRY_SRCS := $$(sort $$(foreach exe,$$(EXES),$$(EXE_$$(exe)_SRCS)))
 $(1)_SRCS := $$(COMMON_SRCS) $$($(1)_ENTRY_SRCS)
-$(1)_OBJS := $$($(1)_SRCS:%.cc=$$($(1)_DIR)/%.o)
+$(1)_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$($(1)_SRCS))
 $(1)_DEPS := $$($(1)_OBJS:.o=.d)
-$(1)_COMMON_OBJS := $$(COMMON_SRCS:%.cc=$$($(1)_DIR)/%.o)
+$(1)_COMMON_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$(COMMON_SRCS))
 
 $$($(1)_DIR):
 	mkdir -p $$@
 
 $$($(1)_DIR)/%.o: %.cc | $$($(1)_DIR)
 	mkdir -p $$(dir $$@)
-	$$(CXX) $$($(3)) $$(DEPFLAGS) -c $$< -o $$@
+	$$(CXX) $$($(3)) -I$(INCLUDE_DIR) $$(DEPFLAGS) -c $$< -o $$@
 
 $$(foreach exe,$$(EXES),$$(eval $$(call EXE_RULE,$(1),$$(exe),$(3))))
 

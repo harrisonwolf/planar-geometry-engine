@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "../test_assertions.h"
-#include "../../ear_clipping_triangulation.h"
+#include "ear_clipping_triangulation.h"
 
 namespace {
 

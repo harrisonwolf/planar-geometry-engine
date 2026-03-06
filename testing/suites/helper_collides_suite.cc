@@ -4,7 +4,7 @@
 #include <random>
 
 #include "../test_assertions.h"
-#include "../../helper.h"
+#include "helper.h"
 
 void run_helper_collides_suite(TestRunSummary& summary){
     const std::string suite_name = "helper::collides";
