@@ -131,7 +131,6 @@
         color: #f9fafb;
       }
     </style>
-    <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=desmos"></script>
   </head>
   <body>
     <div class="page">
@@ -183,14 +182,72 @@
       (function () {
         const statusEl = document.getElementById('status');
         const calculatorHost = document.getElementById('calculator');
-        const hasDesmos = typeof window.Desmos !== 'undefined' && typeof window.Desmos.GraphingCalculator === 'function';
-        const calculator = hasDesmos
-          ? window.Desmos.GraphingCalculator(calculatorHost, { expressionsCollapsed: false, settingsMenu: false })
-          : null;
+        let calculator = null;
+        let hasDesmos = false;
 
-        if (!hasDesmos) {
-          calculatorHost.innerHTML =
-            '<div style="padding:12px;color:#7f1d1d">Desmos API failed to load. You can still validate imports, but graph rendering is unavailable.</div>'
+        function getDesmosScriptCandidates() {
+          const params = new URLSearchParams(window.location.search);
+          const urlKey = (params.get('desmosApiKey') || '').trim();
+          const storedKey = (window.localStorage && localStorage.getItem('desmosApiKey') || '').trim();
+          const defaultKey = 'cb317bdd77f24b85a01c36f5d8337dcf';
+          const apiKey = urlKey || storedKey || defaultKey;
+          const versions = ['v1.11', 'v1.10'];
+          return versions.map((version) => ({
+            url: `https://www.desmos.com/api/${version}/calculator.js?apiKey=${encodeURIComponent(apiKey)}`,
+            apiKey,
+            version
+          }));
+        }
+
+        function injectScript(src) {
+          return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = () => reject(new Error(`Failed to load ${src}`));
+            document.head.appendChild(script);
+          });
+        }
+
+        async function ensureDesmosLoaded() {
+          if (typeof window.Desmos !== 'undefined' && typeof window.Desmos.GraphingCalculator === 'function') {
+            return { ok: true, reason: 'already-loaded' };
+          }
+
+          const candidates = getDesmosScriptCandidates();
+          for (const candidate of candidates) {
+            try {
+              await injectScript(candidate.url);
+              if (typeof window.Desmos !== 'undefined' && typeof window.Desmos.GraphingCalculator === 'function') {
+                return { ok: true, reason: `loaded-${candidate.version}` };
+              }
+            } catch (_err) {
+              // Try next candidate.
+            }
+          }
+
+          return {
+            ok: false,
+            reason: 'network-blocked-or-invalid-api-key',
+            hint: 'Set a valid key via ?desmosApiKey=... or localStorage.desmosApiKey.'
+          };
+        }
+
+        async function initializeCalculator() {
+          const loadResult = await ensureDesmosLoaded();
+          hasDesmos = loadResult.ok;
+
+          if (!hasDesmos) {
+            calculatorHost.innerHTML =
+              '<div style="padding:12px;color:#7f1d1d">Desmos API failed to load. Check network access and API key. You can set ?desmosApiKey=... in the URL and reload.</div>';
+            return;
+          }
+
+          calculator = window.Desmos.GraphingCalculator(calculatorHost, {
+            expressionsCollapsed: false,
+            settingsMenu: false
+          });
         }
 
         function setStatus(message, kind) {
@@ -335,6 +392,9 @@
 
         document.getElementById('url-polygon-btn').addEventListener('click', () => loadFromUrlInput('polygon'));
         document.getElementById('url-tri-btn').addEventListener('click', () => loadFromUrlInput('tri'));
+
+
+        initializeCalculator();
 
         const info = window.__BUILD_INFO__;
         if (info) {
