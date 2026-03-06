@@ -11,7 +11,19 @@ EXES := main rand_poly_gen_driver driver tester
 EXE_main_SRCS := main.cc
 EXE_rand_poly_gen_driver_SRCS := rand_poly_gen_driver.cc
 EXE_driver_SRCS := driver.cc
-EXE_tester_SRCS := testing/tester.cc testing/tdd_suite.cc
+EXE_tester_SRCS := \
+	testing/tester.cc \
+	testing/tdd_suite.cc \
+	testing/test_assertions.cc \
+	testing/suites/point_is_between_suite.cc \
+	testing/suites/point_strict_is_between_suite.cc \
+	testing/suites/helper_collides_suite.cc \
+	testing/suites/helper_strict_collides_suite.cc \
+	testing/suites/helper_is_inside_suite.cc \
+	testing/suites/triangle_geometry_suite.cc \
+	testing/suites/polygon_geometry_suite.cc \
+	testing/suites/random_polygon_generator_suite.cc \
+	testing/suites/ear_clipping_triangulation_suite.cc
 
 # Shared implementation sources linked into each executable.
 COMMON_SRCS := \
