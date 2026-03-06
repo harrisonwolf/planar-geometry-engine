@@ -28,7 +28,7 @@ COMMON_SRCS := \
 
 .PHONY: all development development-normal development-debug release clean \
 	clean-development clean-development-normal clean-development-debug clean-release \
-	test-suite help
+	test-suite help generate-build-info
 
 all: development release
 
@@ -76,6 +76,10 @@ release: $(RELEASE_TARGETS)
 
 test-suite: build/development/normal/tester
 	./build/development/normal/tester
+
+
+generate-build-info:
+	./scripts/generate_build_info.sh tools/desmos-bridge/build-info.js
 
 help:
 	@echo "Common targets:"
