@@ -1,13 +1,11 @@
 Stuff I need to do for the project
 
 CURR TASK SHORTLIST
--refactor rand gen alg
-	-decide btwn new one and prev one (in codex local branch)
--refactor ear clipping triang alg
+-Implement other triang algs (spec. for delaunay triangulations: bowyer watson, divide conquer, flip)
+-Voronoi diagram
 
 PRIMARY
 -Make desmos bridge page autofetch json files after initializing api
--Refactor/debug rand gen alg and ear clipping alg
 
 -Delauany triangulation algs
 -Make way to port large pointsets into program as input
