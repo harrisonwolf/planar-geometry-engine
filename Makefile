@@ -13,8 +13,10 @@ BUILD_INFO_CPPFLAGS := \
 	-DGEOM_BUILD_TIME_UTC=\"$(BUILD_TIME_UTC)\" \
 	-DGEOM_BUILD_DIRTY=$(GIT_DIRTY)
 
-# Add/remove executable names in one place.
-EXES := main rand_poly_gen_driver driver tester
+COMMON_EXES := main rand_poly_gen_driver driver tester
+DEV_ONLY_EXES := delaunay_driver
+DEV_EXES := $(COMMON_EXES) $(DEV_ONLY_EXES)
+RELEASE_EXES := $(COMMON_EXES)
 
 SRC_DIR := src
 INCLUDE_DIR := include
@@ -28,6 +30,7 @@ INTERVIEW_APP_NAME := planar-geometry-demo
 EXE_main_SRCS := $(SRC_DIR)/main.cc
 EXE_rand_poly_gen_driver_SRCS := $(SRC_DIR)/rand_poly_gen_driver.cc
 EXE_driver_SRCS := $(SRC_DIR)/driver.cc
+EXE_delaunay_driver_SRCS := $(SRC_DIR)/delaunay_driver.cc
 EXE_tester_SRCS := \
 	testing/tester.cc \
 	testing/tdd_suite.cc \
@@ -40,7 +43,11 @@ EXE_tester_SRCS := \
 	testing/suites/triangle_geometry_suite.cc \
 	testing/suites/polygon_geometry_suite.cc \
 	testing/suites/random_polygon_generator_suite.cc \
-	testing/suites/ear_clipping_triangulation_suite.cc
+	testing/suites/ear_clipping_triangulation_suite.cc \
+	testing/suites/delaunay_predicates_suite.cc \
+	testing/suites/delaunay_triangulation_suite.cc \
+	testing/suites/voronoi_suite.cc \
+	testing/suites/geometry_artifact_export_suite.cc
 
 # Shared implementation sources linked into each executable.
 COMMON_SRCS := \
@@ -53,7 +60,8 @@ COMMON_SRCS := \
 	$(SRC_DIR)/choice.cc \
 	$(SRC_DIR)/ear_clipping_triangulation.cc \
 	$(SRC_DIR)/random_polygon_generator.cc \
-	$(SRC_DIR)/delaunay.cc
+	$(SRC_DIR)/delaunay.cc \
+	$(SRC_DIR)/voronoi.cc
 
 .PHONY: all development development-normal development-debug release interview-release \
 	interview-smoke clean clean-development clean-development-normal clean-development-debug \
@@ -76,8 +84,9 @@ endef
 # Build template for each configuration.
 define BUILD_CONFIG
 $(1)_DIR := $(2)
-$(1)_TARGETS := $$(addprefix $$($(1)_DIR)/,$$(EXES))
-$(1)_ENTRY_SRCS := $$(sort $$(foreach exe,$$(EXES),$$(EXE_$$(exe)_SRCS)))
+$(1)_EXES := $$($(5))
+$(1)_TARGETS := $$(addprefix $$($(1)_DIR)/,$$($(1)_EXES))
+$(1)_ENTRY_SRCS := $$(sort $$(foreach exe,$$($(1)_EXES),$$(EXE_$$(exe)_SRCS)))
 $(1)_SRCS := $$(COMMON_SRCS) $$($(1)_ENTRY_SRCS)
 $(1)_OBJS := $$(patsubst %.cc,$$($(1)_DIR)/%.o,$$($(1)_SRCS))
 $(1)_DEPS := $$($(1)_OBJS:.o=.d)
@@ -90,14 +99,14 @@ $$($(1)_DIR)/%.o: %.cc | $$($(1)_DIR)
 	mkdir -p $$(dir $$@)
 	$$(CXX) $$($(3)) $(BUILD_INFO_CPPFLAGS) -DGEOM_BUILD_PROFILE=\"$(4)\" -I$(INCLUDE_DIR) $$(DEPFLAGS) -c $$< -o $$@
 
-$$(foreach exe,$$(EXES),$$(eval $$(call EXE_RULE,$(1),$$(exe),$(3))))
+$$(foreach exe,$$($(1)_EXES),$$(eval $$(call EXE_RULE,$(1),$$(exe),$(3))))
 
 -include $$($(1)_DEPS)
 endef
 
-$(eval $(call BUILD_CONFIG,DEV_NORMAL,build/development/normal,RELEASE_CXXFLAGS,development-normal))
-$(eval $(call BUILD_CONFIG,DEV_DEBUG,build/development/debug,DEBUG_CXXFLAGS,development-debug))
-$(eval $(call BUILD_CONFIG,RELEASE,build/release,RELEASE_CXXFLAGS,release))
+$(eval $(call BUILD_CONFIG,DEV_NORMAL,build/development/normal,RELEASE_CXXFLAGS,development-normal,DEV_EXES))
+$(eval $(call BUILD_CONFIG,DEV_DEBUG,build/development/debug,DEBUG_CXXFLAGS,development-debug,DEV_EXES))
+$(eval $(call BUILD_CONFIG,RELEASE,build/release,RELEASE_CXXFLAGS,release,RELEASE_EXES))
 
 development-normal: $(DEV_NORMAL_TARGETS)
 development-debug: $(DEV_DEBUG_TARGETS)

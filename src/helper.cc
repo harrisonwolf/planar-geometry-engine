@@ -375,6 +375,95 @@ static bool write_triangulation_payload(const Polygon& polygon, const std::strin
 	return true;
 }
 
+static bool write_delaunay_payload(const DelaunayTriangulation& triangulation,
+                                   const std::string& triangulation_id,
+                                   const std::string& output_path){
+	if(triangulation.sites.size() < 3){
+		std::cout << "Delaunay export error: triangulation must contain at least 3 sites.\n";
+		return false;
+	}
+	if(triangulation.triangles.empty()){
+		std::cout << "Delaunay export error: triangulation contains no triangles.\n";
+		return false;
+	}
+
+	std::ofstream out(output_path);
+	if(!out.is_open()) return false;
+
+	write_schema_preamble(out, GeometryArtifactType::DelaunayTriangulation, triangulation_id);
+	out << ",\n";
+	out << "  \"sites\": [\n";
+	for(size_t i = 0; i < triangulation.sites.size(); ++i){
+		const Point& site = triangulation.sites.at(i);
+		if(!std::isfinite(site.get_x()) || !std::isfinite(site.get_y())){
+			std::cout << "Delaunay export error: non-finite site coordinate detected.\n";
+			return false;
+		}
+		out << "    [" << site.get_x() << "," << site.get_y() << "]";
+		if(i + 1 < triangulation.sites.size()) out << ",";
+		out << "\n";
+	}
+	out << "  ],\n";
+	out << "  \"triangles\": [\n";
+	for(size_t i = 0; i < triangulation.triangles.size(); ++i){
+		const IndexedTriangle& triangle = triangulation.triangles.at(i);
+		out << "    [" << triangle.a << "," << triangle.b << "," << triangle.c << "]";
+		if(i + 1 < triangulation.triangles.size()) out << ",";
+		out << "\n";
+	}
+	out << "  ]\n";
+	out << "}\n";
+	return true;
+}
+
+static bool write_voronoi_payload(const VoronoiDiagram& diagram,
+                                  const std::string& diagram_id,
+                                  const std::string& output_path){
+	if(diagram.vertices.empty() && diagram.edges.empty()){
+		std::cout << "Voronoi export error: diagram is empty.\n";
+		return false;
+	}
+
+	std::ofstream out(output_path);
+	if(!out.is_open()) return false;
+
+	write_schema_preamble(out, GeometryArtifactType::VoronoiDiagram, diagram_id);
+	out << ",\n";
+	out << "  \"sites\": [\n";
+	for(size_t i = 0; i < diagram.sites.size(); ++i){
+		const Point& site = diagram.sites.at(i);
+		out << "    [" << site.get_x() << "," << site.get_y() << "]";
+		if(i + 1 < diagram.sites.size()) out << ",";
+		out << "\n";
+	}
+	out << "  ],\n";
+	out << "  \"vertices\": [\n";
+	for(size_t i = 0; i < diagram.vertices.size(); ++i){
+		const Point& vertex = diagram.vertices.at(i);
+		if(!std::isfinite(vertex.get_x()) || !std::isfinite(vertex.get_y())){
+			std::cout << "Voronoi export error: non-finite vertex detected.\n";
+			return false;
+		}
+		out << "    [" << vertex.get_x() << "," << vertex.get_y() << "]";
+		if(i + 1 < diagram.vertices.size()) out << ",";
+		out << "\n";
+	}
+	out << "  ],\n";
+	out << "  \"edges\": [\n";
+	for(size_t i = 0; i < diagram.edges.size(); ++i){
+		const VoronoiEdge& edge = diagram.edges.at(i);
+		out << "    {\n";
+		out << "      \"vertices\": [" << edge.start_vertex << "," << edge.end_vertex << "],\n";
+		out << "      \"sites\": [" << edge.left_site << "," << edge.right_site << "]\n";
+		out << "    }";
+		if(i + 1 < diagram.edges.size()) out << ",";
+		out << "\n";
+	}
+	out << "  ]\n";
+	out << "}\n";
+	return true;
+}
+
 bool write_geometry_artifact_file(const Polygon& polygon, const GeometryArtifactExport& export_spec){
 	switch(export_spec.type){
 		case GeometryArtifactType::Polygon:
@@ -464,6 +553,18 @@ bool write_triangulation_schema_file(const Polygon& polygon, const std::string& 
 		GeometryArtifactExport{GeometryArtifactType::Triangulation, triangulation_id, output_path});
 }
 
+bool write_delaunay_schema_file(const DelaunayTriangulation& triangulation,
+                                const std::string& triangulation_id,
+                                const std::string& output_path){
+	return write_delaunay_payload(triangulation, triangulation_id, output_path);
+}
+
+bool write_voronoi_schema_file(const VoronoiDiagram& diagram,
+                               const std::string& diagram_id,
+                               const std::string& output_path){
+	return write_voronoi_payload(diagram, diagram_id, output_path);
+}
+
 static std::string make_file_url(const std::filesystem::path& absolute_path){
 	std::string generic_path = absolute_path.generic_string();
 	if(generic_path.empty()){
@@ -475,24 +576,22 @@ static std::string make_file_url(const std::filesystem::path& absolute_path){
 	return "file://" + generic_path;
 }
 
-bool open_desmos_bridge_page(const std::string& bridge_path, bool autoload_latest){
-	std::filesystem::path canonical_bridge_path = std::filesystem::absolute(std::filesystem::path(bridge_path));
-	std::string resolved_path = canonical_bridge_path.string();
-	std::string open_target = make_file_url(canonical_bridge_path);
+static bool open_local_page(const std::string& page_path, const std::string& query_string){
+	std::filesystem::path canonical_page_path = std::filesystem::absolute(std::filesystem::path(page_path));
+	std::string resolved_path = canonical_page_path.string();
+	std::string open_target = make_file_url(canonical_page_path);
 	if(open_target.empty()){
 		open_target = resolved_path;
 	}
-	if(autoload_latest){
-		const auto now = std::chrono::system_clock::now().time_since_epoch();
-		const auto nonce = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
-		open_target += "?autoload=session&artifactSet=latest&nonce=" + std::to_string(nonce);
+	if(!query_string.empty()){
+		open_target += query_string;
 	}
 
 	std::vector<std::string> commands;
 	commands.push_back("xdg-open '" + open_target + "' >/dev/null 2>&1");
 	commands.push_back("gio open '" + open_target + "' >/dev/null 2>&1");
 	commands.push_back("open '" + open_target + "' >/dev/null 2>&1");
-	if(!autoload_latest){
+	if(query_string.empty()){
 		commands.push_back("xdg-open '" + resolved_path + "' >/dev/null 2>&1");
 		commands.push_back("gio open '" + resolved_path + "' >/dev/null 2>&1");
 		commands.push_back("open '" + resolved_path + "' >/dev/null 2>&1");
@@ -505,6 +604,27 @@ bool open_desmos_bridge_page(const std::string& bridge_path, bool autoload_lates
 
 	std::cout << "Could not automatically open browser. Please open: " << open_target << "\n";
 	return false;
+}
+
+bool open_desmos_bridge_page(const std::string& bridge_path, bool autoload_latest){
+	if(!autoload_latest){
+		return open_local_page(bridge_path, "");
+	}
+
+	const auto now = std::chrono::system_clock::now().time_since_epoch();
+	const auto nonce = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+	return open_local_page(bridge_path,
+	                       "?autoload=session&artifactSet=latest&nonce=" + std::to_string(nonce));
+}
+
+bool open_delaunay_viewer_page(const std::string& viewer_path, bool autoload_latest){
+	if(!autoload_latest){
+		return open_local_page(viewer_path, "");
+	}
+
+	const auto now = std::chrono::system_clock::now().time_since_epoch();
+	const auto nonce = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+	return open_local_page(viewer_path, "?autoload=latest&nonce=" + std::to_string(nonce));
 }
 
 bool is_inside(Point p, Triangle t){

@@ -12,7 +12,10 @@ The repository now supports two parallel workflows:
 - Create polygons manually from vertex input
 - Generate random polygons
 - Triangulate polygons and inspect the resulting triangles
+- Compute Delaunay triangulations for arbitrary point sets
+- Derive finite Voronoi diagrams from valid Delaunay triangulations
 - Export polygon and triangulation artifacts for the bundled Desmos bridge
+- Export Delaunay and Voronoi artifacts for the dedicated SVG viewer
 - Run a deterministic sample demo for interviews or smoke testing
 
 ## Development Vs Interview Release
@@ -44,6 +47,7 @@ The development workflow is still the default engineering workflow. None of the 
   - `main`
   - `driver`
   - `rand_poly_gen_driver`
+  - `delaunay_driver`
   - `tester`
 - The app built from `src/main.cc` now defaults to an interview-friendly guided menu.
 - For developers who still want the older exploratory menu, `main` now accepts `--classic-menu`.
@@ -53,6 +57,7 @@ The development workflow is still the default engineering workflow. None of the 
 
 - `driver`
 - `rand_poly_gen_driver`
+- `delaunay_driver`
 - `tester`
 - future debug or algorithm-driver binaries
 
@@ -267,6 +272,10 @@ Current suite coverage includes:
 - polygon geometry
 - random polygon generation
 - ear-clipping triangulation
+- Delaunay predicates and circumcircle tests
+- Bowyer-Watson triangulation behavior and validation
+- finite Voronoi derivation from Delaunay adjacency
+- Delaunay/Voronoi artifact export schemas
 
 ### Interview smoke test
 
@@ -301,19 +310,25 @@ GEOM_DEBUG_TAGS=poly.validate ./build/development/debug/main
 
 Existing untagged `DBG(...)` logging still maps to the fallback tag `legacy`.
 
-## Future Delaunay / Voronoi Compatibility
+## Delaunay / Voronoi Development Surface
 
-This change does not implement Delaunay triangulation or Voronoi diagrams.
+Development builds now include a separate point-set geometry surface in addition to the polygon workflow.
 
-It does prepare the release structure so those can be added additively:
+Implemented algorithms and structures:
 
-- the interview bundle ships one stable primary executable and a stable visualizer location
-- export artifacts are structured by top-level `type`
-- the bridge resolves artifact handlers by type rather than by a single hard-coded path
-- the CLI surface is organized around workflows, making it straightforward to add future items such as:
-  - Delaunay triangulation demo
-  - Voronoi diagram demo
-  - additional export/visualization modes
+- deterministic Bowyer-Watson Delaunay triangulation
+- Delaunay validation against the empty-circumcircle property
+- finite Voronoi edge construction from triangle circumcenters and triangle adjacency
+- dedicated indexed export schemas for Delaunay and Voronoi artifacts
+
+Development-only assets:
+
+- `build/development/normal/delaunay_driver`
+  - point-set Delaunay/Voronoi driver binary
+- `tools/delaunay-voronoi-viewer/index.html`
+  - dedicated local SVG viewer for Delaunay and Voronoi artifacts
+
+This surface is additive and is intentionally not part of the interview bundle yet.
 
 ## Makefile Notes
 
@@ -329,8 +344,8 @@ Common targets:
 
 When adding a new executable:
 
-1. add its name to `EXES`
+1. add its name to `COMMON_EXES` or `DEV_ONLY_EXES`
 2. define `EXE_<name>_SRCS`
 3. add shared implementation files to `COMMON_SRCS` when appropriate
 
-When adding future visualization-capable features, prefer extending the existing artifact/export flow instead of creating a separate release bundle layout.
+When adding future visualization-capable features, prefer extending an existing artifact/export flow before creating a separate release bundle layout.

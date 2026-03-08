@@ -5,11 +5,14 @@
 
 #include <iostream>
 #include <vector>
+#include <list>
 #include "point.h"
 #include "triangle.h"
 //#include "polygon.h"
 #include "polygon.h"
 #include "line.h"
+#include "delaunay.h"
+#include "voronoi.h"
 #include <utility> //for std::pair
 #include <string>
 
@@ -82,6 +85,20 @@ bool write_triangulation_schema_file(const Polygon& polygon, const std::string& 
                                      const std::string& output_path);
 
 /*
+ * Writes a Delaunay triangulation schema JSON file for the dedicated viewer.
+ */
+bool write_delaunay_schema_file(const DelaunayTriangulation& triangulation,
+                                const std::string& triangulation_id,
+                                const std::string& output_path);
+
+/*
+ * Writes a Voronoi diagram schema JSON file for the dedicated viewer.
+ */
+bool write_voronoi_schema_file(const VoronoiDiagram& diagram,
+                               const std::string& diagram_id,
+                               const std::string& output_path);
+
+/*
  * Writes an export artifact by type. Polygon and triangulation are currently supported.
  * Future release surfaces can add Delaunay/Voronoi artifacts without changing callers.
  */
@@ -98,6 +115,11 @@ bool write_bridge_autoload_file(const Polygon& polygon, const std::string& outpu
  * Returns true if an opener command succeeded, false otherwise.
  */
 bool open_desmos_bridge_page(const std::string& bridge_path, bool autoload_latest = false);
+
+/*
+ * Attempts to open the dedicated local Delaunay/Voronoi SVG viewer.
+ */
+bool open_delaunay_viewer_page(const std::string& viewer_path, bool autoload_latest = false);
 
 /*
  * Returns true if p is inside t; false otherwise

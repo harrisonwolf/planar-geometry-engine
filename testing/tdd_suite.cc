@@ -13,5 +13,9 @@ TestRunSummary run_geometry_tdd_suite(){
     run_polygon_geometry_suite(summary);
     run_random_polygon_generator_suite(summary);
     run_ear_clipping_triangulation_suite(summary);
+    run_delaunay_predicates_suite(summary);
+    run_delaunay_triangulation_suite(summary);
+    run_voronoi_suite(summary);
+    run_geometry_artifact_export_suite(summary);
     return summary;
 }
