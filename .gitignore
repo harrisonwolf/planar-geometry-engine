@@ -1,9 +1,14 @@
 # Runtime output
 tools/desmos-bridge/*.json
 tools/desmos-bridge/*.js
-tools/delaunay-voronoi-viewer/*.json
-tools/delaunay-voronoi-viewer/*.js
 !tools/delaunay-voronoi-viewer/index.html
+
+# Generated Delaunay/Voronoi viewer artifacts
+tools/delaunay-voronoi-viewer/delaunay-export.json
+tools/delaunay-voronoi-viewer/voronoi-export.json
+tools/delaunay-voronoi-viewer/latest-delaunay-export.json
+tools/delaunay-voronoi-viewer/latest-voronoi-export.json
+tools/delaunay-voronoi-viewer/latest-session.js
 
 # Build output directories
 build/
