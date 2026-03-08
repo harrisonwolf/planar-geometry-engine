@@ -30,6 +30,16 @@ std::string triangle_key(const DelaunayTriangulation& triangulation, const Index
 	return out.str();
 }
 
+std::string triangle_key_from_points(std::vector<Point> points){
+	std::sort(points.begin(), points.end(), point_lexicographic_less);
+
+	std::ostringstream out;
+	for(const Point& point : points){
+		out << "[" << point_key(point) << "]";
+	}
+	return out.str();
+}
+
 std::vector<std::string> canonical_triangle_keys(const DelaunayTriangulation& triangulation){
 	std::vector<std::string> keys;
 	keys.reserve(triangulation.triangles.size());
@@ -164,5 +174,49 @@ void run_delaunay_triangulation_suite(TestRunSummary& summary){
 		            suite_name,
 		            "detect non-delaunay split",
 		            "A hand-built triangulation with the wrong diagonal should fail the Delaunay check.");
+	}
+
+	{
+		const Point p0(-25.09, 90.14);
+		const Point p1(46.40, 19.73);
+		const Point p2(-68.80, -68.80);
+		const Point p3(-88.38, 73.24);
+		const Point p4(20.22, 41.61);
+		const Point p5(-95.88, 93.98);
+		const Point p6(66.49, -57.53);
+		const Point p7(-63.64, -63.32);
+		const Point p8(-39.15, 4.95);
+		const Point p9(-13.61, -41.75);
+
+		std::vector<Point> points{p0, p1, p2, p3, p4, p5, p6, p7, p8, p9};
+		DelaunayTriangulation triangulation = bowyer_watson_triangulate(points);
+
+		std::vector<std::string> expected_keys{
+			triangle_key_from_points({p2, p3, p5}),
+			triangle_key_from_points({p9, p2, p6}),
+			triangle_key_from_points({p9, p4, p8}),
+			triangle_key_from_points({p3, p0, p5}),
+			triangle_key_from_points({p4, p0, p8}),
+			triangle_key_from_points({p0, p3, p8}),
+			triangle_key_from_points({p9, p7, p2}),
+			triangle_key_from_points({p7, p9, p8}),
+			triangle_key_from_points({p7, p3, p2}),
+			triangle_key_from_points({p3, p7, p8}),
+			triangle_key_from_points({p1, p9, p6}),
+			triangle_key_from_points({p9, p1, p4}),
+			triangle_key_from_points({p0, p1, p4})
+		};
+		std::sort(expected_keys.begin(), expected_keys.end());
+
+		expect_true(summary,
+		            triangulation.triangles.size() == expected_keys.size(),
+		            suite_name,
+		            "image example corrected triangle count",
+		            "The provided 10-point example should produce 13 Delaunay triangles.");
+		expect_true(summary,
+		            canonical_triangle_keys(triangulation) == expected_keys,
+		            suite_name,
+		            "image example corrected triangle set",
+		            "The provided 10-point example should match the corrected Delaunay triangle set exactly.");
 	}
 }
