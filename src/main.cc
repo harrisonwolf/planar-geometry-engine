@@ -72,7 +72,7 @@ void print_release_menu() {
 	cout << "\033[1mPlanar Geometry\n\033[0m";
 	cout << "1: Create polygon\n";
 	cout << "2: View stored geometry\n";
-	cout << "3: Export latest result to visualizer\n";
+	cout << "3: Export stored result to visualizer\n";
 	cout << "4: About / version\n";
 	cout << "5: Quit\n";
 }
@@ -196,6 +196,15 @@ void create_polygon(vector<Polygon>& stored_polygons) {
 	}
 }
 
+void export_stored_polygon(const vector<Polygon>& stored_polygons, const PolygonAppPaths& paths, bool skip_browser_launch) {
+	clear_screen();
+	view_stored_geometry(stored_polygons);
+	cout << "Which stored polygon would you like to export?\n";
+	const int selection = read_menu_choice(1, static_cast<int>(stored_polygons.size()));
+	cout << "\n";
+	export_polygon_bundle(stored_polygons.at(static_cast<size_t>(selection - 1)), paths, skip_browser_launch);
+}
+
 bool prompt_to_continue() {
 	cout << "\nPress 1 to return to the main menu or 2 to quit:\n";
 	return read_menu_choice(1, 2) == 1;
@@ -221,7 +230,7 @@ void run_release_menu(const RuntimeOptions& options) {
 			if(stored_polygons.empty()) {
 				cout << "No stored polygon to export. Create one first.\n";
 			}else {
-				export_polygon_bundle(stored_polygons.back(), paths, options.skip_browser_launch);
+				export_stored_polygon(stored_polygons, paths, options.skip_browser_launch);
 			}
 		}else if(choice == 4) {
 			print_about();
