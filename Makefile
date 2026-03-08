@@ -15,8 +15,9 @@ BUILD_INFO_CPPFLAGS := \
 
 COMMON_EXES := main rand_poly_gen_driver driver tester
 DEV_ONLY_EXES := delaunay_driver
-DEV_EXES := $(COMMON_EXES) $(DEV_ONLY_EXES)
-RELEASE_EXES := $(COMMON_EXES)
+PACKAGING_EXES := interview_demo
+DEV_EXES := $(COMMON_EXES) $(DEV_ONLY_EXES) $(PACKAGING_EXES)
+RELEASE_EXES := $(COMMON_EXES) $(PACKAGING_EXES)
 
 SRC_DIR := src
 INCLUDE_DIR := include
@@ -25,9 +26,14 @@ INTERVIEW_BIN_DIR := $(INTERVIEW_DIR)/bin
 INTERVIEW_EXAMPLES_DIR := $(INTERVIEW_DIR)/examples
 INTERVIEW_BRIDGE_DIR := $(INTERVIEW_DIR)/tools/desmos-bridge
 INTERVIEW_APP_NAME := planar-geometry-demo
+APP_RELEASE_DIR := dist/release
+APP_RELEASE_BIN_DIR := $(APP_RELEASE_DIR)/bin
+APP_RELEASE_BRIDGE_DIR := $(APP_RELEASE_DIR)/tools/desmos-bridge
+APP_RELEASE_NAME := planar-geometry
 
 # Per-executable entry sources (files containing main/test harness code).
 EXE_main_SRCS := $(SRC_DIR)/main.cc
+EXE_interview_demo_SRCS := $(SRC_DIR)/interview_main.cc
 EXE_rand_poly_gen_driver_SRCS := $(SRC_DIR)/rand_poly_gen_driver.cc
 EXE_driver_SRCS := $(SRC_DIR)/driver.cc
 EXE_delaunay_driver_SRCS := $(SRC_DIR)/delaunay_driver.cc
@@ -61,11 +67,13 @@ COMMON_SRCS := \
 	$(SRC_DIR)/ear_clipping_triangulation.cc \
 	$(SRC_DIR)/random_polygon_generator.cc \
 	$(SRC_DIR)/delaunay.cc \
-	$(SRC_DIR)/voronoi.cc
+	$(SRC_DIR)/voronoi.cc \
+	$(SRC_DIR)/polygon_app_support.cc
 
-.PHONY: all development development-normal development-debug release interview-release \
-	interview-smoke clean clean-development clean-development-normal clean-development-debug \
-	clean-release clean-interview test-suite help generate-build-info
+.PHONY: all development development-normal development-debug release release-bundle release-smoke \
+	interview-release interview-smoke clean clean-development clean-development-normal \
+	clean-development-debug clean-release clean-app-release clean-interview test-suite help \
+	generate-build-info
 
 all: development release
 
@@ -124,7 +132,7 @@ interview-release: test-suite release generate-build-info
 	mkdir -p $(INTERVIEW_BIN_DIR)
 	mkdir -p $(INTERVIEW_EXAMPLES_DIR)
 	mkdir -p $(INTERVIEW_BRIDGE_DIR)
-	cp build/release/main $(INTERVIEW_BIN_DIR)/$(INTERVIEW_APP_NAME)
+	cp build/release/interview_demo $(INTERVIEW_BIN_DIR)/$(INTERVIEW_APP_NAME)
 	cp packaging/interview/run-demo.sh $(INTERVIEW_DIR)/run-demo.sh
 	cp packaging/interview/QUICKSTART.md $(INTERVIEW_DIR)/QUICKSTART.md
 	cp examples/interview-demo-polygon.txt $(INTERVIEW_EXAMPLES_DIR)/interview-demo-polygon.txt
@@ -134,6 +142,21 @@ interview-release: test-suite release generate-build-info
 	chmod +x $(INTERVIEW_DIR)/run-demo.sh
 	cd $(INTERVIEW_DIR) && ./bin/$(INTERVIEW_APP_NAME) --run-sample-demo --no-browser-launch >/dev/null
 
+release-bundle: test-suite release generate-build-info
+	rm -rf $(APP_RELEASE_DIR)
+	mkdir -p $(APP_RELEASE_BIN_DIR)
+	mkdir -p $(APP_RELEASE_BRIDGE_DIR)
+	cp build/release/main $(APP_RELEASE_BIN_DIR)/$(APP_RELEASE_NAME)
+	cp packaging/release/run.sh $(APP_RELEASE_DIR)/run.sh
+	cp packaging/release/QUICKSTART.md $(APP_RELEASE_DIR)/QUICKSTART.md
+	cp tools/desmos-bridge/index.html $(APP_RELEASE_BRIDGE_DIR)/index.html
+	cp tools/desmos-bridge/build-info.js $(APP_RELEASE_BRIDGE_DIR)/build-info.js
+	chmod +x $(APP_RELEASE_BIN_DIR)/$(APP_RELEASE_NAME)
+	chmod +x $(APP_RELEASE_DIR)/run.sh
+
+release-smoke: release-bundle
+	bash ./scripts/release_smoke.sh $(APP_RELEASE_DIR)
+
 interview-smoke: interview-release
 	bash ./scripts/interview_smoke.sh $(INTERVIEW_DIR)
 
@@ -142,6 +165,8 @@ help:
 	@echo "  make development-normal"
 	@echo "  make development-debug"
 	@echo "  make release"
+	@echo "  make release-bundle"
+	@echo "  make release-smoke"
 	@echo "  make interview-release"
 	@echo "  make interview-smoke"
 	@echo "  make test-suite"
@@ -153,7 +178,7 @@ help:
 	@echo "  2) Define EXE_<name>_SRCS with its entry .cc files"
 	@echo "To add shared code: add .cc files to COMMON_SRCS"
 
-clean: clean-development clean-release clean-interview
+clean: clean-development clean-release clean-app-release clean-interview
 
 clean-development: clean-development-normal clean-development-debug
 
@@ -165,6 +190,9 @@ clean-development-debug:
 
 clean-release:
 	rm -rf build/release
+
+clean-app-release:
+	rm -rf $(APP_RELEASE_DIR)
 
 clean-interview:
 	rm -rf $(INTERVIEW_DIR)
