@@ -1,9 +1,13 @@
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <random>
 #include <sstream>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "delaunay.h"
@@ -17,7 +21,13 @@ namespace {
 
 struct RuntimeOptions {
 	bool use_sample = false;
+	bool use_random = false;
 	bool skip_browser_launch = false;
+	bool valid = true;
+	bool coord_max_explicit = false;
+	int random_count = 0;
+	int coord_max = 10;
+	string error_message;
 };
 
 struct DriverPaths {
@@ -36,9 +46,45 @@ RuntimeOptions parse_runtime_options(int argc, char* argv[]){
 		string arg = argv[i];
 		if(arg == "--sample"){
 			options.use_sample = true;
+		}else if(arg == "--random"){
+			options.use_random = true;
 		}else if(arg == "--no-browser-launch"){
 			options.skip_browser_launch = true;
+		}else if(arg.rfind("--random-count=", 0) == 0){
+			try {
+				options.random_count = stoi(arg.substr(15));
+				options.use_random = true;
+			} catch(const exception&){
+				options.valid = false;
+				options.error_message = "Invalid value for --random-count.";
+				return options;
+			}
+		}else if(arg.rfind("--coord-max=", 0) == 0){
+			try {
+				options.coord_max = stoi(arg.substr(12));
+				options.coord_max_explicit = true;
+			} catch(const exception&){
+				options.valid = false;
+				options.error_message = "Invalid value for --coord-max.";
+				return options;
+			}
 		}
+	}
+
+	if(options.use_sample && options.use_random){
+		options.valid = false;
+		options.error_message = "Choose either --sample or --random, not both.";
+		return options;
+	}
+	if(options.use_random && options.random_count < 0){
+		options.valid = false;
+		options.error_message = "--random-count must be greater than or equal to 3.";
+		return options;
+	}
+	if(options.use_random && options.coord_max < 0){
+		options.valid = false;
+		options.error_message = "--coord-max must be non-negative.";
+		return options;
 	}
 	return options;
 }
@@ -55,6 +101,39 @@ int read_point_count(){
 		cin.clear();
 		cin.ignore(numeric_limits<streamsize>::max(), '\n');
 		cout << "Please enter an integer greater than or equal to 3.\n";
+	}
+}
+
+int read_input_mode(){
+	cout << "Select input mode:\n";
+	cout << "1: Use built-in sample point set\n";
+	cout << "2: Enter points manually\n";
+	cout << "3: Generate random points\n";
+	while(true){
+		int value = 0;
+		if(cin >> value && value >= 1 && value <= 3){
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			return value;
+		}
+
+		cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		cout << "Please enter 1, 2, or 3.\n";
+	}
+}
+
+int read_coordinate_max(){
+	cout << "What should the coordinate max be? Points will be generated within [-max, max].\n";
+	while(true){
+		int value = 0;
+		if(cin >> value && value >= 0){
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			return value;
+		}
+
+		cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		cout << "Please enter an integer greater than or equal to 0.\n";
 	}
 }
 
@@ -82,6 +161,71 @@ vector<Point> make_sample_point_set(){
 		Point(-2.5, -4.0),
 		Point(0.5, 0.25)
 	};
+}
+
+bool are_all_points_collinear(const vector<Point>& points){
+	if(points.size() < 3){
+		return true;
+	}
+
+	const Point& anchor = points.front();
+	size_t second_index = 1;
+	while(second_index < points.size() && points.at(second_index) == anchor){
+		++second_index;
+	}
+	if(second_index >= points.size()){
+		return true;
+	}
+
+	for(size_t i = second_index + 1; i < points.size(); ++i){
+		if(std::fabs(orient2d(anchor, points.at(second_index), points.at(i))) > 1e-9){
+			return false;
+		}
+	}
+	return true;
+}
+
+vector<Point> generate_random_point_set(int count, int coord_max){
+	vector<Point> points;
+	if(count < 3){
+		cout << "Random generation requires at least 3 points.\n";
+		return points;
+	}
+
+	long long axis_count = static_cast<long long>(coord_max) * 2LL + 1LL;
+	long long capacity = axis_count * axis_count;
+	if(capacity < count){
+		cout << "Random generation cannot place " << count
+		     << " unique integer points inside [-" << coord_max << ", " << coord_max << "].\n";
+		return points;
+	}
+
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_int_distribution<int> coord_dist(-coord_max, coord_max);
+
+	const int max_attempts = 256;
+	for(int attempt = 0; attempt < max_attempts; ++attempt){
+		points.clear();
+		points.reserve(static_cast<size_t>(count));
+		set<pair<int, int>> used;
+
+		while(static_cast<int>(points.size()) < count){
+			int x = coord_dist(gen);
+			int y = coord_dist(gen);
+			if(!used.insert({x, y}).second){
+				continue;
+			}
+			points.push_back(Point(static_cast<double>(x), static_cast<double>(y)));
+		}
+
+		if(!are_all_points_collinear(points)){
+			return points;
+		}
+	}
+
+	cout << "Random generation failed to produce a non-collinear point set after many attempts.\n";
+	return {};
 }
 
 string read_text_file(const string& path){
@@ -166,13 +310,53 @@ void print_summary(const vector<Point>& points,
 	cout << "Delaunay validation: " << (is_delaunay(triangulation) ? "passed" : "failed") << "\n";
 }
 
+vector<Point> select_input_points(RuntimeOptions& options){
+	if(!options.use_sample && !options.use_random){
+		int mode = read_input_mode();
+		if(mode == 1){
+			options.use_sample = true;
+		}else if(mode == 3){
+			options.use_random = true;
+		}
+	}
+
+	if(options.use_sample){
+		cout << "Using built-in sample point set.\n";
+		return make_sample_point_set();
+	}
+
+	if(options.use_random){
+		if(options.random_count == 0){
+			options.random_count = read_point_count();
+		}
+		if(!options.coord_max_explicit){
+			options.coord_max = read_coordinate_max();
+		}
+		vector<Point> points = generate_random_point_set(options.random_count, options.coord_max);
+		if(!points.empty()){
+			cout << "Generated " << options.random_count << " random points within [-"
+			     << options.coord_max << ", " << options.coord_max << "].\n";
+		}
+		return points;
+	}
+
+	return read_point_set();
+}
+
 } // namespace
 
 int main(int argc, char* argv[]){
 	logger::apply_runtime_inputs(argc, argv);
 
 	RuntimeOptions options = parse_runtime_options(argc, argv);
-	vector<Point> points = options.use_sample ? make_sample_point_set() : read_point_set();
+	if(!options.valid){
+		cout << options.error_message << "\n";
+		return 1;
+	}
+	vector<Point> points = select_input_points(options);
+	if(points.empty()){
+		return 1;
+	}
 
 	DelaunayTriangulation triangulation = bowyer_watson_triangulate(points);
 	if(triangulation.triangles.empty()){
