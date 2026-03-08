@@ -20,6 +20,10 @@ namespace {
 
 constexpr int kRandomVertexMin = 4;
 constexpr int kRandomVertexMax = 99;
+constexpr const char* kMenuTitleStyle = "\033[1m";
+constexpr const char* kValueStyle = "\033[1;36m";
+constexpr const char* kWarningStyle = "\033[1;33m";
+constexpr const char* kStyleReset = "\033[0m";
 
 struct RuntimeOptions {
 	bool show_version = false;
@@ -109,19 +113,23 @@ pair<double, double> read_coordinate_bounds() {
 
 string format_setting_value(const optional<int>& value) {
 	if(!value.has_value()) {
-		return "random";
+		return "RANDOM";
 	}
 	return to_string(*value);
 }
 
 string format_coordinate_bounds(const RandomPolygonSettings& settings) {
 	if(!settings.min_coord.has_value() || !settings.max_coord.has_value()) {
-		return "random";
+		return "RANDOM";
 	}
 
 	ostringstream out;
 	out << "[" << *settings.min_coord << ", " << *settings.max_coord << "]";
 	return out.str();
+}
+
+string format_highlighted_value(const string& value) {
+	return string(kValueStyle) + value + kStyleReset;
 }
 
 int choose_random_vertex_count() {
@@ -140,14 +148,14 @@ Polygon generate_random_polygon_with_settings(const RandomPolygonSettings& setti
 }
 
 void print_random_polygon_settings(const RandomPolygonSettings& settings) {
-	cout << "Random polygon generation settings\n";
-	cout << "Number of vertices: " << format_setting_value(settings.vertex_count) << "\n";
-	cout << "Coordinate bounds: " << format_coordinate_bounds(settings) << "\n";
-	cout << "Area: random\n\n";
+	cout << kMenuTitleStyle << "Random Polygon Generation Settings\n" << kStyleReset;
+	cout << "Number of vertices: " << format_highlighted_value(format_setting_value(settings.vertex_count)) << "\n";
+	cout << "Coordinate bounds: " << format_highlighted_value(format_coordinate_bounds(settings)) << "\n";
+	cout << "Area: " << format_highlighted_value("RANDOM") << "\n\n";
 	cout << "1: Generate\n";
 	cout << "2: Set number of vertices\n";
 	cout << "3: Set coordinate bounds\n";
-	cout << "4: Set area\n";
+	cout << "4: Set area " << kWarningStyle << "(in development)" << kStyleReset << "\n";
 }
 
 optional<Polygon> configure_random_polygon() {
@@ -159,17 +167,23 @@ optional<Polygon> configure_random_polygon() {
 		cout << "\n";
 
 		if(choice == 1) {
+			clear_screen();
 			return generate_random_polygon_with_settings(settings);
 		}
 		if(choice == 2) {
 			settings.vertex_count = read_positive_int("How many vertices should the random polygon have?\n", 3);
+			clear_screen();
 		}else if(choice == 3) {
 			const pair<double, double> bounds = read_coordinate_bounds();
 			settings.min_coord = bounds.first;
 			settings.max_coord = bounds.second;
+			clear_screen();
 		}else {
-			cout << "Area-targeted random polygon generation is not implemented yet.\n";
-			return nullopt;
+			clear_screen();
+			cout << kWarningStyle
+			     << "Area-targeted random polygon generation is not implemented yet."
+			     << kStyleReset << "\n\n";
+			continue;
 		}
 
 		cout << "\n";
@@ -177,11 +191,12 @@ optional<Polygon> configure_random_polygon() {
 }
 
 void create_polygon(vector<Polygon>& stored_polygons) {
-	cout << "Polygon creation\n";
+	cout << kMenuTitleStyle << "Polygon Creation\n" << kStyleReset;
 	cout << "1: Enter polygon manually\n";
 	cout << "2: Generate random polygon\n";
 	cout << "3: Back\n";
 	const int subchoice = read_menu_choice(1, 3);
+	clear_screen();
 
 	if(subchoice == 1) {
 		Polygon polygon = read_polygon();
