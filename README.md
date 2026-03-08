@@ -2,9 +2,10 @@
 
 Planar geometry computation and demo tooling for polygons, triangulation, and visualization.
 
-The repository now supports two parallel workflows:
+The repository now supports three parallel workflows:
 
 - development builds for day-to-day engineering
+- a stable release bundle for end-user polygon workflows
 - an interview/demo release bundle for showcasing primary features 
 
 ## Current Capabilities
@@ -24,13 +25,14 @@ The repository also contains a few tracked follow-ups and partially finished sur
 
 - Additional Delaunay triangulation algorithms beyond the current Bowyer-Watson implementation, especially divide-and-conquer and edge-flip / `flip_triangulate` style workflows
 - Smarter polygon generation heuristics and completion of the unfinished convex-polygon helper in `src/create_convex_polygon.cc` (currently a stub)
+- Additional polygon creation options, including ways to fine-tune random polygon generation
 - Multi-polygon input helpers such as `read_polygons(int n)`, which is declared but not implemented yet
 - Cleanup of older polygon workflow gaps, including convex/reflex bookkeeping and `Polygon::print_triangulation_desmos()` output
 - More robust handling for edge cases that still assume general position, such as vertical lines, repeated vertices, and other degenerate inputs
 
 These items are not part of the current supported feature set yet, but they are useful indicators of where the engine is intended to grow next.
 
-## Development Vs Interview Release
+## Development Vs Release Bundles
 
 The development workflow is still the default engineering workflow. None of the existing core build commands were repurposed.
 
@@ -45,6 +47,13 @@ The development workflow is still the default engineering workflow. None of the 
 - `make release`
   - Builds the internal optimized binaries under `build/release/`
 
+### Use these for end-user release packaging
+
+- `make release-bundle`
+  - Runs tests, builds the optimized stable app, generates build provenance, and assembles `dist/release/`
+- `make release-smoke`
+  - Rebuilds the end-user release bundle and validates the packaged app end to end
+
 ### Use these for interviewer/demo packaging
 
 - `make interview-release`
@@ -57,13 +66,26 @@ The development workflow is still the default engineering workflow. None of the 
 - `make development-normal`, `make development-debug`, `make test-suite`, and `make release` still exist and still mean the same thing.
 - Development builds still include all internal executables:
   - `main`
+  - `interview_demo`
   - `driver`
   - `rand_poly_gen_driver`
   - `delaunay_driver`
   - `tester`
-- The app built from `src/main.cc` now defaults to an interview-friendly guided menu.
-- For developers who still want the older exploratory menu, `main` now accepts `--classic-menu`.
-- The new interview bundle is additive. It does not replace the development workflow.
+- The app built from `src/main.cc` is now the stable release surface for polygon workflows.
+- The interview/demo app now lives in `src/interview_main.cc`.
+- The release and interview bundles are additive. They do not replace the development workflow.
+
+### What is intentionally excluded from the release bundle
+
+- `driver`
+- `rand_poly_gen_driver`
+- `delaunay_driver`
+- `tester`
+- unfinished or experimental algorithm-driver binaries
+
+Only one primary executable is shipped in the stable release bundle:
+
+- `dist/release/bin/planar-geometry`
 
 ### What is intentionally excluded from the interview bundle
 
@@ -95,6 +117,18 @@ make release
 
 This still produces the optimized internal binaries under `build/release/`. It is not the packaged interview build.
 
+### Stable release bundle creation
+
+```bash
+make release-bundle
+```
+
+### Stable release bundle validation
+
+```bash
+make release-smoke
+```
+
 ### Interview bundle creation
 
 ```bash
@@ -106,6 +140,23 @@ make interview-release
 ```bash
 make interview-smoke
 ```
+
+## Stable Release Bundle Layout
+
+After `make release-bundle`, the bundle lives at `dist/release/`.
+
+Key files:
+
+- `dist/release/bin/planar-geometry`
+  - the packaged executable for end-user polygon workflows
+- `dist/release/run.sh`
+  - launcher that runs from the bundle root so relative asset paths resolve correctly
+- `dist/release/QUICKSTART.md`
+  - short operator guide for the stable release build
+- `dist/release/tools/desmos-bridge/index.html`
+  - browser visualizer
+- `dist/release/tools/desmos-bridge/build-info.js`
+  - generated provenance metadata for the visualizer badge
 
 ## Interview Bundle Layout
 
@@ -129,6 +180,32 @@ Key files:
   - seeded with the deterministic sample demo output during packaging
 - `dist/interview/tools/desmos-bridge/triangulation-export.json`
   - seeded with the deterministic sample demo output during packaging
+
+## Running The Stable Release Build
+
+### Recommended
+
+From the repository root:
+
+```bash
+make release-bundle
+./dist/release/run.sh
+```
+
+### Direct executable path
+
+From `dist/release/`:
+
+```bash
+./bin/planar-geometry
+```
+
+The stable release build supports:
+
+- create polygon, with manual or random generation
+- view stored polygons and triangulation counts
+- export the latest result to the bundled Desmos bridge
+- view build/version information
 
 ## Running The Interview Build
 
@@ -190,15 +267,17 @@ The `About / version` surface reports:
 The primary app also supports:
 
 ```bash
-./build/development/normal/main --classic-menu
 ./build/development/normal/main --version
-./build/development/normal/main --run-sample-demo --no-browser-launch
+./build/development/normal/main --no-browser-launch
+./build/development/normal/interview_demo --classic-menu
+./build/development/normal/interview_demo --version
+./build/development/normal/interview_demo --run-sample-demo --no-browser-launch
 ```
 
 Environment variable:
 
 ```bash
-GEOM_SKIP_BROWSER=1 ./build/development/normal/main --run-sample-demo
+GEOM_SKIP_BROWSER=1 ./build/development/normal/main
 ```
 
 ## Release Checklist
@@ -207,8 +286,11 @@ Run these in order:
 
 ```bash
 make test-suite
+make release-bundle
+make release-smoke
 make interview-release
 make interview-smoke
+./dist/release/run.sh
 ./dist/interview/run-demo.sh
 ```
 

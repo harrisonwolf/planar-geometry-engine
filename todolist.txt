@@ -12,6 +12,7 @@ PRIMARY
 SECONDARY
 -Make random gen smarter by calculating what angles would be available (ie. how occluded the next line of sight would be) when generating a pot new vertex
 	-Perhaps calculate 3 pot next verts at a time before committing the next one, like a chess engine
+-Add polygon creation options; ie. an ability to fine-tune random polygon creation
 -Make some sort of line of sight logic
 -Organize directory into subdirectories eg shell scripts, test files
 -Finish create_convex_polygon.cc -- think this was an attempt I forgot about to do exactly what I have above (make sure rand gen polygon is valid)
