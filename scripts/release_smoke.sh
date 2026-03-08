@@ -20,7 +20,7 @@ require_file "${BUNDLE_DIR}/tools/desmos-bridge/build-info.js"
 (
   cd "${BUNDLE_DIR}"
   ./run.sh --version >/tmp/planar-geometry-release-version.txt
-  printf '1\n2\n6\n1\n3\n1\n5\n' | ./run.sh --no-browser-launch >/tmp/planar-geometry-release-session.txt
+  printf '1\n2\n2\n6\n1\n1\n3\n1\n5\n' | ./run.sh --no-browser-launch >/tmp/planar-geometry-release-session.txt
 )
 
 require_file "${BUNDLE_DIR}/tools/desmos-bridge/latest-session.js"

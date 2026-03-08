@@ -1,5 +1,9 @@
 #include <cstdlib>
 #include <iostream>
+#include <list>
+#include <optional>
+#include <random>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -14,9 +18,18 @@ using namespace std;
 
 namespace {
 
+constexpr int kRandomVertexMin = 4;
+constexpr int kRandomVertexMax = 99;
+
 struct RuntimeOptions {
 	bool show_version = false;
 	bool skip_browser_launch = false;
+};
+
+struct RandomPolygonSettings {
+	std::optional<int> vertex_count;
+	std::optional<double> min_coord;
+	std::optional<double> max_coord;
 };
 
 RuntimeOptions parse_runtime_options(int argc, char* argv[]) {
@@ -64,6 +77,105 @@ void print_release_menu() {
 	cout << "5: Quit\n";
 }
 
+pair<double, double> read_coordinate_bounds() {
+	while(true) {
+		cout << "Enter minimum coordinate bound:\n";
+		double min_coord = 0.0;
+		if(!(cin >> min_coord)) {
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			cout << "Please enter numeric coordinate bounds.\n";
+			continue;
+		}
+
+		cout << "Enter maximum coordinate bound:\n";
+		double max_coord = 0.0;
+		if(!(cin >> max_coord)) {
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			cout << "Please enter numeric coordinate bounds.\n";
+			continue;
+		}
+
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		if(min_coord >= max_coord) {
+			cout << "Minimum coordinate bound must be less than maximum coordinate bound.\n";
+			continue;
+		}
+
+		return {min_coord, max_coord};
+	}
+}
+
+string format_setting_value(const optional<int>& value) {
+	if(!value.has_value()) {
+		return "random";
+	}
+	return to_string(*value);
+}
+
+string format_coordinate_bounds(const RandomPolygonSettings& settings) {
+	if(!settings.min_coord.has_value() || !settings.max_coord.has_value()) {
+		return "random";
+	}
+
+	ostringstream out;
+	out << "[" << *settings.min_coord << ", " << *settings.max_coord << "]";
+	return out.str();
+}
+
+int choose_random_vertex_count() {
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_int_distribution<int> dist(kRandomVertexMin, kRandomVertexMax);
+	return dist(gen);
+}
+
+Polygon generate_random_polygon_with_settings(const RandomPolygonSettings& settings) {
+	const int vertex_count = settings.vertex_count.value_or(choose_random_vertex_count());
+
+	return settings.min_coord.has_value() && settings.max_coord.has_value()
+		? generate_random_polygon(vertex_count, *settings.min_coord, *settings.max_coord)
+		: generate_random_polygon(vertex_count);
+}
+
+void print_random_polygon_settings(const RandomPolygonSettings& settings) {
+	cout << "Random polygon generation settings\n";
+	cout << "Number of vertices: " << format_setting_value(settings.vertex_count) << "\n";
+	cout << "Coordinate bounds: " << format_coordinate_bounds(settings) << "\n";
+	cout << "Area: random\n\n";
+	cout << "1: Generate\n";
+	cout << "2: Set number of vertices\n";
+	cout << "3: Set coordinate bounds\n";
+	cout << "4: Set area\n";
+}
+
+optional<Polygon> configure_random_polygon() {
+	RandomPolygonSettings settings;
+
+	while(true) {
+		print_random_polygon_settings(settings);
+		const int choice = read_menu_choice(1, 4);
+		cout << "\n";
+
+		if(choice == 1) {
+			return generate_random_polygon_with_settings(settings);
+		}
+		if(choice == 2) {
+			settings.vertex_count = read_positive_int("How many vertices should the random polygon have?\n", 3);
+		}else if(choice == 3) {
+			const pair<double, double> bounds = read_coordinate_bounds();
+			settings.min_coord = bounds.first;
+			settings.max_coord = bounds.second;
+		}else {
+			cout << "Area-targeted random polygon generation is not implemented yet.\n";
+			return nullopt;
+		}
+
+		cout << "\n";
+	}
+}
+
 void create_polygon(vector<Polygon>& stored_polygons) {
 	cout << "Polygon creation\n";
 	cout << "1: Enter polygon manually\n";
@@ -76,10 +188,11 @@ void create_polygon(vector<Polygon>& stored_polygons) {
 		stored_polygons.push_back(polygon);
 		print_polygon_summary(stored_polygons.back(), "Stored manual polygon");
 	}else if(subchoice == 2) {
-		const int n = read_positive_int("How many vertices should the random polygon have?\n", 3);
-		Polygon polygon = generate_random_polygon(n);
-		stored_polygons.push_back(polygon);
-		print_polygon_summary(stored_polygons.back(), "Stored random polygon");
+		optional<Polygon> polygon = configure_random_polygon();
+		if(polygon.has_value()) {
+			stored_polygons.push_back(*polygon);
+			print_polygon_summary(stored_polygons.back(), "Stored random polygon");
+		}
 	}
 }
 
