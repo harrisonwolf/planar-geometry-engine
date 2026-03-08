@@ -5,7 +5,7 @@ Planar geometry computation and demo tooling for polygons, triangulation, and vi
 The repository now supports two parallel workflows:
 
 - development builds for day-to-day engineering
-- an interview/demo release bundle for handing someone a polished, guided build
+- an interview/demo release bundle for showcasing primary features 
 
 ## Current Capabilities
 
@@ -17,6 +17,18 @@ The repository now supports two parallel workflows:
 - Export polygon and triangulation artifacts for the bundled Desmos bridge
 - Export Delaunay and Voronoi artifacts for the dedicated SVG viewer
 - Run a deterministic sample demo for interviews or smoke testing
+
+## In Development / Planned Work
+
+The repository also contains a few tracked follow-ups and partially finished surfaces:
+
+- Additional Delaunay triangulation algorithms beyond the current Bowyer-Watson implementation, especially divide-and-conquer and edge-flip / `flip_triangulate` style workflows
+- Smarter polygon generation heuristics and completion of the unfinished convex-polygon helper in `src/create_convex_polygon.cc` (currently a stub)
+- Multi-polygon input helpers such as `read_polygons(int n)`, which is declared but not implemented yet
+- Cleanup of older polygon workflow gaps, including convex/reflex bookkeeping and `Polygon::print_triangulation_desmos()` output
+- More robust handling for edge cases that still assume general position, such as vertical lines, repeated vertices, and other degenerate inputs
+
+These items are not part of the current supported feature set yet, but they are useful indicators of where the engine is intended to grow next.
 
 ## Development Vs Interview Release
 
