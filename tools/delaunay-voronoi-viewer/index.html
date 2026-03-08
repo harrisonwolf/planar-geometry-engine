@@ -195,6 +195,12 @@
         font-family: "Iowan Old Style", "Palatino Linotype", serif;
       }
 
+      .axis-label {
+        fill: #6d6052;
+        font-size: 12px;
+        font-family: "Trebuchet MS", sans-serif;
+      }
+
       @media (max-width: 920px) {
         .hero {
           grid-template-columns: 1fr;
@@ -275,6 +281,15 @@
           delaunay: null,
           voronoi: null
         };
+
+        function escapeHtml(value) {
+          return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+        }
 
         function setStatus(message, kind) {
           statusEl.textContent = message;
@@ -389,6 +404,16 @@
           return points;
         }
 
+        function niceStep(rawStep) {
+          const exponent = Math.floor(Math.log10(rawStep));
+          const magnitude = 10 ** exponent;
+          const normalized = rawStep / magnitude;
+          if (normalized <= 1) return 1 * magnitude;
+          if (normalized <= 2) return 2 * magnitude;
+          if (normalized <= 5) return 5 * magnitude;
+          return 10 * magnitude;
+        }
+
         function computeTransform(points) {
           if (!points.length) {
             return null;
@@ -427,10 +452,17 @@
           const offsetX = (VIEW_WIDTH - (maxX - minX) * scale) / 2;
           const offsetY = (VIEW_HEIGHT - (maxY - minY) * scale) / 2;
 
-          return function project(point) {
-            const x = offsetX + (point[0] - minX) * scale;
-            const y = VIEW_HEIGHT - (offsetY + (point[1] - minY) * scale);
-            return [x, y];
+          return {
+            minX,
+            maxX,
+            minY,
+            maxY,
+            scale,
+            project(point) {
+              const x = offsetX + (point[0] - minX) * scale;
+              const y = VIEW_HEIGHT - (offsetY + (point[1] - minY) * scale);
+              return [x, y];
+            }
           };
         }
 
@@ -464,7 +496,63 @@
         }
 
         function textMarkup(point, text, fill) {
-          return `<text x="${point[0] + 8}" y="${point[1] - 8}" fill="${fill}" font-size="12" font-family="'Trebuchet MS', sans-serif">${text}</text>`;
+          return `<text x="${point[0] + 8}" y="${point[1] - 8}" fill="${fill}" font-size="12" font-family="'Trebuchet MS', sans-serif">${escapeHtml(text)}</text>`;
+        }
+
+        function axisTextMarkup(point, text, anchor) {
+          return `<text class="axis-label" x="${point[0]}" y="${point[1]}" text-anchor="${anchor}">${escapeHtml(text)}</text>`;
+        }
+
+        function frameMarkup(transform) {
+          const topLeft = transform.project([transform.minX, transform.maxY]);
+          const bottomRight = transform.project([transform.maxX, transform.minY]);
+          return `<rect x="${topLeft[0]}" y="${topLeft[1]}" width="${bottomRight[0] - topLeft[0]}" height="${bottomRight[1] - topLeft[1]}" fill="none" stroke="rgba(72, 60, 48, 0.18)" stroke-width="1.2" rx="12" />`;
+        }
+
+        function axisAndTicksMarkup(transform) {
+          const markup = [frameMarkup(transform)];
+          const stepX = niceStep((transform.maxX - transform.minX) / 6);
+          const stepY = niceStep((transform.maxY - transform.minY) / 6);
+
+          const bottomY = transform.project([0, transform.minY])[1];
+          const leftX = transform.project([transform.minX, 0])[0];
+          const xAxisY = Math.min(Math.max(bottomY, FRAME_PADDING), VIEW_HEIGHT - FRAME_PADDING);
+          const yAxisX = Math.min(Math.max(leftX, FRAME_PADDING), VIEW_WIDTH - FRAME_PADDING);
+
+          markup.push(
+            lineMarkup([transform.project([transform.minX, 0])[0], xAxisY], [transform.project([transform.maxX, 0])[0], xAxisY], 'rgba(72, 60, 48, 0.5)', 1.8, 1)
+          );
+          markup.push(
+            lineMarkup([yAxisX, transform.project([0, transform.minY])[1]], [yAxisX, transform.project([0, transform.maxY])[1]], 'rgba(72, 60, 48, 0.5)', 1.8, 1)
+          );
+
+          const xStart = Math.ceil(transform.minX / stepX) * stepX;
+          for (let x = xStart; x <= transform.maxX + stepX * 0.5; x += stepX) {
+            const projected = transform.project([x, 0]);
+            markup.push(lineMarkup([projected[0], xAxisY - 6], [projected[0], xAxisY + 6], 'rgba(72, 60, 48, 0.35)', 1.1, 1));
+            if (Math.abs(x) > 1e-9) {
+              markup.push(axisTextMarkup([projected[0], xAxisY + 20], Number(x.toFixed(3)).toString(), 'middle'));
+            }
+          }
+
+          const yStart = Math.ceil(transform.minY / stepY) * stepY;
+          for (let y = yStart; y <= transform.maxY + stepY * 0.5; y += stepY) {
+            const projected = transform.project([0, y]);
+            markup.push(lineMarkup([yAxisX - 6, projected[1]], [yAxisX + 6, projected[1]], 'rgba(72, 60, 48, 0.35)', 1.1, 1));
+            if (Math.abs(y) > 1e-9) {
+              markup.push(axisTextMarkup([yAxisX - 10, projected[1] + 4], Number(y.toFixed(3)).toString(), 'end'));
+            }
+          }
+
+          const origin = transform.project([0, 0]);
+          if (origin[0] >= FRAME_PADDING && origin[0] <= VIEW_WIDTH - FRAME_PADDING &&
+              origin[1] >= FRAME_PADDING && origin[1] <= VIEW_HEIGHT - FRAME_PADDING) {
+            markup.push(axisTextMarkup([origin[0] - 8, origin[1] + 18], '0', 'end'));
+          }
+
+          markup.push(axisTextMarkup([transform.project([transform.maxX, 0])[0] - 12, xAxisY - 10], 'x', 'end'));
+          markup.push(axisTextMarkup([yAxisX + 10, transform.project([0, transform.maxY])[1] + 14], 'y', 'start'));
+          return markup;
         }
 
         function renderScene() {
@@ -476,8 +564,9 @@
             return;
           }
 
-          const project = computeTransform(allPoints);
-          const markup = [];
+          const transform = computeTransform(allPoints);
+          const project = transform.project;
+          const markup = axisAndTicksMarkup(transform);
 
           if (state.delaunay) {
             const edges = uniqueDelaunayEdges(state.delaunay.triangles);
@@ -532,6 +621,28 @@
           return await response.text();
         }
 
+        function injectScript(src) {
+          return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = () => reject(new Error(`Failed to load ${src}.`));
+            document.head.appendChild(script);
+          });
+        }
+
+        async function loadLatestSessionArtifacts() {
+          const nonce = Date.now().toString();
+          delete window.__DELAUNAY_VIEWER_AUTOLOAD__;
+          await injectScript(`./latest-session.js?nonce=${encodeURIComponent(nonce)}`);
+          const payload = window.__DELAUNAY_VIEWER_AUTOLOAD__;
+          if (!payload || !Array.isArray(payload.artifacts)) {
+            throw new Error('Missing local latest-session.js payload.');
+          }
+          return payload.artifacts;
+        }
+
         function installParsedArtifact(type, parsed, sourceLabel) {
           if (type === 'delaunay') {
             state.delaunay = parsed;
@@ -559,8 +670,19 @@
         }
 
         async function handleDefaultLoad(type) {
+          const path = type === 'delaunay' ? './latest-delaunay-export.json' : './latest-voronoi-export.json';
           try {
-            const path = type === 'delaunay' ? './latest-delaunay-export.json' : './latest-voronoi-export.json';
+            if (window.location.protocol === 'file:') {
+              const artifacts = await loadLatestSessionArtifacts();
+              const artifact = artifacts.find((item) => item && ((type === 'delaunay' && item.type === 'delaunay_triangulation') || (type === 'voronoi' && item.type === 'voronoi_diagram')));
+              if (!artifact) {
+                throw new Error(`latest-session.js does not contain a ${type} artifact.`);
+              }
+              const parsed = type === 'delaunay' ? parseDelaunay(artifact) : parseVoronoi(artifact);
+              installParsedArtifact(type, parsed, 'latest-session.js');
+              return;
+            }
+
             const raw = await fetchLocalJson(path);
             const parsed = type === 'delaunay' ? parseDelaunay(raw) : parseVoronoi(raw);
             installParsedArtifact(type, parsed, path);
@@ -576,11 +698,7 @@
             return;
           }
 
-          try {
-            await Promise.all([handleDefaultLoad('delaunay'), handleDefaultLoad('voronoi')]);
-          } catch (_error) {
-            // Individual loaders already update status.
-          }
+          await Promise.all([handleDefaultLoad('delaunay'), handleDefaultLoad('voronoi')]);
         }
 
         document.getElementById('load-latest-delaunay').addEventListener('click', () => handleDefaultLoad('delaunay'));

@@ -1,0 +1,77 @@
+window.__DELAUNAY_VIEWER_AUTOLOAD__ = {
+  schemaVersion: 1,
+  artifacts: [
+{
+  "schemaVersion": 1,
+  "type": "delaunay_triangulation",
+  "id": "sample_delaunay",
+  "sites": [
+    [-4,-1],
+    [-2.5,-4],
+    [-1.5,3.5],
+    [0.5,0.25],
+    [2.5,4],
+    [3,-3],
+    [5,0.5]
+  ],
+  "triangles": [
+    [0,1,3],
+    [2,0,3],
+    [2,3,4],
+    [3,1,5],
+    [4,3,6],
+    [3,5,6]
+  ]
+}
+,
+{
+  "schemaVersion": 1,
+  "type": "voronoi_diagram",
+  "id": "sample_voronoi",
+  "sites": [
+    [-4,-1],
+    [-2.5,-4],
+    [-1.5,3.5],
+    [0.5,0.25],
+    [2.5,4],
+    [3,-3],
+    [5,0.5]
+  ],
+  "vertices": [
+    [-1.41463,-1.58232],
+    [-2.10128,0.889599],
+    [0.646205,2.58036],
+    [0.095092,-2.64801],
+    [2.68798,1.49141],
+    [2.80225,-0.565574]
+  ],
+  "edges": [
+    {
+      "vertices": [0,3],
+      "sites": [1,3]
+    },
+    {
+      "vertices": [0,1],
+      "sites": [0,3]
+    },
+    {
+      "vertices": [1,2],
+      "sites": [2,3]
+    },
+    {
+      "vertices": [2,4],
+      "sites": [3,4]
+    },
+    {
+      "vertices": [3,5],
+      "sites": [3,5]
+    },
+    {
+      "vertices": [4,5],
+      "sites": [3,6]
+    }
+  ]
+}
+
+  ]
+};

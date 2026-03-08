@@ -1,6 +1,8 @@
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -24,6 +26,7 @@ struct DriverPaths {
 	string latest_voronoi_output_path = viewer_dir + "/latest-voronoi-export.json";
 	string legacy_delaunay_output_path = viewer_dir + "/delaunay-export.json";
 	string legacy_voronoi_output_path = viewer_dir + "/voronoi-export.json";
+	string latest_session_output_path = viewer_dir + "/latest-session.js";
 	string viewer_path = viewer_dir + "/index.html";
 };
 
@@ -81,6 +84,35 @@ vector<Point> make_sample_point_set(){
 	};
 }
 
+string read_text_file(const string& path){
+	ifstream input(path);
+	ostringstream buffer;
+	buffer << input.rdbuf();
+	return buffer.str();
+}
+
+bool write_autoload_session_file(const DriverPaths& paths){
+	string delaunay_json = read_text_file(paths.latest_delaunay_output_path);
+	string voronoi_json = read_text_file(paths.latest_voronoi_output_path);
+	if(delaunay_json.empty() || voronoi_json.empty()){
+		return false;
+	}
+
+	ofstream output(paths.latest_session_output_path);
+	if(!output.is_open()){
+		return false;
+	}
+
+	output << "window.__DELAUNAY_VIEWER_AUTOLOAD__ = {\n";
+	output << "  schemaVersion: 1,\n";
+	output << "  artifacts: [\n";
+	output << delaunay_json << ",\n";
+	output << voronoi_json << "\n";
+	output << "  ]\n";
+	output << "};\n";
+	return true;
+}
+
 bool export_latest_artifacts(const DelaunayTriangulation& triangulation,
                              const VoronoiDiagram& voronoi,
                              const DriverPaths& paths,
@@ -95,8 +127,9 @@ bool export_latest_artifacts(const DelaunayTriangulation& triangulation,
 		triangulation, "sample_delaunay", paths.legacy_delaunay_output_path);
 	bool legacy_voronoi_ok = write_voronoi_schema_file(
 		voronoi, "sample_voronoi", paths.legacy_voronoi_output_path);
+	bool latest_session_ok = latest_delaunay_ok && latest_voronoi_ok && write_autoload_session_file(paths);
 
-	if(!latest_delaunay_ok || !latest_voronoi_ok || !legacy_delaunay_ok || !legacy_voronoi_ok){
+	if(!latest_delaunay_ok || !latest_voronoi_ok || !legacy_delaunay_ok || !legacy_voronoi_ok || !latest_session_ok){
 		cout << "Failed to export one or more Delaunay/Voronoi artifacts.\n";
 		return false;
 	}
@@ -105,17 +138,19 @@ bool export_latest_artifacts(const DelaunayTriangulation& triangulation,
 	     << std::filesystem::absolute(paths.latest_delaunay_output_path).string() << "\n";
 	cout << "Exported Voronoi artifact to "
 	     << std::filesystem::absolute(paths.latest_voronoi_output_path).string() << "\n";
+	cout << "Exported viewer autoload session to "
+	     << std::filesystem::absolute(paths.latest_session_output_path).string() << "\n";
 	cout << "Also refreshed compatibility copies at delaunay-export.json and voronoi-export.json.\n";
 
 	if(skip_browser_launch){
 		cout << "Browser launch skipped.\n";
-		cout << "Open " << paths.viewer_path << " and load latest-delaunay-export.json plus latest-voronoi-export.json.\n";
+		cout << "Open " << paths.viewer_path << " and use the latest-load buttons, or import latest-delaunay-export.json plus latest-voronoi-export.json manually.\n";
 		return true;
 	}
 
 	if(!open_delaunay_viewer_page(paths.viewer_path, true)){
 		cout << "If the browser did not open, manually open " << paths.viewer_path << "\n";
-		cout << "Then load latest-delaunay-export.json and latest-voronoi-export.json.\n";
+		cout << "Then use the latest-load buttons or import latest-delaunay-export.json and latest-voronoi-export.json.\n";
 	}
 
 	return true;
