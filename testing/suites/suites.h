@@ -14,5 +14,9 @@ void run_triangle_geometry_suite(TestRunSummary& summary);
 void run_polygon_geometry_suite(TestRunSummary& summary);
 void run_random_polygon_generator_suite(TestRunSummary& summary);
 void run_ear_clipping_triangulation_suite(TestRunSummary& summary);
+void run_delaunay_predicates_suite(TestRunSummary& summary);
+void run_delaunay_triangulation_suite(TestRunSummary& summary);
+void run_voronoi_suite(TestRunSummary& summary);
+void run_geometry_artifact_export_suite(TestRunSummary& summary);
 
 #endif

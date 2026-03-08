@@ -1,20 +1,37 @@
-//header file for delaunay triangulation algorithm(s)
+#ifndef DELAUNAY_H
+#define DELAUNAY_H
+
+#include <array>
 #include <vector>
+
+#include "point.h"
 #include "triangle.h"
-//#include "pointset.h"
-//#include <unordered_map>
-#include <unordered_set>
 
-//need to decide how to handle is_delaunay function for a given triangle within an existing triangulation
-//maybe I make a separate triangulation class..?
-//or with flipping alg, construct new triangulation in parallel..?
+struct IndexedTriangle {
+	int a = -1;
+	int b = -1;
+	int c = -1;
+};
 
-bool is_delaunay(std::vector<Triangle> triangulation);
+struct DelaunayTriangulation {
+	std::vector<Point> sites;
+	std::vector<IndexedTriangle> triangles;
+	// Neighbor order matches triangle edges (a,b), (b,c), (c,a).
+	std::vector<std::array<int, 3>> neighbors;
+};
 
-std::vector<Triangle> bowyer_watson_triangulate(std::unordered_set<Point> points);
+bool point_lexicographic_less(const Point& lhs, const Point& rhs);
+double orient2d(const Point& a, const Point& b, const Point& c);
+Point circumcenter(const Point& a, const Point& b, const Point& c);
+bool circumcircle_contains(const Point& query,
+	                   const Point& a,
+	                   const Point& b,
+	                   const Point& c);
+Triangle materialize_triangle(const DelaunayTriangulation& triangulation,
+	                      const IndexedTriangle& indexed_triangle);
 
-std::vector<Triangle> dc_triangulate(std::unordered_set<Point> points);
+bool is_delaunay(const DelaunayTriangulation& triangulation);
+DelaunayTriangulation bowyer_watson_triangulate(const std::vector<Point>& points);
 
-std::vector<Triangle> flip_triangulate(std::vector<Triangle> triangulation);
-
+#endif
 

@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delaunay / Voronoi Viewer</title>
+    <style>
+      :root {
+        --bg-top: #f7efe0;
+        --bg-bottom: #efe5d1;
+        --paper: rgba(255, 252, 245, 0.9);
+        --line: rgba(72, 60, 48, 0.18);
+        --text: #2e261f;
+        --muted: #6d6052;
+        --accent: #0f766e;
+        --accent-soft: rgba(15, 118, 110, 0.14);
+        --edge: #245f7a;
+        --voronoi: #b45309;
+        --site: #1f2937;
+        --center: #6b7280;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.55), transparent 36%),
+          linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+      }
+
+      .page {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 28px 20px 36px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .panel,
+      .viewport {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        box-shadow: 0 18px 50px rgba(63, 47, 30, 0.08);
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      h1,
+      h2 {
+        font-family: "Iowan Old Style", "Palatino Linotype", serif;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(28px, 4vw, 42px);
+        line-height: 1;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        font-size: 16px;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        margin: 0;
+        max-width: 60ch;
+        color: var(--muted);
+      }
+
+      .controls {
+        display: grid;
+        gap: 12px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      button,
+      input[type='file'] {
+        font: inherit;
+      }
+
+      button {
+        border: 1px solid rgba(36, 95, 122, 0.18);
+        background: #fff;
+        color: var(--text);
+        padding: 9px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+      }
+
+      button:hover {
+        background: var(--accent-soft);
+        border-color: rgba(15, 118, 110, 0.4);
+        transform: translateY(-1px);
+      }
+
+      .note,
+      .legend,
+      .stats {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .legend {
+        display: grid;
+        gap: 8px;
+      }
+
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .swatch {
+        width: 16px;
+        height: 4px;
+        border-radius: 999px;
+        display: inline-block;
+      }
+
+      .site-swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--site);
+      }
+
+      #status {
+        margin: 0 0 16px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid var(--line);
+      }
+
+      #status.error {
+        color: #8a2d11;
+      }
+
+      #status.ok {
+        color: #0b5e58;
+      }
+
+      .viewport {
+        padding: 14px;
+      }
+
+      .canvas-shell {
+        height: min(72vh, 760px);
+        border-radius: 16px;
+        border: 1px solid rgba(72, 60, 48, 0.12);
+        overflow: hidden;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72)),
+          linear-gradient(90deg, rgba(36, 95, 122, 0.04) 1px, transparent 1px),
+          linear-gradient(rgba(36, 95, 122, 0.04) 1px, transparent 1px);
+        background-size: auto, 36px 36px, 36px 36px;
+      }
+
+      svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .empty-state {
+        fill: #6d6052;
+        font-size: 24px;
+        font-family: "Iowan Old Style", "Palatino Linotype", serif;
+      }
+
+      @media (max-width: 920px) {
+        .hero {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <div class="panel stack">
+          <div>
+            <h1>Delaunay / Voronoi Viewer</h1>
+            <p class="subtitle">
+              Inspect indexed Delaunay triangulations and the finite Voronoi edges derived from their triangle circumcenters.
+            </p>
+          </div>
+          <div class="controls">
+            <section class="stack">
+              <h2>Delaunay</h2>
+              <div class="row">
+                <button type="button" id="load-latest-delaunay">Load latest Delaunay export</button>
+                <button type="button" id="pick-delaunay">Import Delaunay file</button>
+              </div>
+              <input id="delaunay-file" type="file" accept="application/json,.json" hidden />
+            </section>
+
+            <section class="stack">
+              <h2>Voronoi</h2>
+              <div class="row">
+                <button type="button" id="load-latest-voronoi">Load latest Voronoi export</button>
+                <button type="button" id="pick-voronoi">Import Voronoi file</button>
+              </div>
+              <input id="voronoi-file" type="file" accept="application/json,.json" hidden />
+            </section>
+          </div>
+        </div>
+
+        <aside class="panel stack">
+          <div class="legend">
+            <span><i class="swatch" style="background: var(--edge)"></i>Delaunay edges</span>
+            <span><i class="swatch" style="background: var(--voronoi)"></i>Voronoi finite edges</span>
+            <span><i class="site-swatch"></i>Sites</span>
+            <span><i class="site-swatch" style="background: var(--center)"></i>Circumcenters</span>
+          </div>
+          <div class="stats" id="stats">No artifacts loaded.</div>
+          <div class="note">
+            Default loads look for <code>latest-delaunay-export.json</code> and
+            <code>latest-voronoi-export.json</code> beside this page.
+          </div>
+        </aside>
+      </section>
+
+      <p id="status">Ready.</p>
+
+      <section class="viewport">
+        <div class="canvas-shell">
+          <svg id="scene" viewBox="0 0 1000 720" aria-label="Delaunay and Voronoi visualization">
+            <g id="scene-root"></g>
+          </svg>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        const VIEW_WIDTH = 1000;
+        const VIEW_HEIGHT = 720;
+        const FRAME_PADDING = 56;
+
+        const statusEl = document.getElementById('status');
+        const statsEl = document.getElementById('stats');
+        const sceneRoot = document.getElementById('scene-root');
+        const delaunayInput = document.getElementById('delaunay-file');
+        const voronoiInput = document.getElementById('voronoi-file');
+
+        const state = {
+          delaunay: null,
+          voronoi: null
+        };
+
+        function setStatus(message, kind) {
+          statusEl.textContent = message;
+          statusEl.className = kind || '';
+        }
+
+        function setStats() {
+          const delaunay = state.delaunay;
+          const voronoi = state.voronoi;
+          const parts = [];
+          if (delaunay) {
+            parts.push(`Sites: ${delaunay.sites.length}`);
+            parts.push(`Triangles: ${delaunay.triangles.length}`);
+          }
+          if (voronoi) {
+            parts.push(`Voronoi vertices: ${voronoi.vertices.length}`);
+            parts.push(`Finite Voronoi edges: ${voronoi.edges.length}`);
+          }
+          statsEl.textContent = parts.length ? parts.join(' • ') : 'No artifacts loaded.';
+        }
+
+        function parsePointList(points, label) {
+          if (!Array.isArray(points)) {
+            throw new Error(`${label} must be an array.`);
+          }
+          return points.map((point, index) => {
+            if (!Array.isArray(point) || point.length < 2) {
+              throw new Error(`${label}[${index}] must be [x, y].`);
+            }
+            const x = Number(point[0]);
+            const y = Number(point[1]);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) {
+              throw new Error(`${label}[${index}] must contain finite numbers.`);
+            }
+            return [x, y];
+          });
+        }
+
+        function parseDelaunay(raw) {
+          const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+          if (!parsed || parsed.type !== 'delaunay_triangulation') {
+            throw new Error('Expected a delaunay_triangulation artifact.');
+          }
+          if (parsed.schemaVersion && parsed.schemaVersion !== 1) {
+            throw new Error(`Unsupported schemaVersion: ${parsed.schemaVersion}`);
+          }
+
+          const sites = parsePointList(parsed.sites, 'sites');
+          if (!Array.isArray(parsed.triangles)) {
+            throw new Error('triangles must be an array.');
+          }
+          const triangles = parsed.triangles.map((triangle, index) => {
+            if (!Array.isArray(triangle) || triangle.length < 3) {
+              throw new Error(`triangles[${index}] must be [a, b, c].`);
+            }
+            const a = Number(triangle[0]);
+            const b = Number(triangle[1]);
+            const c = Number(triangle[2]);
+            if (![a, b, c].every(Number.isInteger)) {
+              throw new Error(`triangles[${index}] must contain integer indices.`);
+            }
+            if ([a, b, c].some((value) => value < 0 || value >= sites.length)) {
+              throw new Error(`triangles[${index}] contains an out-of-range site index.`);
+            }
+            return [a, b, c];
+          });
+          return { sites, triangles };
+        }
+
+        function parseVoronoi(raw) {
+          const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+          if (!parsed || parsed.type !== 'voronoi_diagram') {
+            throw new Error('Expected a voronoi_diagram artifact.');
+          }
+          if (parsed.schemaVersion && parsed.schemaVersion !== 1) {
+            throw new Error(`Unsupported schemaVersion: ${parsed.schemaVersion}`);
+          }
+
+          const sites = parsePointList(parsed.sites || [], 'sites');
+          const vertices = parsePointList(parsed.vertices || [], 'vertices');
+          if (!Array.isArray(parsed.edges)) {
+            throw new Error('edges must be an array.');
+          }
+          const edges = parsed.edges.map((edge, index) => {
+            const vertexPair = edge && edge.vertices;
+            if (!Array.isArray(vertexPair) || vertexPair.length < 2) {
+              throw new Error(`edges[${index}].vertices must be [start, end].`);
+            }
+            const start = Number(vertexPair[0]);
+            const end = Number(vertexPair[1]);
+            if (![start, end].every(Number.isInteger)) {
+              throw new Error(`edges[${index}].vertices must contain integer indices.`);
+            }
+            if ([start, end].some((value) => value < 0 || value >= vertices.length)) {
+              throw new Error(`edges[${index}] references an out-of-range vertex.`);
+            }
+
+            const sitePair = Array.isArray(edge.sites) ? edge.sites.map(Number) : [-1, -1];
+            return { start, end, sites: sitePair };
+          });
+          return { sites, vertices, edges };
+        }
+
+        function collectBoundsPoints() {
+          const points = [];
+          if (state.delaunay) {
+            points.push(...state.delaunay.sites);
+          }
+          if (state.voronoi) {
+            points.push(...state.voronoi.sites, ...state.voronoi.vertices);
+          }
+          return points;
+        }
+
+        function computeTransform(points) {
+          if (!points.length) {
+            return null;
+          }
+          let minX = points[0][0];
+          let maxX = points[0][0];
+          let minY = points[0][1];
+          let maxY = points[0][1];
+          for (const [x, y] of points) {
+            minX = Math.min(minX, x);
+            maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y);
+            maxY = Math.max(maxY, y);
+          }
+
+          if (minX === maxX) {
+            minX -= 1;
+            maxX += 1;
+          }
+          if (minY === maxY) {
+            minY -= 1;
+            maxY += 1;
+          }
+
+          const rangeX = maxX - minX;
+          const rangeY = maxY - minY;
+          const padding = Math.max(rangeX, rangeY) * 0.12 + 0.5;
+          minX -= padding;
+          maxX += padding;
+          minY -= padding;
+          maxY += padding;
+
+          const usableWidth = VIEW_WIDTH - FRAME_PADDING * 2;
+          const usableHeight = VIEW_HEIGHT - FRAME_PADDING * 2;
+          const scale = Math.min(usableWidth / (maxX - minX), usableHeight / (maxY - minY));
+          const offsetX = (VIEW_WIDTH - (maxX - minX) * scale) / 2;
+          const offsetY = (VIEW_HEIGHT - (maxY - minY) * scale) / 2;
+
+          return function project(point) {
+            const x = offsetX + (point[0] - minX) * scale;
+            const y = VIEW_HEIGHT - (offsetY + (point[1] - minY) * scale);
+            return [x, y];
+          };
+        }
+
+        function uniqueDelaunayEdges(triangles) {
+          const seen = new Set();
+          const edges = [];
+          for (const triangle of triangles) {
+            const triEdges = [
+              [triangle[0], triangle[1]],
+              [triangle[1], triangle[2]],
+              [triangle[2], triangle[0]]
+            ];
+            for (const [a, b] of triEdges) {
+              const key = a < b ? `${a}:${b}` : `${b}:${a}`;
+              if (seen.has(key)) {
+                continue;
+              }
+              seen.add(key);
+              edges.push(a < b ? [a, b] : [b, a]);
+            }
+          }
+          return edges;
+        }
+
+        function lineMarkup(start, end, color, width, opacity) {
+          return `<line x1="${start[0]}" y1="${start[1]}" x2="${end[0]}" y2="${end[1]}" stroke="${color}" stroke-width="${width}" stroke-linecap="round" opacity="${opacity}" />`;
+        }
+
+        function circleMarkup(point, radius, fill) {
+          return `<circle cx="${point[0]}" cy="${point[1]}" r="${radius}" fill="${fill}" />`;
+        }
+
+        function textMarkup(point, text, fill) {
+          return `<text x="${point[0] + 8}" y="${point[1] - 8}" fill="${fill}" font-size="12" font-family="'Trebuchet MS', sans-serif">${text}</text>`;
+        }
+
+        function renderScene() {
+          const allPoints = collectBoundsPoints();
+          if (!allPoints.length) {
+            sceneRoot.innerHTML =
+              '<text class="empty-state" x="500" y="360" text-anchor="middle">Load a Delaunay or Voronoi export to start.</text>';
+            setStats();
+            return;
+          }
+
+          const project = computeTransform(allPoints);
+          const markup = [];
+
+          if (state.delaunay) {
+            const edges = uniqueDelaunayEdges(state.delaunay.triangles);
+            for (const [a, b] of edges) {
+              markup.push(
+                lineMarkup(project(state.delaunay.sites[a]), project(state.delaunay.sites[b]), 'var(--edge)', 2.6, 0.92)
+              );
+            }
+          }
+
+          if (state.voronoi) {
+            for (const edge of state.voronoi.edges) {
+              markup.push(
+                lineMarkup(
+                  project(state.voronoi.vertices[edge.start]),
+                  project(state.voronoi.vertices[edge.end]),
+                  'var(--voronoi)',
+                  3.2,
+                  0.95
+                )
+              );
+            }
+            state.voronoi.vertices.forEach((vertex) => {
+              markup.push(circleMarkup(project(vertex), 3.5, 'var(--center)'));
+            });
+          }
+
+          const sites = state.delaunay ? state.delaunay.sites : state.voronoi ? state.voronoi.sites : [];
+          sites.forEach((site, index) => {
+            const projected = project(site);
+            markup.push(circleMarkup(projected, 4.6, 'var(--site)'));
+            markup.push(textMarkup(projected, String(index), 'var(--muted)'));
+          });
+
+          sceneRoot.innerHTML = markup.join('');
+          setStats();
+        }
+
+        async function loadTextFromFile(input) {
+          const file = input.files && input.files[0];
+          if (!file) {
+            return null;
+          }
+          return await file.text();
+        }
+
+        async function fetchLocalJson(path) {
+          const response = await fetch(`${path}?nonce=${Date.now()}`, { cache: 'no-store' });
+          if (!response.ok) {
+            throw new Error(`Failed to load ${path} (${response.status}).`);
+          }
+          return await response.text();
+        }
+
+        function installParsedArtifact(type, parsed, sourceLabel) {
+          if (type === 'delaunay') {
+            state.delaunay = parsed;
+            setStatus(`Loaded Delaunay triangulation from ${sourceLabel}.`, 'ok');
+          } else {
+            state.voronoi = parsed;
+            setStatus(`Loaded Voronoi diagram from ${sourceLabel}.`, 'ok');
+          }
+          renderScene();
+        }
+
+        async function handleFileLoad(type, input) {
+          try {
+            const text = await loadTextFromFile(input);
+            if (!text) {
+              return;
+            }
+            const parsed = type === 'delaunay' ? parseDelaunay(text) : parseVoronoi(text);
+            installParsedArtifact(type, parsed, 'file');
+          } catch (error) {
+            setStatus(error.message, 'error');
+          } finally {
+            input.value = '';
+          }
+        }
+
+        async function handleDefaultLoad(type) {
+          try {
+            const path = type === 'delaunay' ? './latest-delaunay-export.json' : './latest-voronoi-export.json';
+            const raw = await fetchLocalJson(path);
+            const parsed = type === 'delaunay' ? parseDelaunay(raw) : parseVoronoi(raw);
+            installParsedArtifact(type, parsed, path);
+          } catch (error) {
+            setStatus(error.message, 'error');
+          }
+        }
+
+        async function autoLoadIfRequested() {
+          const params = new URLSearchParams(window.location.search);
+          if ((params.get('autoload') || '').trim() !== 'latest') {
+            renderScene();
+            return;
+          }
+
+          try {
+            await Promise.all([handleDefaultLoad('delaunay'), handleDefaultLoad('voronoi')]);
+          } catch (_error) {
+            // Individual loaders already update status.
+          }
+        }
+
+        document.getElementById('load-latest-delaunay').addEventListener('click', () => handleDefaultLoad('delaunay'));
+        document.getElementById('load-latest-voronoi').addEventListener('click', () => handleDefaultLoad('voronoi'));
+        document.getElementById('pick-delaunay').addEventListener('click', () => delaunayInput.click());
+        document.getElementById('pick-voronoi').addEventListener('click', () => voronoiInput.click());
+        delaunayInput.addEventListener('change', () => handleFileLoad('delaunay', delaunayInput));
+        voronoiInput.addEventListener('change', () => handleFileLoad('voronoi', voronoiInput));
+
+        autoLoadIfRequested();
+      })();
+    </script>
+  </body>
+</html>
