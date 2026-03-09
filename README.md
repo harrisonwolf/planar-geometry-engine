@@ -1,445 +1,120 @@
 # Planar Geometry Engine
 
-Planar geometry computation and demo tooling for polygons, triangulation, and visualization.
+Planar geometry workbench for polygon creation, triangulation, Delaunay/Voronoi development, and local visualization.
 
-The repository now supports three parallel workflows:
+## Project Summary
 
-- development builds for day-to-day engineering
-- a stable release bundle for end-user polygon workflows
-- an interview/demo release bundle for showcasing primary features 
+- Main app: `src/main.cc` builds the polygon workflow used by the stable release bundle.
+- Demo app: `src/interview_main.cc` builds the guided interview/demo surface.
+- Dev-only point-set app: `src/delaunay_driver.cc` drives Delaunay/Voronoi generation and the SVG viewer.
+- Build orchestration lives in `Makefile`; packaged outputs land in `dist/release/` and `dist/interview/`.
 
-## Current Capabilities
+## Build And Run
 
-- Create polygons manually from vertex input
-- Generate random polygons
-- Triangulate polygons and inspect the resulting triangles
-- Compute Delaunay triangulations for arbitrary point sets
-- Derive finite Voronoi diagrams from valid Delaunay triangulations
-- Export polygon and triangulation artifacts for the bundled Desmos bridge
-- Export Delaunay and Voronoi artifacts for the dedicated SVG viewer
-- Run a deterministic sample demo for interviews or smoke testing
+- `make development-normal`: optimized dev build in `build/development/normal/`; includes `main`, `interview_demo`, `rand_poly_gen_driver`, `driver`, `delaunay_driver`, and `tester`.
+- `make development-debug`: debug dev build in `build/development/debug/`; same executables, plus `DEBUG` logging support.
+- `make release`: internal optimized build in `build/release/`; includes everything above except `delaunay_driver`.
+- `make test-suite`: builds and runs the regression suite through `build/development/normal/tester`.
+- `make release-bundle`: packages the stable polygon app into `dist/release/`.
+- `make interview-release`: packages the interview/demo app into `dist/interview/` and seeds the Desmos exports.
+- `make release-smoke`: rebuilds and validates the stable bundle.
+- `make interview-smoke`: rebuilds and validates the interview bundle.
 
-## In Development / Planned Work
-
-The repository also contains a few tracked follow-ups and partially finished surfaces:
-
-- Additional Delaunay triangulation algorithms beyond the current Bowyer-Watson implementation, especially divide-and-conquer and edge-flip / `flip_triangulate` style workflows
-- Smarter polygon generation heuristics and completion of the unfinished convex-polygon helper in `src/create_convex_polygon.cc` (currently a stub)
-- Additional polygon creation options, including ways to fine-tune random polygon generation
-- Multi-polygon input helpers such as `read_polygons(int n)`, which is declared but not implemented yet
-- Cleanup of older polygon workflow gaps, including convex/reflex bookkeeping and `Polygon::print_triangulation_desmos()` output
-- More robust handling for edge cases that still assume general position, such as vertical lines, repeated vertices, and other degenerate inputs
-
-These items are not part of the current supported feature set yet, but they are useful indicators of where the engine is intended to grow next.
-
-## Development Vs Release Bundles
-
-The development workflow is still the default engineering workflow. None of the existing core build commands were repurposed.
-
-### Use these for development
-
-- `make development-normal`
-  - Builds all development executables under `build/development/normal/`
-- `make development-debug`
-  - Builds all development executables under `build/development/debug/`
-- `make test-suite`
-  - Builds and runs the TDD-style regression suite
-- `make release`
-  - Builds the internal optimized binaries under `build/release/`
-
-### Use these for end-user release packaging
-
-- `make release-bundle`
-  - Runs tests, builds the optimized stable app, generates build provenance, and assembles `dist/release/`
-- `make release-smoke`
-  - Rebuilds the end-user release bundle and validates the packaged app end to end
-
-### Use these for interviewer/demo packaging
-
-- `make interview-release`
-  - Runs tests, builds the optimized primary app, generates build provenance, and assembles `dist/interview/`
-- `make interview-smoke`
-  - Rebuilds the interview bundle and validates the packaged app end to end
-
-### What changed in the dev workflow
-
-- `make development-normal`, `make development-debug`, `make test-suite`, and `make release` still exist and still mean the same thing.
-- Development builds still include all internal executables:
-  - `main`
-  - `interview_demo`
-  - `driver`
-  - `rand_poly_gen_driver`
-  - `delaunay_driver`
-  - `tester`
-- The app built from `src/main.cc` is now the stable release surface for polygon workflows.
-- The interview/demo app now lives in `src/interview_main.cc`.
-- The release and interview bundles are additive. They do not replace the development workflow.
-
-### What is intentionally excluded from the release bundle
-
-- `driver`
-- `rand_poly_gen_driver`
-- `delaunay_driver`
-- `tester`
-- unfinished or experimental algorithm-driver binaries
-
-Only one primary executable is shipped in the stable release bundle:
-
-- `dist/release/bin/planar-geometry`
-
-### What is intentionally excluded from the interview bundle
-
-- `driver`
-- `rand_poly_gen_driver`
-- `delaunay_driver`
-- `tester`
-- future debug or algorithm-driver binaries
-
-Only one primary executable is shipped in the interview bundle:
-
-- `dist/interview/bin/planar-geometry-demo`
-
-## Build Commands
-
-### Day-to-day development
+Common run paths:
 
 ```bash
-make development-normal
-make development-debug
-make test-suite
-```
-
-### Internal optimized build
-
-```bash
-make release
-```
-
-This still produces the optimized internal binaries under `build/release/`. It is not the packaged interview build.
-
-### Stable release bundle creation
-
-```bash
-make release-bundle
-```
-
-### Stable release bundle validation
-
-```bash
-make release-smoke
-```
-
-### Interview bundle creation
-
-```bash
-make interview-release
-```
-
-### Interview bundle validation
-
-```bash
-make interview-smoke
-```
-
-## Stable Release Bundle Layout
-
-After `make release-bundle`, the bundle lives at `dist/release/`.
-
-Key files:
-
-- `dist/release/bin/planar-geometry`
-  - the packaged executable for end-user polygon workflows
-- `dist/release/run.sh`
-  - launcher that runs from the bundle root so relative asset paths resolve correctly
-- `dist/release/QUICKSTART.md`
-  - short operator guide for the stable release build
-- `dist/release/tools/desmos-bridge/index.html`
-  - browser visualizer
-- `dist/release/tools/desmos-bridge/build-info.js`
-  - generated provenance metadata for the visualizer badge
-
-## Interview Bundle Layout
-
-After `make interview-release`, the bundle lives at `dist/interview/`.
-
-Key files:
-
-- `dist/interview/bin/planar-geometry-demo`
-  - the packaged executable handed to the interviewer
-- `dist/interview/run-demo.sh`
-  - launcher that runs from the bundle root so relative asset paths resolve correctly
-- `dist/interview/QUICKSTART.md`
-  - short operator guide for the interview build
-- `dist/interview/examples/interview-demo-polygon.txt`
-  - source coordinates for the curated sample polygon
-- `dist/interview/tools/desmos-bridge/index.html`
-  - browser visualizer
-- `dist/interview/tools/desmos-bridge/build-info.js`
-  - generated provenance metadata for the visualizer badge
-- `dist/interview/tools/desmos-bridge/polygon-export.json`
-  - seeded with the deterministic sample demo output during packaging
-- `dist/interview/tools/desmos-bridge/triangulation-export.json`
-  - seeded with the deterministic sample demo output during packaging
-
-## Running The Stable Release Build
-
-### Recommended
-
-From the repository root:
-
-```bash
-make release-bundle
-./dist/release/run.sh
-```
-
-### Direct executable path
-
-From `dist/release/`:
-
-```bash
-./bin/planar-geometry
-```
-
-The stable release build supports:
-
-- create polygon, with manual or random generation
-- view stored polygons and triangulation counts
-- export the latest result to the bundled Desmos bridge
-- view build/version information
-
-## Running The Interview Build
-
-### Recommended
-
-From the repository root:
-
-```bash
-make interview-release
-./dist/interview/run-demo.sh
-```
-
-### Direct executable path
-
-From `dist/interview/`:
-
-```bash
-./bin/planar-geometry-demo
-```
-
-Running from the bundle root is important because the visualizer assets use stable relative paths inside the bundle.
-
-## Interview App Flow
-
-The default app menu is now guided and presentation-safe:
-
-1. `Run sample demo`
-2. `Create polygon manually`
-3. `Generate sample/random polygon`
-4. `View stored geometry`
-5. `Export latest result to visualizer`
-6. `About / version`
-7. `Quit`
-
-### Deterministic sample demo
-
-`Run sample demo` does all of the following:
-
-1. loads a fixed sample polygon
-2. prints its polygon summary
-3. prints its triangulation
-4. writes polygon and triangulation JSON to the bundled Desmos bridge directory
-5. attempts to open the visualizer
-
-### About / version
-
-The `About / version` surface reports:
-
-- app name
-- build profile
-- branch
-- commit
-- build timestamp
-- dirty/clean status at build time
-- supported workflow summary
-
-### Extra CLI flags
-
-The primary app also supports:
-
-```bash
-./build/development/normal/main --version
-./build/development/normal/main --no-browser-launch
-./build/development/normal/interview_demo --classic-menu
-./build/development/normal/interview_demo --version
-./build/development/normal/interview_demo --run-sample-demo --no-browser-launch
-```
-
-Environment variable:
-
-```bash
-GEOM_SKIP_BROWSER=1 ./build/development/normal/main
-```
-
-## Release Checklist
-
-Run these in order:
-
-```bash
-make test-suite
-make release-bundle
-make release-smoke
-make interview-release
-make interview-smoke
+./build/development/normal/main
+./build/development/normal/interview_demo
+./build/development/normal/delaunay_driver
 ./dist/release/run.sh
 ./dist/interview/run-demo.sh
 ```
 
-## Manual Interview Verification
+## Repo Structure
 
-1. Run `make interview-release`
-2. Change into `dist/interview/`
-3. Run `./run-demo.sh`
-4. Choose `1` for `Run sample demo`
-5. Confirm that `tools/desmos-bridge/polygon-export.json` is produced or updated
-6. Confirm that `tools/desmos-bridge/triangulation-export.json` is produced or updated
-7. Confirm the browser opens, or use the fallback path below
-8. Open `About / version` and verify build provenance is displayed
+- `artifacts/`: Generated artifact output that is useful during local development or experiments but is separate from the packaged release bundles.
+- `build/`: Compiler output for the normal development build, debug development build, and internal optimized release build.
+- `dist/`: Finished stable and interview/demo bundles, with launchers, copied assets, and bundled browser tooling.
+- `docs/`: Supporting documentation for build and packaging behavior, testing and verification flows, viewers, and the full directory map.
+- `examples/`: Checked-in sample geometry inputs, mainly used to seed or demonstrate repeatable workflows such as the interview demo.
+- `include/`: Public project headers for geometry types, helper APIs, logging, export support, and shared app-facing interfaces.
+- `packaging/`: Source launchers and quickstart files that are copied into `dist/` when the stable or interview bundle is assembled.
+- `scripts/`: Helper scripts for smoke tests, build metadata generation, and older one-off compilation or utility workflows that are still kept in the repo.
+- `src/`: Core C++ implementation files for the CLI apps, geometry algorithms, export logic, and other shared runtime behavior.
+- `testing/`: Regression harness code, assertion helpers, legacy fixtures, and the individual suite files that back `make test-suite`.
+- `tools/`: Repo-local browser viewers plus the JSON and session artifacts they load for polygon, triangulation, Delaunay, and Voronoi workflows.
 
-## Desmos Bridge
+For the full nested directory map, see [`docs/repo-structure.md`](docs/repo-structure.md).
 
-A local bridge page lives at `tools/desmos-bridge/index.html`.
+## Executables
 
-The bridge currently supports two artifact types:
+- `main` (`src/main.cc`): The primary polygon app for day-to-day manual runs, feature work, and the stable release bundle; built in `development-normal`, `development-debug`, and `release`, then packaged as `dist/release/bin/planar-geometry`.
+- `interview_demo` (`src/interview_main.cc`): The guided demo app for presentation-safe runs, deterministic sample output, and interview packaging; built in `development-normal`, `development-debug`, and `release`, then packaged as `dist/interview/bin/planar-geometry-demo`.
+- `rand_poly_gen_driver` (`src/rand_poly_gen_driver.cc`): A focused driver for iterating on random polygon generation without going through the full main app flow; built in `development-normal`, `development-debug`, and `release`.
+- `driver` (`src/driver.cc`): A legacy sandbox binary for quick manual geometry experiments while developing low-level primitives; built in `development-normal`, `development-debug`, and `release`.
+- `delaunay_driver` (`src/delaunay_driver.cc`): The development-only point-set app for generating Delaunay/Voronoi artifacts and opening the local SVG viewer; built in `development-normal` and `development-debug`.
+- `tester` (`testing/tester.cc`): The regression runner that executes the geometry test suites behind `make test-suite`; built in `development-normal`, `development-debug`, and `release`.
 
-- `polygon`
-- `triangulation`
+## Source Files
 
-Artifact JSON now includes a top-level `schemaVersion` field in addition to `type`. The bridge validates both fields and is structured so future artifact types can be added without replacing the page shell.
+- `src/choice.cc`: Prints the menu used by the guided interview/demo app.
+- `src/contains_driver.cc`: Small one-off driver for experimenting with triangle containment logic; not wired into `Makefile`.
+- `src/create_convex_polygon.cc`: Older helper intended to generate convex polygon input files; useful as historical context, but currently unfinished.
+- `src/delaunay.cc`: Implements Delaunay predicates, Bowyer-Watson triangulation, and validation logic for the point-set workflow.
+- `src/delaunay_driver.cc`: Entry point for generating Delaunay/Voronoi results, exporting artifacts, and launching the dedicated viewer.
+- `src/die.cc`: Implements the fatal invariant-violation helper used when geometry assumptions are broken.
+- `src/driver.cc`: Entry point for the legacy geometry sandbox executable.
+- `src/ear_clipper.cc`: Standalone prototype for manual ear-clipping runs; not wired into `Makefile`.
+- `src/ear_clipping_triangulation.cc`: Implements polygon triangulation through the ear-clipping algorithm used by the polygon workflow.
+- `src/helper.cc`: Collects shared input routines, geometry helpers, export writers, and browser-launch support used across the apps.
+- `src/interview_main.cc`: Entry point for the guided interview/demo app, including sample-demo and version/about flows.
+- `src/line.cc`: Implements the line primitive and the line-intersection logic used by older geometry code.
+- `src/main.cc`: Entry point for the primary polygon app used in development and the stable bundle.
+- `src/point.cc`: Implements the point primitive and basic point-level geometry operations.
+- `src/polygon.cc`: Implements the polygon data model, area logic, triangulation storage, and user-facing formatting.
+- `src/polygon_DEBUG.cc`: Older debug-oriented polygon implementation snapshot retained for reference; not part of current builds.
+- `src/polygon_app_support.cc`: Implements shared CLI helpers for input handling, export flow, and viewer launching in the app surfaces.
+- `src/rand_poly_gen_driver.cc`: Entry point for the random-polygon development driver.
+- `src/random_polygon_generator.cc`: Implements the random simple-polygon generator and its validation/retry behavior.
+- `src/triangle.cc`: Implements the triangle primitive and derived triangle geometry operations.
+- `src/voronoi.cc`: Builds finite Voronoi diagrams from Delaunay triangulations and adjacency data.
 
-### Default release flow
+## Header Files
 
-The interview bundle seeds the bridge with the sample demo exports, so the default `polygon-export.json` and `triangulation-export.json` files already exist after packaging.
+- `include/build_info.h`: Exposes the build metadata embedded by `Makefile`, so apps can report commit, branch, timestamp, profile, and dirty state.
+- `include/choice.h`: Declares the menu-printing helpers used by the guided interview/demo surface.
+- `include/delaunay.h`: Defines the indexed Delaunay data structures, geometric predicates, and triangulation API used by the point-set workflow.
+- `include/die.h`: Declares the fatal helper used when the code reaches an invalid geometric state.
+- `include/ear_clipping_triangulation.h`: Declares the ear-clipping triangulation functions used by polygon code.
+- `include/edge.h`: Placeholder header for a future explicit edge abstraction.
+- `include/helper.h`: Declares shared input helpers, geometry utilities, and export functions used across the apps and drivers.
+- `include/line.h`: Defines the line primitive API used by older geometry code and triangle construction logic.
+- `include/logger.h`: Provides runtime-configurable debug-tag parsing and logging helpers, mainly useful in debug builds.
+- `include/point.h`: Defines the point primitive and the basic point/vector operations used throughout the repo.
+- `include/pointset.h`: Sketches an incomplete point-set type that is not part of the active build surface.
+- `include/polygon.h`: Defines the polygon type and the geometry-oriented operations built around it.
+- `include/polygon_app_support.h`: Declares the shared app helpers for menu input, export paths, and browser-launch behavior.
+- `include/random_polygon_generator.h`: Declares the random polygon generation API used by the main app and dev driver.
+- `include/triangle.h`: Defines the triangle primitive and the operations derived from triangle geometry.
+- `include/voronoi.h`: Defines the Voronoi data structures and the builder API used by the point-set workflow.
 
-### Manual fallback if browser launch fails
+## Shell Scripts
 
-1. Open `dist/interview/tools/desmos-bridge/index.html` in a browser
-2. Click `Load polygon-export.json`
-3. Click `Load triangulation-export.json`
+- `scripts/compile_contains_driver.sh`: Legacy one-off compile script for rebuilding `contains_driver` outside the `Makefile`.
+- `scripts/compile_driver.sh`: Legacy one-off compile script for rebuilding the sandbox `driver` binary directly.
+- `scripts/compile_ear_clipper.sh`: Legacy one-off compile script for rebuilding the standalone `ear_clipper` prototype.
+- `scripts/generate_build_info.sh`: Generates `tools/desmos-bridge/build-info.js`, which lets the browser bridge display build provenance.
+- `scripts/input_tester.sh`: Legacy helper that feeds canned input through `main` and diffs the result against an expected output file.
+- `scripts/interview_smoke.sh`: Validates the packaged interview bundle by checking files, running the sample demo, and verifying exported artifacts.
+- `scripts/print_welcome_message.sh`: Decorative helper that prints a stylized welcome banner with external terminal tools.
+- `scripts/release_smoke.sh`: Validates the packaged stable bundle by checking files, driving the app, and verifying exported artifacts.
+- `scripts/run_cat_test.sh`: Legacy cat-test runner that still references an older repo layout and is mainly useful as historical scaffolding.
+- `packaging/interview/run-demo.sh`: Launcher copied into the interview bundle so the packaged app always runs from the correct bundle root.
+- `packaging/release/run.sh`: Launcher copied into the stable bundle so the packaged app resolves its bundled assets correctly.
 
-If your system opens a file manager instead of a browser, open `index.html` directly from the browser with `File -> Open`.
+## Supporting Docs
 
-## Build Provenance
-
-Both the packaged app and the bridge now carry build provenance information.
-
-Make injects the following metadata into compiled binaries:
-
-- commit SHA
-- branch
-- build timestamp in UTC
-- dirty/clean status
-- build profile
-
-The bridge metadata is generated by:
-
-```bash
-make generate-build-info
-```
-
-The `interview-release` target runs this automatically before packaging.
-
-## Testing
-
-### Geometry regression suite
-
-```bash
-make test-suite
-```
-
-Current suite coverage includes:
-
-- `Point::is_between`
-- `collides(...)`
-- `strict_collides(...)`
-- `is_inside(...)`
-- triangle geometry
-- polygon geometry
-- random polygon generation
-- ear-clipping triangulation
-- Delaunay predicates and circumcircle tests
-- Bowyer-Watson triangulation behavior and validation
-- finite Voronoi derivation from Delaunay adjacency
-- Delaunay/Voronoi artifact export schemas
-
-### Interview smoke test
-
-```bash
-make interview-smoke
-```
-
-This validates that the packaged bundle:
-
-- contains the expected files
-- launches the packaged executable
-- reports version/build metadata
-- runs the deterministic sample demo
-- writes polygon and triangulation exports with `schemaVersion: 1`
-
-## Debug Logging
-
-Runtime-selectable debug logging still works in development builds.
-
-Supported runtime inputs:
-
-- CLI: `--debug-tags=poly.gen,poly.validate`
-- ENV: `GEOM_DEBUG_TAGS=poly.gen,poly.validate`
-- Optional prefix behavior: `--debug-match-prefix=true|false`
-
-Examples:
-
-```bash
-./build/development/debug/main --debug-tags=poly.gen
-GEOM_DEBUG_TAGS=poly.validate ./build/development/debug/main
-```
-
-Existing untagged `DBG(...)` logging still maps to the fallback tag `legacy`.
-
-## Delaunay / Voronoi Development Surface
-
-Development builds now include a separate point-set geometry surface in addition to the polygon workflow.
-
-Implemented algorithms and structures:
-
-- deterministic Bowyer-Watson Delaunay triangulation
-- Delaunay validation against the empty-circumcircle property
-- finite Voronoi edge construction from triangle circumcenters and triangle adjacency
-- dedicated indexed export schemas for Delaunay and Voronoi artifacts
-
-Development-only assets:
-
-- `build/development/normal/delaunay_driver`
-  - point-set Delaunay/Voronoi driver binary
-- `tools/delaunay-voronoi-viewer/index.html`
-  - dedicated local SVG viewer for Delaunay and Voronoi artifacts
-
-This surface is additive and is intentionally not part of the interview bundle yet.
-
-## Makefile Notes
-
-Common targets:
-
-- `make development-normal`
-- `make development-debug`
-- `make release`
-- `make interview-release`
-- `make interview-smoke`
-- `make test-suite`
-- `make clean`
-
-When adding a new executable:
-
-1. add its name to `COMMON_EXES` or `DEV_ONLY_EXES`
-2. define `EXE_<name>_SRCS`
-3. add shared implementation files to `COMMON_SRCS` when appropriate
-
-When adding future visualization-capable features, prefer extending an existing artifact/export flow before creating a separate release bundle layout.
+- [`docs/repo-structure.md`](docs/repo-structure.md): Full nested directory map, organized by each root-level directory in the repo.
+- [`docs/build-and-packaging.md`](docs/build-and-packaging.md): Build targets, bundle layouts, provenance flow, and the files involved in packaging.
+- [`docs/testing-and-verification.md`](docs/testing-and-verification.md): Regression coverage, smoke-test behavior, manual checks, and debug logging controls.
+- [`docs/tools-and-viewers.md`](docs/tools-and-viewers.md): The local browser viewers, the artifacts they load, and the fallback flow when auto-launch fails.
