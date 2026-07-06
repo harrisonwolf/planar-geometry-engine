@@ -1,5 +1,0 @@
-//need to make some sort of format for saved points, lines, triangles, etc
-//gonna need to use fstream and ask the user the filename they wanna write to (if they do indeed want to save
-//etc on quit, 1 to save results, 2 to delete
-//if they wanna save, ask them what filename they wanna write to
-//can get more sophisticated with what happens if they kill program before saving or quitting, what happens if they file they wanna write to already exists, etc.

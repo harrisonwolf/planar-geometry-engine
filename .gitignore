@@ -47,3 +47,11 @@ Thumbs.db
 /contains_driver
 /ear_clipper
 /create_convex_polygon
+
+# build junk / local scratch
+*.o
+artifacts/objects/
+build/
+dist/
+savefile.txt
+todolist.txt
