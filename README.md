@@ -2,6 +2,10 @@
 
 Planar geometry workbench for polygon creation, triangulation, Delaunay/Voronoi development, and local visualization.
 
+![Delaunay triangulation (faint) with its Voronoi dual (ink) — 300 sites, computed end-to-end by this engine.](media/portfolio-figure.svg)
+
+*Delaunay triangulation (faint) with its Voronoi dual (ink) — 300 sites, computed end-to-end by this engine.*
+
 ## Project Summary
 
 - Main app: `src/main.cc` builds the polygon workflow used by the stable release bundle.

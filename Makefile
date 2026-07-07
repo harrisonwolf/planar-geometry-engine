@@ -14,7 +14,7 @@ BUILD_INFO_CPPFLAGS := \
 	-DGEOM_BUILD_DIRTY=$(GIT_DIRTY)
 
 COMMON_EXES := main rand_poly_gen_driver driver tester
-DEV_ONLY_EXES := delaunay_driver
+DEV_ONLY_EXES := delaunay_driver portfolio_export_driver
 PACKAGING_EXES := interview_demo
 DEV_EXES := $(COMMON_EXES) $(DEV_ONLY_EXES) $(PACKAGING_EXES)
 RELEASE_EXES := $(COMMON_EXES) $(PACKAGING_EXES)
@@ -37,6 +37,7 @@ EXE_interview_demo_SRCS := $(SRC_DIR)/interview_main.cc
 EXE_rand_poly_gen_driver_SRCS := $(SRC_DIR)/rand_poly_gen_driver.cc
 EXE_driver_SRCS := $(SRC_DIR)/driver.cc
 EXE_delaunay_driver_SRCS := $(SRC_DIR)/delaunay_driver.cc
+EXE_portfolio_export_driver_SRCS := $(SRC_DIR)/portfolio_export_driver.cc
 EXE_tester_SRCS := \
 	testing/tester.cc \
 	testing/tdd_suite.cc \
