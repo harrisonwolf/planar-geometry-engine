@@ -1,6 +1,6 @@
 # Planar Geometry Engine
 
-Planar geometry workbench for polygon creation, triangulation, Delaunay/Voronoi development, and local visualization.
+Planar geometry workbench for polygon creation, triangulation, Delaunay/Voronoi generation, and local visualization.
 
 ![Delaunay triangulation (faint) with its Voronoi dual (ink) — 300 sites, computed end-to-end by this engine.](media/portfolio-figure.svg)
 
