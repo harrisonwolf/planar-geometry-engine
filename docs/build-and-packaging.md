@@ -9,7 +9,8 @@ This project keeps one build graph in `Makefile` and derives both packaged bundl
 | `make development-normal` | optimized development binaries | `build/development/normal/*` |
 | `make development-debug` | debug development binaries (`-g -O0 -DDEBUG`) | `build/development/debug/*` |
 | `make release` | internal optimized binaries used for packaging | `build/release/*` |
-| `make test-suite` | builds and runs the regression harness | `build/development/normal/tester` |
+| `make test-suite` | runs 14 independent suites and the terrain JSON smoke | `build/development/normal/tester`, `build/development/normal/terrain_driver` |
+| `make build/development/normal/terrain_driver` | builds the supported development-only terrain CLI | `build/development/normal/terrain_driver` |
 | `make generate-build-info` | regenerates bridge provenance metadata | `tools/desmos-bridge/build-info.js` |
 | `make release-bundle` | runs tests, builds release binaries, generates build info, assembles stable bundle | `dist/release/` |
 | `make release-smoke` | rebuilds and validates the stable bundle | `dist/release/` plus smoke-test artifacts |
@@ -21,11 +22,13 @@ This project keeps one build graph in `Makefile` and derives both packaged bundl
 
 | Profile | Compiler flags | Executables |
 | --- | --- | --- |
-| `development-normal` | `-Wall -Wextra -std=c++17 -O2` | `main`, `interview_demo`, `rand_poly_gen_driver`, `driver`, `delaunay_driver`, `tester` |
+| `development-normal` | `-Wall -Wextra -std=c++17 -O2` | release set plus `delaunay_driver`, `portfolio_export_driver`, and `terrain_driver` |
 | `development-debug` | `-Wall -Wextra -std=c++17 -g -O0 -DDEBUG` | same set as `development-normal` |
 | `release` | `-Wall -Wextra -std=c++17 -O2` | `main`, `interview_demo`, `rand_poly_gen_driver`, `driver`, `tester` |
 
-`delaunay_driver` is intentionally development-only. The packaged bundles ship a single primary executable each.
+`delaunay_driver`, `portfolio_export_driver`, and `terrain_driver` are
+intentionally development-only. Terrain analysis is not copied into either
+packaged bundle. The bundles ship a single primary executable each.
 
 ## Bundle Layouts
 

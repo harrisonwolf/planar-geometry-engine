@@ -18,5 +18,6 @@ void run_delaunay_predicates_suite(TestRunSummary& summary);
 void run_delaunay_triangulation_suite(TestRunSummary& summary);
 void run_voronoi_suite(TestRunSummary& summary);
 void run_geometry_artifact_export_suite(TestRunSummary& summary);
+void run_terrain_suite(TestRunSummary& summary);
 
 #endif

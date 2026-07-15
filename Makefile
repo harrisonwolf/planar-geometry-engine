@@ -14,7 +14,7 @@ BUILD_INFO_CPPFLAGS := \
 	-DGEOM_BUILD_DIRTY=$(GIT_DIRTY)
 
 COMMON_EXES := main rand_poly_gen_driver driver tester
-DEV_ONLY_EXES := delaunay_driver portfolio_export_driver
+DEV_ONLY_EXES := delaunay_driver portfolio_export_driver terrain_driver
 PACKAGING_EXES := interview_demo
 DEV_EXES := $(COMMON_EXES) $(DEV_ONLY_EXES) $(PACKAGING_EXES)
 RELEASE_EXES := $(COMMON_EXES) $(PACKAGING_EXES)
@@ -38,6 +38,7 @@ EXE_rand_poly_gen_driver_SRCS := $(SRC_DIR)/rand_poly_gen_driver.cc
 EXE_driver_SRCS := $(SRC_DIR)/driver.cc
 EXE_delaunay_driver_SRCS := $(SRC_DIR)/delaunay_driver.cc
 EXE_portfolio_export_driver_SRCS := $(SRC_DIR)/portfolio_export_driver.cc
+EXE_terrain_driver_SRCS := $(SRC_DIR)/terrain_driver.cc
 EXE_tester_SRCS := \
 	testing/tester.cc \
 	testing/tdd_suite.cc \
@@ -54,7 +55,8 @@ EXE_tester_SRCS := \
 	testing/suites/delaunay_predicates_suite.cc \
 	testing/suites/delaunay_triangulation_suite.cc \
 	testing/suites/voronoi_suite.cc \
-	testing/suites/geometry_artifact_export_suite.cc
+	testing/suites/geometry_artifact_export_suite.cc \
+	testing/suites/terrain_suite.cc
 
 # Shared implementation sources linked into each executable.
 COMMON_SRCS := \
@@ -69,7 +71,8 @@ COMMON_SRCS := \
 	$(SRC_DIR)/random_polygon_generator.cc \
 	$(SRC_DIR)/delaunay.cc \
 	$(SRC_DIR)/voronoi.cc \
-	$(SRC_DIR)/polygon_app_support.cc
+	$(SRC_DIR)/polygon_app_support.cc \
+	$(SRC_DIR)/terrain.cc
 
 .PHONY: all development development-normal development-debug release release-bundle release-smoke \
 	interview-release interview-smoke clean clean-development clean-development-normal \
@@ -123,6 +126,8 @@ release: $(RELEASE_TARGETS)
 
 test-suite: build/development/normal/tester
 	./build/development/normal/tester
+	$(MAKE) build/development/normal/terrain_driver
+	bash testing/terrain_driver_smoke.sh build/development/normal/terrain_driver
 
 
 generate-build-info:
@@ -171,6 +176,7 @@ help:
 	@echo "  make interview-release"
 	@echo "  make interview-smoke"
 	@echo "  make test-suite"
+	@echo "  make build/development/normal/terrain_driver"
 	@echo ""
 	@echo "See README.md for developer and interview packaging workflows."
 	@echo ""

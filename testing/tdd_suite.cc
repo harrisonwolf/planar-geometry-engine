@@ -17,5 +17,6 @@ TestRunSummary run_geometry_tdd_suite(){
     run_delaunay_triangulation_suite(summary);
     run_voronoi_suite(summary);
     run_geometry_artifact_export_suite(summary);
+    run_terrain_suite(summary);
     return summary;
 }

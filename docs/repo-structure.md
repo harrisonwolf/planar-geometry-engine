@@ -47,6 +47,7 @@ Current files:
 - `build-and-packaging.md`: packaging targets, bundle layouts, and provenance flow.
 - `repo-structure.md`: this directory-map reference.
 - `testing-and-verification.md`: regression coverage, smoke tests, and manual checks.
+- `terrain-analysis.md`: terrain library/JSON contract, numerical semantics, validation, and evidence limits.
 - `tools-and-viewers.md`: local browser tools, exports, and fallback paths.
 
 ## `examples/`
@@ -55,7 +56,7 @@ Current files:
 
 ## `include/`
 
-- `include/`: header files for geometry types, helpers, and app support.
+- `include/`: header files for geometry types, helpers, app support, and the terrain API.
 
 ## `packaging/`
 
@@ -69,13 +70,13 @@ Current files:
 
 ## `src/`
 
-- `src/`: C++ implementation files and executable entrypoints.
+- `src/`: C++ implementation files and executable entrypoints, including terrain analysis and its driver.
 
 ## `testing/`
 
 - `testing/`: regression harness, fixtures, and test utilities.
 - `testing/cat_tests/`: legacy cat-test fixtures.
-- `testing/suites/`: individual regression suites.
+- `testing/suites/`: individual regression suites, including the independent terrain suite.
 
 ## `tools/`
 

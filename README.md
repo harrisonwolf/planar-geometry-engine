@@ -15,14 +15,15 @@ Planar geometry workbench for polygon creation, triangulation, Delaunay/Voronoi 
 - Main app: `src/main.cc` builds the polygon workflow used by the stable release bundle.
 - Demo app: `src/interview_main.cc` builds the guided interview/demo surface.
 - Dev-only point-set app: `src/delaunay_driver.cc` drives Delaunay/Voronoi generation and the SVG viewer.
+- Dev-only terrain app: `src/terrain_driver.cc` exposes the supported base TIN analysis through a versioned JSON contract.
 - Build orchestration lives in `Makefile`; packaged outputs land in `dist/release/` and `dist/interview/`.
 
 ## Build And Run
 
-- `make development-normal`: optimized dev build in `build/development/normal/`; includes `main`, `interview_demo`, `rand_poly_gen_driver`, `driver`, `delaunay_driver`, and `tester`.
+- `make development-normal`: optimized dev build in `build/development/normal/`, including the development-only Delaunay, portfolio-export, and terrain drivers.
 - `make development-debug`: debug dev build in `build/development/debug/`; same executables, plus `DEBUG` logging support.
-- `make release`: internal optimized build in `build/release/`; includes everything above except `delaunay_driver`.
-- `make test-suite`: builds and runs the regression suite through `build/development/normal/tester`.
+- `make release`: internal optimized build in `build/release/`; excludes development-only drivers.
+- `make test-suite`: builds and runs 14 independent regression suites, then exercises the terrain JSON driver.
 - `make release-bundle`: packages the stable polygon app into `dist/release/`.
 - `make interview-release`: packages the interview/demo app into `dist/interview/` and seeds the Desmos exports.
 - `make release-smoke`: rebuilds and validates the stable bundle.
@@ -34,6 +35,7 @@ Common run paths:
 ./build/development/normal/main
 ./build/development/normal/interview_demo
 ./build/development/normal/delaunay_driver
+./build/development/normal/terrain_driver --format=json --units=metres < points.xyz
 ./dist/release/run.sh
 ./dist/interview/run-demo.sh
 ```
@@ -61,6 +63,7 @@ For the full nested directory map, see [`docs/repo-structure.md`](docs/repo-stru
 - `rand_poly_gen_driver` (`src/rand_poly_gen_driver.cc`): A focused driver for iterating on random polygon generation without going through the full main app flow; built in `development-normal`, `development-debug`, and `release`.
 - `driver` (`src/driver.cc`): A legacy sandbox binary for quick manual geometry experiments while developing low-level primitives; built in `development-normal`, `development-debug`, and `release`.
 - `delaunay_driver` (`src/delaunay_driver.cc`): The development-only point-set app for generating Delaunay/Voronoi artifacts and opening the local SVG viewer; built in `development-normal` and `development-debug`.
+- `terrain_driver` (`src/terrain_driver.cc`): The development-only base terrain analyser for TIN construction, slope, balanced-pad earthwork, and MFD accumulation; built in `development-normal` and `development-debug`.
 - `tester` (`testing/tester.cc`): The regression runner that executes the geometry test suites behind `make test-suite`; built in `development-normal`, `development-debug`, and `release`.
 
 ## Source Files
@@ -85,6 +88,8 @@ For the full nested directory map, see [`docs/repo-structure.md`](docs/repo-stru
 - `src/rand_poly_gen_driver.cc`: Entry point for the random-polygon development driver.
 - `src/random_polygon_generator.cc`: Implements the random simple-polygon generator and its validation/retry behavior.
 - `src/triangle.cc`: Implements the triangle primitive and derived triangle geometry operations.
+- `src/terrain.cc`: Implements validated TIN construction, facet metrics, balanced-pad cut/fill, and MFD accumulation.
+- `src/terrain_driver.cc`: Implements the text and versioned JSON command-line contract for supported base terrain analysis.
 - `src/voronoi.cc`: Builds finite Voronoi diagrams from Delaunay triangulations and adjacency data.
 
 ## Header Files
@@ -105,6 +110,7 @@ For the full nested directory map, see [`docs/repo-structure.md`](docs/repo-stru
 - `include/random_polygon_generator.h`: Declares the random polygon generation API used by the main app and dev driver.
 - `include/triangle.h`: Defines the triangle primitive and the operations derived from triangle geometry.
 - `include/voronoi.h`: Defines the Voronoi data structures and the builder API used by the point-set workflow.
+- `include/terrain.h`: Declares terrain validation, TIN metrics, earthwork, and flow APIs with their unit and sampling semantics.
 
 ## Shell Scripts
 
@@ -117,6 +123,7 @@ For the full nested directory map, see [`docs/repo-structure.md`](docs/repo-stru
 - `scripts/print_welcome_message.sh`: Decorative helper that prints a stylized welcome banner with external terminal tools.
 - `scripts/release_smoke.sh`: Validates the packaged stable bundle by checking files, driving the app, and verifying exported artifacts.
 - `scripts/run_cat_test.sh`: Legacy cat-test runner that still references an older repo layout and is mainly useful as historical scaffolding.
+- `testing/terrain_driver_smoke.sh`: Verifies the terrain JSON schema, analytic values, error codes, and input-order invariance.
 - `packaging/interview/run-demo.sh`: Launcher copied into the interview bundle so the packaged app always runs from the correct bundle root.
 - `packaging/release/run.sh`: Launcher copied into the stable bundle so the packaged app resolves its bundled assets correctly.
 
@@ -125,4 +132,5 @@ For the full nested directory map, see [`docs/repo-structure.md`](docs/repo-stru
 - [`docs/repo-structure.md`](docs/repo-structure.md): Full nested directory map, organized by each root-level directory in the repo.
 - [`docs/build-and-packaging.md`](docs/build-and-packaging.md): Build targets, bundle layouts, provenance flow, and the files involved in packaging.
 - [`docs/testing-and-verification.md`](docs/testing-and-verification.md): Regression coverage, smoke-test behavior, manual checks, and debug logging controls.
+- [`docs/terrain-analysis.md`](docs/terrain-analysis.md): Supported terrain API and JSON contract, numerical semantics, validation, and evidence limits.
 - [`docs/tools-and-viewers.md`](docs/tools-and-viewers.md): The local browser viewers, the artifacts they load, and the fallback flow when auto-launch fails.
