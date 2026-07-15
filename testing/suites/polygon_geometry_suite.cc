@@ -1,6 +1,8 @@
 #include "suites.h"
 
+#include <iostream>
 #include <list>
+#include <sstream>
 
 #include "../test_assertions.h"
 #include "polygon.h"
@@ -54,4 +56,26 @@ void run_polygon_geometry_suite(TestRunSummary& summary){
                 suite_name,
                 "triangulation count",
                 "A quadrilateral should triangulate into exactly 2 triangles.");
+
+    std::ostringstream desmos_output;
+    std::streambuf* original_output = std::cout.rdbuf(desmos_output.rdbuf());
+    polygon.print_triangulation_desmos();
+    std::cout.rdbuf(original_output);
+    const std::string rendered = desmos_output.str();
+    size_t expression_count = 0;
+    size_t position = 0;
+    while((position = rendered.find("polygon(", position)) != std::string::npos){
+        ++expression_count;
+        position += 8;
+    }
+    expect_true(summary,
+                expression_count == polygon.get_triangulation().size(),
+                suite_name,
+                "Desmos triangulation output count",
+                "The Desmos printer should emit one polygon expression per triangle.");
+    expect_true(summary,
+                rendered.find("FIXME") == std::string::npos,
+                suite_name,
+                "Desmos triangulation has no placeholder",
+                "The supported formatter should never emit the historical placeholder.");
 }
