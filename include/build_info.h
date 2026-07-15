@@ -23,6 +23,18 @@
 #define GEOM_BUILD_DIRTY 0
 #endif
 
+#ifndef GEOM_BUILD_COMPILER_COMMAND
+#define GEOM_BUILD_COMPILER_COMMAND "unknown"
+#endif
+
+#ifndef GEOM_BUILD_COMPILER_VERSION
+#define GEOM_BUILD_COMPILER_VERSION "unknown"
+#endif
+
+#ifndef GEOM_BUILD_COMPILER_FLAGS
+#define GEOM_BUILD_COMPILER_FLAGS "unknown"
+#endif
+
 namespace build_info {
 
 inline std::string commit_full() {
@@ -51,6 +63,18 @@ inline std::string profile() {
 
 inline bool dirty() {
 	return GEOM_BUILD_DIRTY != 0;
+}
+
+inline std::string compiler_command() {
+	return GEOM_BUILD_COMPILER_COMMAND;
+}
+
+inline std::string compiler_version() {
+	return GEOM_BUILD_COMPILER_VERSION;
+}
+
+inline std::string compiler_flags() {
+	return GEOM_BUILD_COMPILER_FLAGS;
 }
 
 inline std::string provenance_summary() {

@@ -1,4 +1,5 @@
 CXX := g++
+CXX_VERSION_LINE := $(shell $(CXX) --version 2>/dev/null | sed -n '1p')
 BASE_CXXFLAGS := -Wall -Wextra -std=c++17
 DEPFLAGS := -MMD -MP
 RELEASE_CXXFLAGS := $(BASE_CXXFLAGS) -O2
@@ -11,7 +12,9 @@ BUILD_INFO_CPPFLAGS := \
 	-DGEOM_BUILD_COMMIT=\"$(GIT_COMMIT)\" \
 	-DGEOM_BUILD_BRANCH=\"$(GIT_BRANCH)\" \
 	-DGEOM_BUILD_TIME_UTC=\"$(BUILD_TIME_UTC)\" \
-	-DGEOM_BUILD_DIRTY=$(GIT_DIRTY)
+	-DGEOM_BUILD_DIRTY=$(GIT_DIRTY) \
+	'-DGEOM_BUILD_COMPILER_COMMAND="$(CXX)"' \
+	'-DGEOM_BUILD_COMPILER_VERSION="$(CXX_VERSION_LINE)"'
 
 COMMON_EXES := main rand_poly_gen_driver driver tester
 DEV_ONLY_EXES := delaunay_driver portfolio_export_driver benchmark_driver
@@ -75,7 +78,8 @@ COMMON_SRCS := \
 .PHONY: all development development-normal development-debug release release-bundle release-smoke \
 	interview-release interview-smoke clean clean-development clean-development-normal \
 	clean-development-debug clean-release clean-app-release clean-interview test-suite help \
-	generate-build-info benchmark-smoke benchmark-standard benchmark-headline benchmark-validate benchmark-tools-test FORCE
+	generate-build-info benchmark-smoke benchmark-standard benchmark-headline benchmark-research \
+	benchmark-validate benchmark-tools-test FORCE
 
 all: development release
 
@@ -107,7 +111,7 @@ $$($(1)_DIR):
 
 $$($(1)_DIR)/%.o: %.cc | $$($(1)_DIR)
 	mkdir -p $$(dir $$@)
-	$$(CXX) $$($(3)) $(BUILD_INFO_CPPFLAGS) -DGEOM_BUILD_PROFILE=\"$(4)\" -I$(INCLUDE_DIR) $$(DEPFLAGS) -c $$< -o $$@
+	$$(CXX) $$($(3)) $(BUILD_INFO_CPPFLAGS) '-DGEOM_BUILD_COMPILER_FLAGS="$$($(3))"' -DGEOM_BUILD_PROFILE=\"$(4)\" -I$(INCLUDE_DIR) $$(DEPFLAGS) -c $$< -o $$@
 
 $$(foreach exe,$$($(1)_EXES),$$(eval $$(call EXE_RULE,$(1),$$(exe),$(3))))
 
@@ -144,10 +148,14 @@ benchmark-standard: $(BENCHMARK_BINARY)
 benchmark-headline: $(BENCHMARK_BINARY)
 	python3 benchmarks/run_benchmarks.py --profile=headline --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_BUILD_ARGS) $(BENCHMARK_RUN_ID_ARG) $(BENCHMARK_ALLOW_DIRTY_ARG)
 
+benchmark-research: $(BENCHMARK_BINARY)
+	python3 benchmarks/run_benchmarks.py --profile=research --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_BUILD_ARGS) $(BENCHMARK_RUN_ID_ARG) $(BENCHMARK_ALLOW_DIRTY_ARG)
+
+
 benchmark-validate:
 	@test -n "$(BUNDLE)" || (echo "Usage: make benchmark-validate BUNDLE=benchmarks/runs/<run-id>" >&2; exit 2)
 	python3 benchmarks/validate_bundle.py $(BUNDLE)
-benchmark-tools-test:
+benchmark-tools-test: $(BENCHMARK_BINARY)
 	python3 -m unittest discover -s benchmarks -p 'test_*.py'
 
 
@@ -201,6 +209,7 @@ help:
 	@echo "  make benchmark-smoke"
 	@echo "  make benchmark-standard"
 	@echo "  make benchmark-headline"
+	@echo "  make benchmark-research"
 	@echo "  make benchmark-validate BUNDLE=benchmarks/runs/<run-id>"
 	@echo "  make benchmark-tools-test"
 	@echo ""

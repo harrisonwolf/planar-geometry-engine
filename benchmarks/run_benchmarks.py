@@ -22,7 +22,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from render_chart import render as render_chart
+from render_chart import render as render_chart, render_distributions
 
 
 SCHEMA_VERSION = 1
@@ -74,6 +74,14 @@ def command_output(command: list[str], cwd: Path | None = None) -> str | None:
         return None
 
 
+def compiler_version_line(compiler_command: str) -> str | None:
+    output = command_output([compiler_command, "--version"])
+    if not output:
+        return None
+    lines = output.splitlines()
+    return lines[0].strip() if lines else None
+
+
 def git_metadata(repo: Path) -> dict[str, Any]:
     commit = command_output(["git", "rev-parse", "HEAD"], repo) or "unknown"
     branch = command_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], repo) or "unknown"
@@ -108,8 +116,8 @@ def cpu_model() -> str | None:
     return None
 
 
-def collect_environment(repo: Path) -> dict[str, Any]:
-    compiler = command_output(["g++", "--version"])
+def collect_environment(repo: Path, compiler_command: str) -> dict[str, Any]:
+    compiler = command_output([compiler_command, "--version"])
     gnu_time = command_output(["/usr/bin/time", "--version"])
     return {
         "schema_version": SCHEMA_VERSION,
@@ -129,6 +137,7 @@ def collect_environment(repo: Path) -> dict[str, Any]:
             "lscpu": command_output(["lscpu"]),
         },
         "tools": {
+            "compiler_command": compiler_command,
             "compiler": compiler,
             "gnu_time": gnu_time,
         },
@@ -143,6 +152,7 @@ def collect_environment(repo: Path) -> dict[str, Any]:
 def inspect_driver(binary: Path, repo: Path, seed: int) -> dict[str, Any]:
     command = [
         str(binary), "--count=10", f"--seed={seed}", "--coord-max=1000000",
+        "--distribution=uniform",
     ]
     try:
         completed = subprocess.run(
@@ -285,18 +295,73 @@ def create_summary(run_id: str, profile_name: str, profile: dict[str, Any], reco
             "status_counts": dict(sorted(Counter(record["status"] for record in case_records).items())),
             "statistics": statistics_by_field,
         })
+    status_counts = dict(sorted(Counter(record["status"] for record in records).items()))
+    distribution_aggregates = []
+    if profile.get("aggregate_by_distribution"):
+        distributions = list(dict.fromkeys(case["distribution"] for case in profile["cases"]))
+        for distribution in distributions:
+            distribution_cases = [
+                case for case in cases if case["input"]["distribution"] == distribution
+            ]
+            case_ids = {case["case_id"] for case in distribution_cases}
+            distribution_records = [
+                record for record in records if record["case_id"] in case_ids
+            ]
+            successful = [
+                record for record in distribution_records if record["status"] == "ok"
+            ]
+            seed_case_medians = [
+                float(case["statistics"]["compute_total_seconds"]["median"])
+                for case in distribution_cases
+                if case["statistics"]["compute_total_seconds"]["median"] is not None
+            ]
+            pooled_measurements = [
+                float(record["measurements"]["compute_total_seconds"])
+                for record in successful
+                if record["measurements"]["compute_total_seconds"] is not None
+            ]
+            distribution_aggregates.append({
+                "distribution": distribution,
+                "case_count": len(distribution_cases),
+                "distinct_seed_count": len({
+                    int(case["input"]["seed"]) for case in distribution_cases
+                }),
+                "planned_run_count": len(distribution_cases) * int(profile["repetitions"]),
+                "successful_run_count": len(successful),
+                "status_counts": dict(sorted(Counter(
+                    record["status"] for record in distribution_records
+                ).items())),
+                "compute_total_seconds_across_seed_case_medians":
+                    robust_statistics(seed_case_medians),
+                "compute_total_seconds_across_all_repetitions":
+                    robust_statistics(pooled_measurements),
+            })
     return {
         "schema_version": SCHEMA_VERSION,
         "run_id": run_id,
         "profile": profile_name,
         "statistic_policy": "successful runs only; median, median absolute deviation, linearly interpolated p10/p90, min/max",
+        "sample_accounting": {
+            "case_count": len(profile["cases"]),
+            "planned_run_count": len(profile["cases"]) * int(profile["repetitions"]),
+            "observed_run_count": len(records),
+            "successful_run_count": status_counts.get("ok", 0),
+            "status_counts": status_counts,
+        },
+        "distribution_aggregate_policy": (
+            "For each distribution, seed-level uncertainty summarizes the case median "
+            "for each distinct deterministic input. The pooled repetition summary is "
+            "reported separately because repeated timings are not independent inputs."
+        ),
+        "distribution_aggregates": distribution_aggregates,
         "cases": cases,
     }
 
 
 def write_summary_csv(path: Path, summary: dict[str, Any]) -> None:
     fields = [
-        "case_id", "requested_count", "seed", "planned_repetitions", "successful_repetitions",
+        "case_id", "distribution", "requested_count", "seed",
+        "planned_repetitions", "successful_repetitions",
         "ok", "timeout", "error", "validation_failed", "compute_median_seconds",
         "compute_mad_seconds", "compute_p10_seconds", "compute_p90_seconds",
         "external_wall_median_seconds", "max_rss_median_kb",
@@ -309,6 +374,7 @@ def write_summary_csv(path: Path, summary: dict[str, Any]) -> None:
             compute = case["statistics"]["compute_total_seconds"]
             writer.writerow({
                 "case_id": case["case_id"],
+                "distribution": case["input"]["distribution"],
                 "requested_count": case["input"]["count"],
                 "seed": case["input"]["seed"],
                 "planned_repetitions": case["planned_repetitions"],
@@ -326,6 +392,46 @@ def write_summary_csv(path: Path, summary: dict[str, Any]) -> None:
             })
 
 
+def write_distribution_summary_csv(path: Path, summary: dict[str, Any]) -> None:
+    fields = [
+        "distribution", "case_count", "distinct_seed_count", "planned_run_count",
+        "successful_run_count", "ok", "timeout", "error", "validation_failed",
+        "seed_case_median_sample_count", "seed_case_compute_median_seconds",
+        "seed_case_compute_mad_seconds", "seed_case_compute_p10_seconds",
+        "seed_case_compute_p90_seconds", "pooled_repetition_sample_count",
+        "pooled_compute_median_seconds", "pooled_compute_mad_seconds",
+        "pooled_compute_p10_seconds", "pooled_compute_p90_seconds",
+    ]
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        for aggregate in summary["distribution_aggregates"]:
+            statuses = aggregate["status_counts"]
+            seed_cases = aggregate["compute_total_seconds_across_seed_case_medians"]
+            pooled = aggregate["compute_total_seconds_across_all_repetitions"]
+            writer.writerow({
+                "distribution": aggregate["distribution"],
+                "case_count": aggregate["case_count"],
+                "distinct_seed_count": aggregate["distinct_seed_count"],
+                "planned_run_count": aggregate["planned_run_count"],
+                "successful_run_count": aggregate["successful_run_count"],
+                "ok": statuses.get("ok", 0),
+                "timeout": statuses.get("timeout", 0),
+                "error": statuses.get("error", 0),
+                "validation_failed": statuses.get("validation_failed", 0),
+                "seed_case_median_sample_count": seed_cases["count"],
+                "seed_case_compute_median_seconds": seed_cases["median"],
+                "seed_case_compute_mad_seconds": seed_cases["mad"],
+                "seed_case_compute_p10_seconds": seed_cases["p10"],
+                "seed_case_compute_p90_seconds": seed_cases["p90"],
+                "pooled_repetition_sample_count": pooled["count"],
+                "pooled_compute_median_seconds": pooled["median"],
+                "pooled_compute_mad_seconds": pooled["mad"],
+                "pooled_compute_p10_seconds": pooled["p10"],
+                "pooled_compute_p90_seconds": pooled["p90"],
+            })
+
+
 def write_checksums(bundle: Path) -> None:
     lines = []
     for path in sorted(item for item in bundle.rglob("*") if item.is_file() and item.name != "checksums.sha256"):
@@ -335,7 +441,7 @@ def write_checksums(bundle: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", choices=("smoke", "standard", "headline"), default="smoke")
+    parser.add_argument("--profile", choices=("smoke", "standard", "headline", "research"), default="smoke")
     parser.add_argument("--binary", type=Path, required=True)
     parser.add_argument("--compiler", required=True)
     parser.add_argument("--compiler-flags", required=True)
@@ -357,6 +463,9 @@ def main() -> int:
     git = git_metadata(repo)
     if git["dirty"] and not args.allow_dirty:
         parser.error("refusing to benchmark a dirty repository; use --allow-dirty only for scratch runs")
+    resolved_compiler_version = compiler_version_line(args.compiler)
+    if not resolved_compiler_version:
+        parser.error(f"cannot execute compiler version probe: {args.compiler} --version")
     try:
         driver_build = inspect_driver(binary, repo, int(profile["cases"][0]["seed"]))
     except ValueError as exc:
@@ -365,6 +474,9 @@ def main() -> int:
         "commit": git["commit"],
         "dirty": git["dirty"],
         "profile": args.expected_build_profile,
+        "compiler_command": args.compiler,
+        "compiler_version": resolved_compiler_version,
+        "compiler_flags": args.compiler_flags,
     }
     mismatches = {
         key: {"expected": value, "actual": driver_build.get(key)}
@@ -398,7 +510,7 @@ def main() -> int:
     records: list[dict[str, Any]] = []
 
     try:
-        environment = collect_environment(repo)
+        environment = collect_environment(repo, args.compiler)
         write_json(partial_bundle / "environment.json", environment)
 
         for case in profile["cases"]:
@@ -412,6 +524,7 @@ def main() -> int:
                     f"--count={case['count']}",
                     f"--seed={case['seed']}",
                     f"--coord-max={case['coord_max']}",
+                    f"--distribution={case['distribution']}",
                     "--emit-points",
                 ]
                 exit_code, timed_out, external_wall = run_with_timeout(
@@ -442,6 +555,7 @@ def main() -> int:
                     exact_input = {
                         "schema_version": SCHEMA_VERSION,
                         "generator": driver_input.get("generator"),
+                        "distribution": driver_input.get("distribution"),
                         "seed": driver_input.get("seed"),
                         "coord_max": driver_input.get("coord_max"),
                         "points": points,
@@ -497,7 +611,9 @@ def main() -> int:
         summary = create_summary(run_id, args.profile, profile, records)
         write_json(partial_bundle / "summary.json", summary)
         write_summary_csv(partial_bundle / "summary.csv", summary)
+        write_distribution_summary_csv(partial_bundle / "distribution-summary.csv", summary)
         render_chart(partial_bundle / "summary.json", partial_bundle / "charts" / "phase-medians.svg")
+        render_distributions(partial_bundle / "summary.json", partial_bundle / "charts" / "distribution-comparison.svg")
 
         case_validation = {}
         for case in profile["cases"]:
@@ -539,6 +655,9 @@ def main() -> int:
             "build_contract": {
                 "compiler": args.compiler,
                 "compiler_flags": args.compiler_flags,
+                "contract_version": 2,
+                "compiler_command": args.compiler,
+                "compiler_version": resolved_compiler_version,
                 "expected_driver_profile": args.expected_build_profile,
                 "preflight_driver_build": driver_build,
                 "provenance_preflight_passed": True,
@@ -556,6 +675,8 @@ def main() -> int:
                 "records": "runs.jsonl",
                 "summary_json": "summary.json",
                 "summary_csv": "summary.csv",
+                "distribution_summary_csv": "distribution-summary.csv",
+                "distribution_chart": "charts/distribution-comparison.svg",
                 "environment": "environment.json",
                 "validation": "validation.json",
                 "chart": "charts/phase-medians.svg",

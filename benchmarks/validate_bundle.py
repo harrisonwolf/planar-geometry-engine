@@ -48,12 +48,38 @@ def validate(bundle: Path) -> list[str]:
     require(manifest.get("bundle_kind") == "planar_benchmark_run_bundle", "unexpected bundle kind", errors)
     repository = manifest.get("repository", {})
     build_contract = manifest.get("build_contract", {})
+    contract_version = build_contract.get("contract_version", 1)
     binary = manifest.get("binary", {})
+    profile_definition = manifest.get("profile_definition", {})
+    profile_cases = profile_definition.get("cases", [])
+    case_definitions = {
+        case.get("id"): case
+        for case in profile_cases
+        if isinstance(case, dict) and isinstance(case.get("id"), str)
+    }
+    require(
+        len(case_definitions) == len(profile_cases),
+        "manifest profile cases must have unique string ids",
+        errors,
+    )
     require(isinstance(repository.get("commit"), str) and len(repository.get("commit", "")) == 40,
             "manifest repository commit must be a full SHA", errors)
     require(isinstance(repository.get("dirty"), bool), "manifest repository dirty must be boolean", errors)
     require(bool(build_contract.get("compiler")), "manifest compiler is missing", errors)
     require(bool(build_contract.get("compiler_flags")), "manifest compiler flags are missing", errors)
+    require(contract_version in (1, 2), "unsupported build contract version", errors)
+    if contract_version == 2:
+        require(
+            build_contract.get("compiler") == build_contract.get("compiler_command"),
+            "manifest compiler aliases disagree",
+            errors,
+        )
+        for field in ("compiler_command", "compiler_version", "compiler_flags"):
+            require(
+                bool(build_contract.get(field)),
+                f"manifest build contract is missing {field}",
+                errors,
+            )
     require(bool(build_contract.get("expected_driver_profile")), "expected driver profile is missing", errors)
     require(build_contract.get("provenance_preflight_passed") is True,
             "runner provenance preflight did not pass", errors)
@@ -68,6 +94,89 @@ def validate(bundle: Path) -> list[str]:
             errors.append(f"runs.jsonl:{line_number}: {exc}")
             continue
         records.append(record)
+        case_id = record.get("case_id")
+        case_definition = case_definitions.get(case_id)
+        if profile_cases:
+            require(
+                case_definition is not None,
+                f"run {line_number}: case_id is not present in manifest profile",
+                errors,
+            )
+        run_input = record.get("input", {})
+        if case_definition is not None:
+            expected_identity = {
+                "seed": case_definition.get("seed"),
+                "requested_count": case_definition.get("count"),
+                "coord_max": case_definition.get("coord_max"),
+            }
+            if "distribution" in case_definition:
+                expected_identity["distribution"] = case_definition["distribution"]
+            for field, expected_value in expected_identity.items():
+                require(
+                    run_input.get(field) == expected_value,
+                    f"run {line_number}: input {field} does not match manifest profile",
+                    errors,
+                )
+            artifact_relative = run_input.get("points_artifact")
+            if artifact_relative:
+                artifact_path = bundle / artifact_relative
+                require(
+                    artifact_path.is_file(),
+                    f"run {line_number}: missing exact-input artifact {artifact_relative}",
+                    errors,
+                )
+                if artifact_path.is_file():
+                    artifact_input = json.loads(artifact_path.read_text(encoding="utf-8"))
+                    require(
+                        sha256(artifact_path) == run_input.get("points_sha256"),
+                        f"run {line_number}: exact-input SHA-256 does not match run record",
+                        errors,
+                    )
+                    expected_artifact_identity = {
+                        "seed": case_definition.get("seed"),
+                        "coord_max": case_definition.get("coord_max"),
+                    }
+                    if "distribution" in case_definition:
+                        expected_artifact_identity["distribution"] = case_definition["distribution"]
+                    for field, expected_value in expected_artifact_identity.items():
+                        require(
+                            artifact_input.get(field) == expected_value,
+                            f"run {line_number}: exact-input {field} does not match manifest profile",
+                            errors,
+                        )
+                    points = artifact_input.get("points")
+                    valid_points = (
+                        isinstance(points, list)
+                        and all(
+                            isinstance(point, list)
+                            and len(point) == 2
+                            and all(isinstance(coordinate, int) for coordinate in point)
+                            for point in points
+                        )
+                    )
+                    require(valid_points, f"run {line_number}: exact points are malformed", errors)
+                    if valid_points:
+                        require(
+                            len(points) == case_definition.get("count"),
+                            f"run {line_number}: exact point count does not match manifest profile",
+                            errors,
+                        )
+                        require(
+                            len({tuple(point) for point in points}) == len(points),
+                            f"run {line_number}: exact points are not unique",
+                            errors,
+                        )
+                        bound = case_definition.get("coord_max")
+                        require(
+                            isinstance(bound, int)
+                            and all(
+                                -bound <= coordinate <= bound
+                                for point in points
+                                for coordinate in point
+                            ),
+                            f"run {line_number}: exact point exceeds manifest coordinate bound",
+                            errors,
+                        )
         require(record.get("schema_version") == 1, f"run {line_number}: bad schema", errors)
         require(record.get("status") in STATUSES, f"run {line_number}: bad status", errors)
         command = record.get("command")
@@ -82,6 +191,13 @@ def validate(bundle: Path) -> list[str]:
                 f"run {line_number}: driver dirty state does not match manifest", errors)
         require(driver_build.get("profile") == build_contract.get("expected_driver_profile"),
                 f"run {line_number}: driver profile does not match build contract", errors)
+        if contract_version == 2:
+            for field in ("compiler_command", "compiler_version", "compiler_flags"):
+                require(
+                    driver_build.get(field) == build_contract.get(field),
+                    f"run {line_number}: driver {field} does not match build contract",
+                    errors,
+                )
         if repository.get("dirty") is False:
             require(driver_build.get("dirty") is False,
                     f"run {line_number}: clean manifest contains dirty driver", errors)
@@ -102,10 +218,25 @@ def validate(bundle: Path) -> list[str]:
             "preflight driver dirty state does not match manifest", errors)
     require(preflight_build.get("profile") == build_contract.get("expected_driver_profile"),
             "preflight driver profile does not match build contract", errors)
+    if contract_version == 2:
+        for field in ("compiler_command", "compiler_version", "compiler_flags"):
+            require(
+                preflight_build.get(field) == build_contract.get(field),
+                f"preflight driver {field} does not match build contract",
+                errors,
+            )
     with (bundle / "summary.csv").open(newline="", encoding="utf-8") as handle:
         require(len(list(csv.DictReader(handle))) > 0, "summary.csv has no cases", errors)
 
     expected: dict[str, str] = {}
+    for artifact_key in ("distribution_summary_csv", "distribution_chart"):
+        declared_artifact = manifest.get("artifacts", {}).get(artifact_key)
+        if declared_artifact:
+            require(
+                (bundle / declared_artifact).is_file(),
+                f"missing declared {artifact_key}: {declared_artifact}",
+                errors,
+            )
     for line in (bundle / "checksums.sha256").read_text(encoding="utf-8").splitlines():
         checksum, relative = line.split("  ", 1)
         expected[relative] = checksum

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -27,6 +28,7 @@ struct Options {
 	int count = 100;
 	uint64_t seed = 20260715ULL;
 	int coord_max = 1000000;
+	string distribution = "uniform";
 	bool emit_points = false;
 	bool valid = true;
 	string error;
@@ -80,6 +82,43 @@ string hex_u64(uint64_t value){
 	return output.str();
 }
 
+string json_escape(const string& value){
+	ostringstream output;
+	for(char character : value){
+		switch(character){
+			case '\\': output << "\\\\"; break;
+			case '"': output << "\\\""; break;
+			case '\b': output << "\\b"; break;
+			case '\f': output << "\\f"; break;
+			case '\n': output << "\\n"; break;
+			case '\r': output << "\\r"; break;
+			case '\t': output << "\\t"; break;
+			default:
+				if(static_cast<unsigned char>(character) < 0x20U){
+					output << "\\u" << hex << setw(4) << setfill('0')
+					       << static_cast<int>(static_cast<unsigned char>(character));
+				}else{
+					output << character;
+				}
+		}
+	}
+	return output.str();
+}
+
+bool supported_distribution(const string& distribution){
+	return distribution == "uniform"
+		|| distribution == "clustered"
+		|| distribution == "jittered-grid"
+		|| distribution == "near-collinear";
+}
+
+const char* generator_name(const string& distribution){
+	if(distribution == "clustered") return "splitmix64_four_cluster_integer_v1";
+	if(distribution == "jittered-grid") return "splitmix64_jittered_grid_integer_v1";
+	if(distribution == "near-collinear") return "splitmix64_near_collinear_integer_v1";
+	return "splitmix64_uniform_unique_integer_v1";
+}
+
 Options parse_options(int argc, char* argv[]){
 	Options options;
 	for(int i = 1; i < argc; ++i){
@@ -91,6 +130,8 @@ Options parse_options(int argc, char* argv[]){
 				options.seed = stoull(argument.substr(7));
 			}else if(argument.rfind("--coord-max=", 0) == 0){
 				options.coord_max = stoi(argument.substr(12));
+			}else if(argument.rfind("--distribution=", 0) == 0){
+				options.distribution = argument.substr(15);
 			}else if(argument == "--emit-points"){
 				options.emit_points = true;
 			}else{
@@ -111,34 +152,129 @@ Options parse_options(int argc, char* argv[]){
 	}else if(options.coord_max < 1 || options.coord_max > 1000000000){
 		options.valid = false;
 		options.error = "--coord-max must be in [1, 1000000000]";
+	}else if(!supported_distribution(options.distribution)){
+		options.valid = false;
+		options.error = "--distribution must be uniform, clustered, jittered-grid, or near-collinear";
 	}else{
 		const uint64_t axis = static_cast<uint64_t>(options.coord_max) * 2ULL + 1ULL;
 		if(axis * axis < static_cast<uint64_t>(options.count)){
 			options.valid = false;
 			options.error = "coordinate domain cannot contain the requested unique points";
+		}else if(options.distribution == "clustered"){
+			const uint64_t radius = max<uint64_t>(1, static_cast<uint64_t>(options.coord_max) / 8ULL);
+			const uint64_t cluster_capacity = 4ULL * (2ULL * radius + 1ULL) * (2ULL * radius + 1ULL);
+			if(options.coord_max < 8 || cluster_capacity < static_cast<uint64_t>(options.count)){
+				options.valid = false;
+				options.error = "clustered distribution needs four disjoint clusters large enough for --count";
+			}
+		}else if(options.distribution == "jittered-grid"){
+			const uint64_t side = static_cast<uint64_t>(ceil(sqrt(static_cast<double>(options.count))));
+			const uint64_t spacing = (2ULL * static_cast<uint64_t>(options.coord_max)) / (side - 1ULL);
+			if(spacing < 5ULL){
+				options.valid = false;
+				options.error = "jittered-grid needs coordinate spacing of at least 5 integer units";
+			}
+		}else if(options.distribution == "near-collinear"
+		         && static_cast<uint64_t>(options.count) > axis){
+			options.valid = false;
+			options.error = "near-collinear distribution needs one distinct x coordinate per point";
 		}
 	}
 	return options;
+}
+
+void append_point(GeneratedInput& result, int64_t x, int64_t y){
+	result.exact_points.push_back({x, y});
+	result.points.push_back(Point(static_cast<double>(x), static_cast<double>(y)));
+	fnv_mix_u64(result.hash, static_cast<uint64_t>(x));
+	fnv_mix_u64(result.hash, static_cast<uint64_t>(y));
+}
+
+void generate_uniform(const Options& options, SplitMix64& generator, GeneratedInput& result){
+	const uint64_t axis = static_cast<uint64_t>(options.coord_max) * 2ULL + 1ULL;
+	set<pair<int64_t, int64_t>> used;
+	while(static_cast<int>(result.points.size()) < options.count){
+		const int64_t x = static_cast<int64_t>(generator.bounded(axis)) - options.coord_max;
+		const int64_t y = static_cast<int64_t>(generator.bounded(axis)) - options.coord_max;
+		if(used.insert({x, y}).second) append_point(result, x, y);
+	}
+}
+
+void generate_clustered(const Options& options, SplitMix64& generator, GeneratedInput& result){
+	const int64_t radius = max<int64_t>(1, static_cast<int64_t>(options.coord_max) / 8LL);
+	const int64_t center = static_cast<int64_t>(options.coord_max) / 2LL;
+	const uint64_t diameter = static_cast<uint64_t>(2LL * radius + 1LL);
+	const array<pair<int64_t, int64_t>, 4> centers{{
+		{-center, -center}, {-center, center}, {center, -center}, {center, center}
+	}};
+	set<pair<int64_t, int64_t>> used;
+	while(static_cast<int>(result.points.size()) < options.count){
+		const auto cluster = centers.at(result.points.size() % centers.size());
+		const int64_t x = cluster.first + static_cast<int64_t>(generator.bounded(diameter)) - radius;
+		const int64_t y = cluster.second + static_cast<int64_t>(generator.bounded(diameter)) - radius;
+		if(used.insert({x, y}).second) append_point(result, x, y);
+	}
+}
+
+void generate_jittered_grid(const Options& options, SplitMix64& generator, GeneratedInput& result){
+	const int64_t extent = options.coord_max;
+	const size_t side = static_cast<size_t>(ceil(sqrt(static_cast<double>(options.count))));
+	const int64_t spacing = (2LL * extent) / static_cast<int64_t>(side - 1U);
+	const int64_t jitter = spacing / 5LL;
+	vector<pair<int64_t, int64_t>> candidates;
+	candidates.reserve(side * side);
+	for(size_t row = 0; row < side; ++row){
+		for(size_t column = 0; column < side; ++column){
+			const int64_t base_x = -extent + (2LL * extent * static_cast<int64_t>(column))
+				/ static_cast<int64_t>(side - 1U);
+			const int64_t base_y = -extent + (2LL * extent * static_cast<int64_t>(row))
+				/ static_cast<int64_t>(side - 1U);
+			const int64_t offset_x = static_cast<int64_t>(
+				generator.bounded(static_cast<uint64_t>(2LL * jitter + 1LL))) - jitter;
+			const int64_t offset_y = static_cast<int64_t>(
+				generator.bounded(static_cast<uint64_t>(2LL * jitter + 1LL))) - jitter;
+			const int64_t x = min<int64_t>(extent, max<int64_t>(-extent, base_x + offset_x));
+			const int64_t y = min<int64_t>(extent, max<int64_t>(-extent, base_y + offset_y));
+			candidates.push_back({x, y});
+		}
+	}
+	for(size_t index = candidates.size(); index > 1U; --index){
+		const size_t swap_index = static_cast<size_t>(generator.bounded(index));
+		swap(candidates[index - 1U], candidates[swap_index]);
+	}
+	for(int index = 0; index < options.count; ++index){
+		append_point(result, candidates.at(static_cast<size_t>(index)).first,
+		             candidates.at(static_cast<size_t>(index)).second);
+	}
+}
+
+void generate_near_collinear(const Options& options, SplitMix64& generator, GeneratedInput& result){
+	const int64_t extent = options.coord_max;
+	const int64_t band = max<int64_t>(1, extent / 10000LL);
+	const uint64_t band_width = static_cast<uint64_t>(2LL * band + 1LL);
+	for(int index = 0; index < options.count; ++index){
+		const int64_t x = -extent + (2LL * extent * static_cast<int64_t>(index))
+			/ static_cast<int64_t>(options.count - 1);
+		int64_t y = static_cast<int64_t>(generator.bounded(band_width)) - band;
+		if(index == 0 || index == options.count - 1) y = 0;
+		if(index == options.count / 2) y = band;
+		append_point(result, x, y);
+	}
 }
 
 GeneratedInput generate_input(const Options& options){
 	GeneratedInput result;
 	result.points.reserve(static_cast<size_t>(options.count));
 	result.exact_points.reserve(static_cast<size_t>(options.count));
-
 	SplitMix64 generator(options.seed);
-	const uint64_t axis = static_cast<uint64_t>(options.coord_max) * 2ULL + 1ULL;
-	set<pair<int64_t, int64_t>> used;
-	while(static_cast<int>(result.points.size()) < options.count){
-		int64_t x = static_cast<int64_t>(generator.bounded(axis)) - options.coord_max;
-		int64_t y = static_cast<int64_t>(generator.bounded(axis)) - options.coord_max;
-		if(!used.insert({x, y}).second){
-			continue;
-		}
-		result.exact_points.push_back({x, y});
-		result.points.push_back(Point(static_cast<double>(x), static_cast<double>(y)));
-		fnv_mix_u64(result.hash, static_cast<uint64_t>(x));
-		fnv_mix_u64(result.hash, static_cast<uint64_t>(y));
+	if(options.distribution == "clustered"){
+		generate_clustered(options, generator, result);
+	}else if(options.distribution == "jittered-grid"){
+		generate_jittered_grid(options, generator, result);
+	}else if(options.distribution == "near-collinear"){
+		generate_near_collinear(options, generator, result);
+	}else{
+		generate_uniform(options, generator, result);
 	}
 	return result;
 }
@@ -236,11 +372,16 @@ void print_json(const Options& options,
 	cout << "  \"schema_version\": 1,\n";
 	cout << "  \"benchmark\": \"planar_delaunay_voronoi\",\n";
 	cout << "  \"status\": \"" << (validation.all ? "ok" : "validation_failed") << "\",\n";
-	cout << "  \"build\": {\"commit\": \"" << build_info::commit_full()
-	     << "\", \"branch\": \"" << build_info::branch()
-	     << "\", \"profile\": \"" << build_info::profile()
-	     << "\", \"dirty\": " << (build_info::dirty() ? "true" : "false") << "},\n";
-	cout << "  \"input\": {\"generator\": \"splitmix64_unique_integer_v1\", \"seed\": "
+	cout << "  \"build\": {\"commit\": \"" << json_escape(build_info::commit_full())
+	     << "\", \"branch\": \"" << json_escape(build_info::branch())
+	     << "\", \"profile\": \"" << json_escape(build_info::profile())
+	     << "\", \"dirty\": " << (build_info::dirty() ? "true" : "false")
+	     << ", \"compiler_command\": \"" << json_escape(build_info::compiler_command())
+	     << "\", \"compiler_version\": \"" << json_escape(build_info::compiler_version())
+	     << "\", \"compiler_flags\": \"" << json_escape(build_info::compiler_flags())
+	     << "\"},\n";
+	cout << "  \"input\": {\"generator\": \"" << generator_name(options.distribution)
+	     << "\", \"distribution\": \"" << options.distribution << "\", \"seed\": "
 	     << options.seed << ", \"requested_count\": " << options.count
 	     << ", \"coord_max\": " << options.coord_max
 	     << ", \"hash\": \"fnv1a64:" << hex_u64(input.hash) << "\"";

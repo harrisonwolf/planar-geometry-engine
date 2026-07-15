@@ -6,8 +6,8 @@
       "timeout_seconds": 15,
       "repetitions": 3,
       "cases": [
-        {"id": "uniform-n50", "count": 50, "seed": 20260715, "coord_max": 1000000},
-        {"id": "uniform-n100", "count": 100, "seed": 20260715, "coord_max": 1000000}
+        {"id": "uniform-n50", "distribution": "uniform", "count": 50, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n100", "distribution": "uniform", "count": 100, "seed": 20260715, "coord_max": 1000000}
       ]
     },
     "standard": {
@@ -15,11 +15,11 @@
       "timeout_seconds": 120,
       "repetitions": 10,
       "cases": [
-        {"id": "uniform-n100", "count": 100, "seed": 20260715, "coord_max": 1000000},
-        {"id": "uniform-n300", "count": 300, "seed": 20260715, "coord_max": 1000000},
-        {"id": "uniform-n1000", "count": 1000, "seed": 20260715, "coord_max": 1000000},
-        {"id": "uniform-n1500", "count": 1500, "seed": 20260715, "coord_max": 1000000},
-        {"id": "uniform-n2500", "count": 2500, "seed": 20260715, "coord_max": 1000000}
+        {"id": "uniform-n100", "distribution": "uniform", "count": 100, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n300", "distribution": "uniform", "count": 300, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n1000", "distribution": "uniform", "count": 1000, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n1500", "distribution": "uniform", "count": 1500, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n2500", "distribution": "uniform", "count": 2500, "seed": 20260715, "coord_max": 1000000}
       ]
     },
     "headline": {
@@ -27,7 +27,27 @@
       "timeout_seconds": 120,
       "repetitions": 30,
       "cases": [
-        {"id": "uniform-n1500", "count": 1500, "seed": 20260715, "coord_max": 1000000}
+        {"id": "uniform-n1500", "distribution": "uniform", "count": 1500, "seed": 20260715, "coord_max": 1000000}
+      ]
+    },
+    "research": {
+      "description": "Bounded input-shape study: four deterministic distributions, three seeds, and five timing repetitions per exact input.",
+      "timeout_seconds": 120,
+      "repetitions": 5,
+      "aggregate_by_distribution": true,
+      "cases": [
+        {"id": "u-s1", "distribution": "uniform", "count": 1024, "seed": 20260715, "coord_max": 1000000},
+        {"id": "u-s2", "distribution": "uniform", "count": 1024, "seed": 20260716, "coord_max": 1000000},
+        {"id": "u-s3", "distribution": "uniform", "count": 1024, "seed": 20260717, "coord_max": 1000000},
+        {"id": "c-s1", "distribution": "clustered", "count": 1024, "seed": 20260715, "coord_max": 1000000},
+        {"id": "c-s2", "distribution": "clustered", "count": 1024, "seed": 20260716, "coord_max": 1000000},
+        {"id": "c-s3", "distribution": "clustered", "count": 1024, "seed": 20260717, "coord_max": 1000000},
+        {"id": "g-s1", "distribution": "jittered-grid", "count": 1024, "seed": 20260715, "coord_max": 1000000},
+        {"id": "g-s2", "distribution": "jittered-grid", "count": 1024, "seed": 20260716, "coord_max": 1000000},
+        {"id": "g-s3", "distribution": "jittered-grid", "count": 1024, "seed": 20260717, "coord_max": 1000000},
+        {"id": "n-s1", "distribution": "near-collinear", "count": 1024, "seed": 20260715, "coord_max": 1000000},
+        {"id": "n-s2", "distribution": "near-collinear", "count": 1024, "seed": 20260716, "coord_max": 1000000},
+        {"id": "n-s3", "distribution": "near-collinear", "count": 1024, "seed": 20260717, "coord_max": 1000000}
       ]
     }
   }
