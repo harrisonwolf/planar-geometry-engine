@@ -1,0 +1,161 @@
+{
+  "artifacts": {
+    "chart": "charts/phase-medians.svg",
+    "checksums": "checksums.sha256",
+    "distribution_chart": "charts/distribution-comparison.svg",
+    "distribution_summary_csv": "distribution-summary.csv",
+    "environment": "environment.json",
+    "records": "runs.jsonl",
+    "summary_csv": "summary.csv",
+    "summary_json": "summary.json",
+    "validation": "validation.json"
+  },
+  "binary": {
+    "path": "/mnt/c/Users/wolve/Documents/Codex/2026-07-14/portfolio-design-distinctions-chatgpt-conversation-6a56d2ba/worktrees/planar/build/development/normal/benchmark_driver",
+    "sha256": "13c73d5dcee432f74707ce7002a77c1e8a837c3db1ffe42698f0ff9487157a19"
+  },
+  "build_contract": {
+    "compiler": "g++",
+    "compiler_command": "g++",
+    "compiler_flags": "-Wall -Wextra -std=c++17 -O2",
+    "compiler_version": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "contract_version": 2,
+    "expected_driver_profile": "development-normal",
+    "preflight_driver_build": {
+      "branch": "agent/planar-benchmark-studio",
+      "commit": "cecce63285b4a3e396e20def565eca41ab24ac76",
+      "compiler_command": "g++",
+      "compiler_flags": "-Wall -Wextra -std=c++17 -O2",
+      "compiler_version": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "dirty": false,
+      "profile": "development-normal"
+    },
+    "provenance_preflight_passed": true
+  },
+  "bundle_kind": "planar_benchmark_run_bundle",
+  "finished_at_utc": "2026-07-15T17:01:48Z",
+  "metric_definition": {
+    "compute_total_seconds": "steady-clock triangulation + Voronoi construction + Delaunay/topology validation; excludes deterministic input generation and serialization",
+    "external_wall_seconds": "Python monotonic wall time around GNU time and the benchmark process",
+    "max_rss_kb": "GNU time %M peak resident set size for the benchmark process"
+  },
+  "profile": "research",
+  "profile_definition": {
+    "aggregate_by_distribution": true,
+    "cases": [
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "uniform",
+        "id": "u-s1",
+        "seed": 20260715
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "uniform",
+        "id": "u-s2",
+        "seed": 20260716
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "uniform",
+        "id": "u-s3",
+        "seed": 20260717
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "clustered",
+        "id": "c-s1",
+        "seed": 20260715
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "clustered",
+        "id": "c-s2",
+        "seed": 20260716
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "clustered",
+        "id": "c-s3",
+        "seed": 20260717
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "jittered-grid",
+        "id": "g-s1",
+        "seed": 20260715
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "jittered-grid",
+        "id": "g-s2",
+        "seed": 20260716
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "jittered-grid",
+        "id": "g-s3",
+        "seed": 20260717
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "near-collinear",
+        "id": "n-s1",
+        "seed": 20260715
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "near-collinear",
+        "id": "n-s2",
+        "seed": 20260716
+      },
+      {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "near-collinear",
+        "id": "n-s3",
+        "seed": 20260717
+      }
+    ],
+    "description": "Bounded input-shape study: four deterministic distributions, three seeds, and five timing repetitions per exact input.",
+    "repetitions": 5,
+    "timeout_seconds": 120
+  },
+  "repository": {
+    "branch": "agent/planar-benchmark-studio",
+    "commit": "cecce63285b4a3e396e20def565eca41ab24ac76",
+    "dirty": false,
+    "status_porcelain": [],
+    "working_diff_sha256": null
+  },
+  "run_count": 60,
+  "run_id": "planar-research-20260715-cecce63",
+  "runner_command": [
+    "/usr/bin/python3",
+    "/mnt/c/Users/wolve/Documents/Codex/2026-07-14/portfolio-design-distinctions-chatgpt-conversation-6a56d2ba/worktrees/planar/benchmarks/run_benchmarks.py",
+    "--profile=research",
+    "--binary=build/development/normal/benchmark_driver",
+    "--output-root=/tmp/planar-final-research-bundle",
+    "--compiler=g++",
+    "--compiler-flags=-Wall -Wextra -std=c++17 -O2",
+    "--expected-build-profile=development-normal",
+    "--run-id=planar-research-20260715-cecce63"
+  ],
+  "schema_version": 1,
+  "started_at_utc": "2026-07-15T17:01:46Z",
+  "status_counts": {
+    "ok": 60
+  },
+  "working_directory": "/mnt/c/Users/wolve/Documents/Codex/2026-07-14/portfolio-design-distinctions-chatgpt-conversation-6a56d2ba/worktrees/planar"
+}
