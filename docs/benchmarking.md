@@ -89,7 +89,7 @@ Each `benchmarks/runs/<run-id>/` directory is a schema-versioned evidence bundle
 | `logs/*.time.txt` | unmodified GNU time measurements |
 | `summary.json` / `summary.csv` | successful-run counts plus median, median absolute deviation, p10/p90, and range |
 | `validation.json` | input/output stability and per-case success checks |
-| `charts/phase-medians.svg` | dependency-free deterministic chart generated from `summary.json` |
+| `charts/phase-medians.svg` | grouped, independently scaled phase and compute-total medians generated from `summary.json`; medians are not stacked or implied to be additive |
 | distribution-summary.csv | per-distribution sample counts plus seed-level and separately pooled median/MAD/p10/p90 summaries |
 | charts/distribution-comparison.svg | seed-level distribution comparison with MAD, p10/p90, range, and explicit sample labels |
 | `checksums.sha256` | SHA-256 for every other file in the bundle |

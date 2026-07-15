@@ -13,6 +13,7 @@ COLORS = {
     "triangulation": "#2563eb",
     "voronoi": "#14b8a6",
     "validation": "#f59e0b",
+    "compute_total": "#0f172a",
 }
 
 
@@ -20,20 +21,24 @@ def render(summary_path: Path, output_path: Path) -> None:
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     cases = summary["cases"]
     width, height = 960, 560
-    left, right, top, bottom = 92, 36, 76, 96
+    left, right, top, bottom = 92, 36, 94, 96
     plot_width = width - left - right
     plot_height = height - top - bottom
 
     totals = [case["statistics"]["compute_total_seconds"]["median"] or 0.0 for case in cases]
     maximum = max(totals, default=1.0) or 1.0
     slot = plot_width / max(1, len(cases))
-    bar_width = min(116.0, slot * 0.58)
+    group_width = min(150.0, slot * 0.76)
+    metrics = ("triangulation", "voronoi", "validation", "compute_total")
+    bar_gap = 3.0
+    bar_width = (group_width - bar_gap * (len(metrics) - 1)) / len(metrics)
 
     lines = [
         '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">',
         '  <rect width="960" height="560" fill="#f8fafc"/>',
-        f'  <text x="{left}" y="36" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#0f172a">Planar benchmark phase medians</text>',
+        f'  <text x="{left}" y="36" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#0f172a">Planar phase and total medians</text>',
         f'  <text x="{left}" y="58" font-family="system-ui,sans-serif" font-size="12" fill="#475569">bundle {html.escape(summary["run_id"])} · successful repetitions only</text>',
+        f'  <text x="{left}" y="76" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Each bar is an independent median; phase medians are not stacked because medians are not additive.</text>',
         f'  <line x1="{left}" y1="{top + plot_height}" x2="{left + plot_width}" y2="{top + plot_height}" stroke="#64748b"/>',
         f'  <line x1="{left}" y1="{top}" x2="{left}" y2="{top + plot_height}" stroke="#64748b"/>',
     ]
@@ -46,25 +51,32 @@ def render(summary_path: Path, output_path: Path) -> None:
 
     for index, case in enumerate(cases):
         center = left + slot * (index + 0.5)
-        x = center - bar_width / 2
-        y_cursor = top + plot_height
-        for phase in ("triangulation", "voronoi", "validation"):
-            median = case["statistics"][f"{phase}_seconds"]["median"] or 0.0
-            segment_height = plot_height * median / maximum
-            y_cursor -= segment_height
+        group_x = center - group_width / 2
+        total_center = center
+        total_y = top + plot_height
+        for metric_index, metric in enumerate(metrics):
+            median = case["statistics"][f"{metric}_seconds"]["median"] or 0.0
+            bar_height = plot_height * median / maximum
+            x = group_x + metric_index * (bar_width + bar_gap)
+            y = top + plot_height - bar_height
+            label = "total" if metric == "compute_total" else metric
             lines.append(
-                f'  <rect x="{x:.2f}" y="{y_cursor:.2f}" width="{bar_width:.2f}" height="{segment_height:.2f}" fill="{COLORS[phase]}"><title>{phase}: {median:.9f}s</title></rect>'
+                f'  <rect x="{x:.2f}" y="{y:.2f}" width="{bar_width:.2f}" height="{bar_height:.2f}" fill="{COLORS[metric]}"><title>{label} median: {median:.9f}s</title></rect>'
             )
+            if metric == "compute_total":
+                total_center = x + bar_width / 2
+                total_y = y
         total = case["statistics"]["compute_total_seconds"]["median"]
         total_label = "n/a" if total is None else f"{total:.6f}s"
-        lines.append(f'  <text x="{center:.2f}" y="{max(top + 12, y_cursor - 8):.2f}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">{total_label}</text>')
+        lines.append(f'  <text x="{total_center:.2f}" y="{max(top + 12, total_y - 8):.2f}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total {total_label}</text>')
         lines.append(f'  <text x="{center:.2f}" y="{top + plot_height + 23}" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">{html.escape(case["case_id"])}</text>')
         lines.append(f'  <text x="{center:.2f}" y="{top + plot_height + 40}" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">{case["successful_repetitions"]}/{case["planned_repetitions"]} ok</text>')
 
     legend_x = left
-    for phase in ("triangulation", "voronoi", "validation"):
-        lines.append(f'  <rect x="{legend_x}" y="525" width="12" height="12" rx="2" fill="{COLORS[phase]}"/>')
-        lines.append(f'  <text x="{legend_x + 18}" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">{phase}</text>')
+    for metric in metrics:
+        label = "compute total" if metric == "compute_total" else metric
+        lines.append(f'  <rect x="{legend_x}" y="525" width="12" height="12" rx="2" fill="{COLORS[metric]}"/>')
+        lines.append(f'  <text x="{legend_x + 18}" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">{label}</text>')
         legend_x += 150
 
     lines.append('</svg>')
