@@ -1,0 +1,74 @@
+{
+  "artifacts": {
+    "chart": "charts/phase-medians.svg",
+    "checksums": "checksums.sha256",
+    "environment": "environment.json",
+    "records": "runs.jsonl",
+    "summary_csv": "summary.csv",
+    "summary_json": "summary.json",
+    "validation": "validation.json"
+  },
+  "binary": {
+    "path": "/mnt/c/Users/wolve/Documents/Codex/2026-07-14/portfolio-design-distinctions-chatgpt-conversation-6a56d2ba/worktrees/planar/build/development/normal/benchmark_driver",
+    "sha256": "fed72e54f6a7f8c08cca122d0be8901c865ebc6d0e61f660b4868ed21012bd9c"
+  },
+  "build_contract": {
+    "compiler": "g++",
+    "compiler_flags": "-Wall -Wextra -std=c++17 -O2",
+    "expected_driver_profile": "development-normal",
+    "preflight_driver_build": {
+      "branch": "agent/planar-benchmark-studio",
+      "commit": "ab0079847fbe4507ab14d30308e51cb71d3cfe19",
+      "dirty": false,
+      "profile": "development-normal"
+    },
+    "provenance_preflight_passed": true
+  },
+  "bundle_kind": "planar_benchmark_run_bundle",
+  "finished_at_utc": "2026-07-15T16:12:56Z",
+  "metric_definition": {
+    "compute_total_seconds": "steady-clock triangulation + Voronoi construction + Delaunay/topology validation; excludes deterministic input generation and serialization",
+    "external_wall_seconds": "Python monotonic wall time around GNU time and the benchmark process",
+    "max_rss_kb": "GNU time %M peak resident set size for the benchmark process"
+  },
+  "profile": "headline",
+  "profile_definition": {
+    "cases": [
+      {
+        "coord_max": 1000000,
+        "count": 1500,
+        "id": "uniform-n1500",
+        "seed": 20260715
+      }
+    ],
+    "description": "High-repetition fixed 1,500-site result for a published headline number.",
+    "repetitions": 30,
+    "timeout_seconds": 120
+  },
+  "repository": {
+    "branch": "agent/planar-benchmark-studio",
+    "commit": "ab0079847fbe4507ab14d30308e51cb71d3cfe19",
+    "dirty": false,
+    "status_porcelain": [],
+    "working_diff_sha256": null
+  },
+  "run_count": 30,
+  "run_id": "planar-headline-20260715-ab00798",
+  "runner_command": [
+    "/usr/bin/python3",
+    "/mnt/c/Users/wolve/Documents/Codex/2026-07-14/portfolio-design-distinctions-chatgpt-conversation-6a56d2ba/worktrees/planar/benchmarks/run_benchmarks.py",
+    "--profile=headline",
+    "--binary=build/development/normal/benchmark_driver",
+    "--output-root=/tmp/planar-final-bundles",
+    "--compiler=g++",
+    "--compiler-flags=-Wall -Wextra -std=c++17 -O2",
+    "--expected-build-profile=development-normal",
+    "--run-id=planar-headline-20260715-ab00798"
+  ],
+  "schema_version": 1,
+  "started_at_utc": "2026-07-15T16:12:53Z",
+  "status_counts": {
+    "ok": 30
+  },
+  "working_directory": "/mnt/c/Users/wolve/Documents/Codex/2026-07-14/portfolio-design-distinctions-chatgpt-conversation-6a56d2ba/worktrees/planar"
+}
