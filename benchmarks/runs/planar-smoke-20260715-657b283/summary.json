@@ -1,0 +1,166 @@
+{
+  "cases": [
+    {
+      "case_id": "uniform-n50",
+      "input": {
+        "coord_max": 1000000,
+        "count": 50,
+        "id": "uniform-n50",
+        "seed": 20260715
+      },
+      "planned_repetitions": 3,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 3,
+          "mad": 1.4980999999999957e-05,
+          "maximum": 0.001154345,
+          "median": 0.000799052,
+          "minimum": 0.000784071,
+          "p10": 0.0007870672,
+          "p90": 0.0010832864
+        },
+        "external_wall_seconds": {
+          "count": 3,
+          "mad": 0.0030247190152294934,
+          "maximum": 0.020243043996742927,
+          "median": 0.014730773007613607,
+          "minimum": 0.011706053992384113,
+          "p10": 0.012310997795430012,
+          "p90": 0.019140589798917064
+        },
+        "input_generation_seconds": {
+          "count": 3,
+          "mad": 5.149999999999993e-07,
+          "maximum": 1.6281e-05,
+          "median": 1.1846e-05,
+          "minimum": 1.1331e-05,
+          "p10": 1.1434000000000001e-05,
+          "p90": 1.5394e-05
+        },
+        "max_rss_kb": {
+          "count": 3,
+          "mad": 32.0,
+          "maximum": 4136.0,
+          "median": 4104.0,
+          "minimum": 3960.0,
+          "p10": 3988.8,
+          "p90": 4129.6
+        },
+        "triangulation_seconds": {
+          "count": 3,
+          "mad": 1.2465000000000024e-05,
+          "maximum": 0.000978114,
+          "median": 0.000701105,
+          "minimum": 0.00068864,
+          "p10": 0.000691133,
+          "p90": 0.0009227122
+        },
+        "validation_seconds": {
+          "count": 3,
+          "mad": 1.2610000000000003e-06,
+          "maximum": 0.000165553,
+          "median": 8.8763e-05,
+          "minimum": 8.7502e-05,
+          "p10": 8.77542e-05,
+          "p90": 0.000150195
+        },
+        "voronoi_seconds": {
+          "count": 3,
+          "mad": 1.2550000000000007e-06,
+          "maximum": 1.0678e-05,
+          "median": 9.184e-06,
+          "minimum": 7.929e-06,
+          "p10": 8.18e-06,
+          "p90": 1.03792e-05
+        }
+      },
+      "status_counts": {
+        "ok": 3
+      },
+      "successful_repetitions": 3
+    },
+    {
+      "case_id": "uniform-n100",
+      "input": {
+        "coord_max": 1000000,
+        "count": 100,
+        "id": "uniform-n100",
+        "seed": 20260715
+      },
+      "planned_repetitions": 3,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 3,
+          "mad": 0.000505602,
+          "maximum": 0.002646865,
+          "median": 0.001724013,
+          "minimum": 0.001218411,
+          "p10": 0.0013195314,
+          "p90": 0.0024622946
+        },
+        "external_wall_seconds": {
+          "count": 3,
+          "mad": 0.002173466986278072,
+          "maximum": 0.03798086300957948,
+          "median": 0.028838082987931557,
+          "minimum": 0.026664616001653485,
+          "p10": 0.0270993093989091,
+          "p90": 0.03615230700524989
+        },
+        "input_generation_seconds": {
+          "count": 3,
+          "mad": 1.7209999999999993e-06,
+          "maximum": 2.7436e-05,
+          "median": 2.5715e-05,
+          "minimum": 2.053e-05,
+          "p10": 2.1567000000000002e-05,
+          "p90": 2.70918e-05
+        },
+        "max_rss_kb": {
+          "count": 3,
+          "mad": 12.0,
+          "maximum": 4140.0,
+          "median": 4128.0,
+          "minimum": 4104.0,
+          "p10": 4108.8,
+          "p90": 4137.6
+        },
+        "triangulation_seconds": {
+          "count": 3,
+          "mad": 0.000408563,
+          "maximum": 0.002269322,
+          "median": 0.001358555,
+          "minimum": 0.000949992,
+          "p10": 0.0010317046,
+          "p90": 0.0020871685999999997
+        },
+        "validation_seconds": {
+          "count": 3,
+          "mad": 1.0144000000000017e-05,
+          "maximum": 0.00035553,
+          "median": 0.000345386,
+          "minimum": 0.000252692,
+          "p10": 0.0002712308,
+          "p90": 0.0003535012
+        },
+        "voronoi_seconds": {
+          "count": 3,
+          "mad": 1.9410000000000006e-06,
+          "maximum": 2.2013e-05,
+          "median": 2.0072e-05,
+          "minimum": 1.5727e-05,
+          "p10": 1.6596000000000002e-05,
+          "p90": 2.16248e-05
+        }
+      },
+      "status_counts": {
+        "ok": 3
+      },
+      "successful_repetitions": 3
+    }
+  ],
+  "profile": "smoke",
+  "run_id": "planar-smoke-20260715-657b283",
+  "schema_version": 1,
+  "statistic_policy": "successful runs only; median, median absolute deviation, linearly interpolated p10/p90, min/max"
+}
