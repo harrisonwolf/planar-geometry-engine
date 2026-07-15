@@ -17,7 +17,7 @@ BUILD_INFO_CPPFLAGS := \
 	'-DGEOM_BUILD_COMPILER_VERSION="$(CXX_VERSION_LINE)"'
 
 COMMON_EXES := main rand_poly_gen_driver driver tester
-DEV_ONLY_EXES := delaunay_driver portfolio_export_driver benchmark_driver
+DEV_ONLY_EXES := delaunay_driver portfolio_export_driver benchmark_driver terrain_driver
 PACKAGING_EXES := interview_demo
 DEV_EXES := $(COMMON_EXES) $(DEV_ONLY_EXES) $(PACKAGING_EXES)
 RELEASE_EXES := $(COMMON_EXES) $(PACKAGING_EXES)
@@ -42,6 +42,7 @@ EXE_driver_SRCS := $(SRC_DIR)/driver.cc
 EXE_delaunay_driver_SRCS := $(SRC_DIR)/delaunay_driver.cc
 EXE_portfolio_export_driver_SRCS := $(SRC_DIR)/portfolio_export_driver.cc
 EXE_benchmark_driver_SRCS := $(SRC_DIR)/benchmark_driver.cc
+EXE_terrain_driver_SRCS := $(SRC_DIR)/terrain_driver.cc $(SRC_DIR)/terrain.cc
 EXE_tester_SRCS := \
 	testing/tester.cc \
 	testing/tdd_suite.cc \
@@ -58,7 +59,9 @@ EXE_tester_SRCS := \
 	testing/suites/delaunay_predicates_suite.cc \
 	testing/suites/delaunay_triangulation_suite.cc \
 	testing/suites/voronoi_suite.cc \
-	testing/suites/geometry_artifact_export_suite.cc
+	testing/suites/geometry_artifact_export_suite.cc \
+	testing/suites/terrain_suite.cc \
+	$(SRC_DIR)/terrain.cc
 
 # Shared implementation sources linked into each executable.
 COMMON_SRCS := \
@@ -132,6 +135,8 @@ release: $(RELEASE_TARGETS)
 
 test-suite: build/development/normal/tester
 	./build/development/normal/tester
+	$(MAKE) build/development/normal/terrain_driver
+	bash testing/terrain_driver_smoke.sh build/development/normal/terrain_driver
 
 BENCHMARK_BINARY := build/development/normal/benchmark_driver
 BENCHMARK_OUTPUT_ROOT ?= benchmarks/runs
@@ -212,6 +217,7 @@ help:
 	@echo "  make benchmark-research"
 	@echo "  make benchmark-validate BUNDLE=benchmarks/runs/<run-id>"
 	@echo "  make benchmark-tools-test"
+	@echo "  make build/development/normal/terrain_driver"
 	@echo ""
 	@echo "See README.md for developer and interview packaging workflows."
 	@echo ""
