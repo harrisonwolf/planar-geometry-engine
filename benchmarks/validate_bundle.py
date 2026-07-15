@@ -9,7 +9,14 @@ import hashlib
 import json
 import math
 import re
+import tempfile
 from pathlib import Path
+
+from run_benchmarks import (
+    create_summary,
+    write_distribution_summary_csv,
+    write_summary_csv,
+)
 
 
 STATUSES = {"ok", "timeout", "oom", "error", "skipped", "validation_failed"}
@@ -284,6 +291,51 @@ def validate(bundle: Path) -> list[str]:
                 f"preflight driver {field} does not match build contract",
                 errors,
             )
+    try:
+        expected_summary = create_summary(
+            manifest["run_id"],
+            manifest["profile"],
+            profile_definition,
+            records,
+        )
+        published_summary = json.loads(
+            (bundle / "summary.json").read_text(encoding="utf-8")
+        )
+        require(
+            published_summary == expected_summary,
+            "summary.json does not match statistics recomputed from runs.jsonl",
+            errors,
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_path = Path(temporary)
+            expected_summary_csv = temporary_path / "summary.csv"
+            write_summary_csv(expected_summary_csv, expected_summary)
+            require(
+                (bundle / "summary.csv").read_bytes()
+                == expected_summary_csv.read_bytes(),
+                "summary.csv does not match statistics recomputed from runs.jsonl",
+                errors,
+            )
+            distribution_summary = manifest.get("artifacts", {}).get(
+                "distribution_summary_csv"
+            )
+            if distribution_summary:
+                expected_distribution_csv = temporary_path / "distribution-summary.csv"
+                write_distribution_summary_csv(
+                    expected_distribution_csv, expected_summary
+                )
+                published_distribution_csv = bundle / distribution_summary
+                if published_distribution_csv.is_file():
+                    require(
+                        published_distribution_csv.read_bytes()
+                        == expected_distribution_csv.read_bytes(),
+                        "distribution summary does not match statistics recomputed "
+                        "from runs.jsonl",
+                        errors,
+                    )
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        errors.append(f"could not recompute published summaries: {exc}")
+
     with (bundle / "summary.csv").open(newline="", encoding="utf-8") as handle:
         require(len(list(csv.DictReader(handle))) > 0, "summary.csv has no cases", errors)
 

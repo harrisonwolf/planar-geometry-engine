@@ -17,6 +17,11 @@ BENCHMARK_DIR = Path(__file__).resolve().parent
 REPO = BENCHMARK_DIR.parent
 sys.path.insert(0, str(BENCHMARK_DIR))
 
+from run_benchmarks import (  # noqa: E402
+    create_summary,
+    write_distribution_summary_csv,
+    write_summary_csv,
+)
 from validate_bundle import validate  # noqa: E402
 
 
@@ -60,12 +65,15 @@ def make_bundle(
     manifest = {
         "schema_version": 1,
         "bundle_kind": "planar_benchmark_run_bundle",
+        "run_id": "test",
+        "profile": "smoke",
         "repository": {"commit": commit, "dirty": False},
         "binary": {"path": binary_path, "sha256": "c" * 64},
         "working_directory": "$REPO_ROOT",
         "runner_command": ["python3", "benchmarks/run_benchmarks.py", "--profile=smoke"],
         "profile_definition": {
             "repetitions": 1,
+            "aggregate_by_distribution": True,
             "cases": [{
                 "id": "n10", "distribution": "uniform", "count": 10,
                 "seed": 7, "coord_max": 100,
@@ -89,6 +97,9 @@ def make_bundle(
             "provenance_preflight_passed": True,
         },
         "run_count": 1,
+        "artifacts": {
+            "distribution_summary_csv": "distribution-summary.csv",
+        },
     }
     record = {
         "schema_version": 1,
@@ -140,8 +151,12 @@ def make_bundle(
         "environment_variables": {},
     })
     (bundle / "runs.jsonl").write_text(json.dumps(record, sort_keys=True) + "\n", encoding="utf-8")
-    write_json(bundle / "summary.json", {})
-    (bundle / "summary.csv").write_text("case_id,ok\nn10,1\n", encoding="utf-8")
+    summary = create_summary(
+        "test", "smoke", manifest["profile_definition"], [record]
+    )
+    write_json(bundle / "summary.json", summary)
+    write_summary_csv(bundle / "summary.csv", summary)
+    write_distribution_summary_csv(bundle / "distribution-summary.csv", summary)
     write_json(bundle / "validation.json", {})
     (bundle / "charts" / "phase-medians.svg").write_text("<svg/>\n", encoding="utf-8")
     (bundle / "logs" / "run.stdout.json").write_text("{}\n", encoding="utf-8")
@@ -249,6 +264,56 @@ class BundleProvenanceTests(unittest.TestCase):
             errors = validate(bundle)
             self.assertTrue(
                 any("exact-input distribution does not match" in error for error in errors), errors
+            )
+
+    def test_validator_recomputes_summary_json_from_raw_records(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            bundle = make_bundle(
+                Path(temporary), driver_commit="a" * 40, driver_profile="development-normal"
+            )
+            summary_path = bundle / "summary.json"
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            summary["cases"][0]["statistics"]["compute_total_seconds"]["median"] = 99.0
+            write_json(summary_path, summary)
+            errors = validate(bundle)
+            self.assertTrue(
+                any("summary.json does not match statistics recomputed" in error for error in errors),
+                errors,
+            )
+
+    def test_validator_recomputes_summary_csv_from_raw_records(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            bundle = make_bundle(
+                Path(temporary), driver_commit="a" * 40, driver_profile="development-normal"
+            )
+            summary_csv = bundle / "summary.csv"
+            summary_csv.write_text(
+                summary_csv.read_text(encoding="utf-8").replace("0.03", "99.0"),
+                encoding="utf-8",
+            )
+            errors = validate(bundle)
+            self.assertTrue(
+                any("summary.csv does not match statistics recomputed" in error for error in errors),
+                errors,
+            )
+
+    def test_validator_recomputes_distribution_summary_from_raw_records(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            bundle = make_bundle(
+                Path(temporary), driver_commit="a" * 40, driver_profile="development-normal"
+            )
+            distribution_csv = bundle / "distribution-summary.csv"
+            distribution_csv.write_text(
+                distribution_csv.read_text(encoding="utf-8").replace("0.03", "99.0"),
+                encoding="utf-8",
+            )
+            errors = validate(bundle)
+            self.assertTrue(
+                any(
+                    "distribution summary does not match statistics recomputed" in error
+                    for error in errors
+                ),
+                errors,
             )
 
     def test_runner_preflight_rejects_compiler_contract_mismatches(self) -> None:
