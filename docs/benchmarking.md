@@ -16,6 +16,12 @@ Validate an existing bundle without modifying it:
 make benchmark-validate BUNDLE=benchmarks/runs/<run-id>
 ```
 
+Run the benchmark-tooling provenance regressions:
+
+```bash
+make benchmark-tools-test
+```
+
 ## Metric Definition
 
 The dedicated C++ driver uses a fixed SplitMix64 integer-point generator. Its algorithm and seed are part of the input identity, and the exact point list is captured in the bundle. Input creation finishes before the geometry phases begin.
@@ -72,6 +78,8 @@ Statuses are explicit: `ok`, `timeout`, `oom`, `error`, `skipped`, or `validatio
 Bundles created under `benchmarks/runs/` are untracked scratch evidence until they have been reviewed. When a bundle is selected to support a published claim, commit the complete directory—including its manifest, environment, structured records, exact inputs, raw logs, validation, summaries, chart, and checksums—or copy it unchanged into a tracked `benchmarks/published/` directory and validate it again. A summary or chart without its raw bundle is not publication evidence.
 
 Because bundle creation changes the worktree after provenance is captured, begin each publication run from a clean committed tree. Commit the finished evidence only after the run completes.
+
+The Make targets always rebuild the benchmark entry object so its embedded commit and dirty state cannot silently lag behind Git. The runner independently probes that binary before creating a bundle, and the validator requires the manifest repository SHA, preflight build, every run's embedded build, expected optimized profile, and explicit compiler flags to agree. A direct runner invocation with a stale binary is rejected.
 
 ## Publication Checklist
 

@@ -6,7 +6,7 @@
   "required": [
     "schema_version", "run_id", "case_id", "repetition", "status", "command",
     "timeout_seconds", "exit_code", "measurements", "input", "output", "validation",
-    "raw_artifacts"
+    "driver_build", "raw_artifacts"
   ],
   "properties": {
     "schema_version": {"const": 1},
@@ -23,6 +23,7 @@
     "input": {"type": "object"},
     "output": {"type": "object"},
     "validation": {"type": "object"},
+    "driver_build": {"type": "object"},
     "raw_artifacts": {"type": "object"}
   },
   "additionalProperties": true

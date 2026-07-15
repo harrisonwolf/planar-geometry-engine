@@ -75,7 +75,7 @@ COMMON_SRCS := \
 .PHONY: all development development-normal development-debug release release-bundle release-smoke \
 	interview-release interview-smoke clean clean-development clean-development-normal \
 	clean-development-debug clean-release clean-app-release clean-interview test-suite help \
-	generate-build-info benchmark-smoke benchmark-standard benchmark-headline benchmark-validate
+	generate-build-info benchmark-smoke benchmark-standard benchmark-headline benchmark-validate benchmark-tools-test FORCE
 
 all: development release
 
@@ -117,6 +117,10 @@ endef
 $(eval $(call BUILD_CONFIG,DEV_NORMAL,build/development/normal,RELEASE_CXXFLAGS,development-normal,DEV_EXES))
 $(eval $(call BUILD_CONFIG,DEV_DEBUG,build/development/debug,DEBUG_CXXFLAGS,development-debug,DEV_EXES))
 $(eval $(call BUILD_CONFIG,RELEASE,build/release,RELEASE_CXXFLAGS,release,RELEASE_EXES))
+FORCE:
+
+build/development/normal/src/benchmark_driver.o: FORCE
+
 
 development-normal: $(DEV_NORMAL_TARGETS)
 development-debug: $(DEV_DEBUG_TARGETS)
@@ -128,19 +132,24 @@ test-suite: build/development/normal/tester
 BENCHMARK_BINARY := build/development/normal/benchmark_driver
 BENCHMARK_OUTPUT_ROOT ?= benchmarks/runs
 BENCHMARK_RUN_ID_ARG := $(if $(RUN_ID),--run-id=$(RUN_ID),)
+BENCHMARK_ALLOW_DIRTY_ARG := $(if $(ALLOW_DIRTY),--allow-dirty,)
+BENCHMARK_BUILD_ARGS := --compiler=$(CXX) --compiler-flags='$(RELEASE_CXXFLAGS)' --expected-build-profile=development-normal
 
 benchmark-smoke: $(BENCHMARK_BINARY)
-	python3 benchmarks/run_benchmarks.py --profile=smoke --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_RUN_ID_ARG)
+	python3 benchmarks/run_benchmarks.py --profile=smoke --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_BUILD_ARGS) $(BENCHMARK_RUN_ID_ARG) $(BENCHMARK_ALLOW_DIRTY_ARG)
 
 benchmark-standard: $(BENCHMARK_BINARY)
-	python3 benchmarks/run_benchmarks.py --profile=standard --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_RUN_ID_ARG)
+	python3 benchmarks/run_benchmarks.py --profile=standard --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_BUILD_ARGS) $(BENCHMARK_RUN_ID_ARG) $(BENCHMARK_ALLOW_DIRTY_ARG)
 
 benchmark-headline: $(BENCHMARK_BINARY)
-	python3 benchmarks/run_benchmarks.py --profile=headline --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_RUN_ID_ARG)
+	python3 benchmarks/run_benchmarks.py --profile=headline --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_BUILD_ARGS) $(BENCHMARK_RUN_ID_ARG) $(BENCHMARK_ALLOW_DIRTY_ARG)
 
 benchmark-validate:
 	@test -n "$(BUNDLE)" || (echo "Usage: make benchmark-validate BUNDLE=benchmarks/runs/<run-id>" >&2; exit 2)
 	python3 benchmarks/validate_bundle.py $(BUNDLE)
+benchmark-tools-test:
+	python3 -m unittest discover -s benchmarks -p 'test_*.py'
+
 
 
 generate-build-info:
@@ -193,6 +202,7 @@ help:
 	@echo "  make benchmark-standard"
 	@echo "  make benchmark-headline"
 	@echo "  make benchmark-validate BUNDLE=benchmarks/runs/<run-id>"
+	@echo "  make benchmark-tools-test"
 	@echo ""
 	@echo "See README.md for developer and interview packaging workflows."
 	@echo ""

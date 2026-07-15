@@ -140,6 +140,31 @@ def collect_environment(repo: Path) -> dict[str, Any]:
     }
 
 
+def inspect_driver(binary: Path, repo: Path, seed: int) -> dict[str, Any]:
+    command = [
+        str(binary), "--count=10", f"--seed={seed}", "--coord-max=1000000",
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=repo,
+            text=True,
+            capture_output=True,
+            timeout=15,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise ValueError(f"benchmark binary preflight failed: {exc}") from exc
+    if completed.returncode != 0:
+        raise ValueError(
+            f"benchmark binary preflight exited {completed.returncode}: {completed.stderr.strip()}"
+        )
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise ValueError("benchmark binary preflight did not emit valid JSON") from exc
+    return payload.get("build", {})
+
+
 def parse_time_file(path: Path) -> dict[str, float | int | None]:
     values: dict[str, float | int | None] = {
         "elapsed_seconds": None,
@@ -312,8 +337,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", choices=("smoke", "standard", "headline"), default="smoke")
     parser.add_argument("--binary", type=Path, required=True)
+    parser.add_argument("--compiler", required=True)
+    parser.add_argument("--compiler-flags", required=True)
+    parser.add_argument("--expected-build-profile", default="development-normal")
     parser.add_argument("--output-root", type=Path, default=Path("benchmarks/runs"))
     parser.add_argument("--run-id")
+    parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args()
 
     benchmark_dir = Path(__file__).resolve().parent
@@ -326,6 +355,29 @@ def main() -> int:
         parser.error(f"benchmark binary does not exist: {binary}")
 
     git = git_metadata(repo)
+    if git["dirty"] and not args.allow_dirty:
+        parser.error("refusing to benchmark a dirty repository; use --allow-dirty only for scratch runs")
+    try:
+        driver_build = inspect_driver(binary, repo, int(profile["cases"][0]["seed"]))
+    except ValueError as exc:
+        parser.error(str(exc))
+    expected_build = {
+        "commit": git["commit"],
+        "dirty": git["dirty"],
+        "profile": args.expected_build_profile,
+    }
+    mismatches = {
+        key: {"expected": value, "actual": driver_build.get(key)}
+        for key, value in expected_build.items()
+        if driver_build.get(key) != value
+    }
+    if mismatches:
+        parser.error(
+            "benchmark binary provenance is stale or incoherent; rebuild it from this tree: "
+            + json.dumps(mismatches, sort_keys=True)
+        )
+
+    binary_sha256 = sha256_file(binary)
     default_run_id = f"{utc_now().replace(':', '').replace('-', '')}-{git['commit'][:8]}-{args.profile}"
     run_id = args.run_id or default_run_id
     if not re.fullmatch(r"[A-Za-z0-9._-]+", run_id):
@@ -465,12 +517,15 @@ def main() -> int:
             "all_runs_ok": all_runs_ok,
             "all_inputs_stable": all(value["input_stable_across_repetitions"] for value in case_validation.values()),
             "all_outputs_stable": all(value["output_stable_across_repetitions"] for value in case_validation.values()),
+            "provenance_preflight_passed": True,
             "cases": case_validation,
             "known_unrelated_test_failures_masked": False,
         }
         write_json(partial_bundle / "validation.json", validation)
 
         status_counts = dict(sorted(Counter(record["status"] for record in records).items()))
+        if sha256_file(binary) != binary_sha256:
+            raise RuntimeError("benchmark binary changed after provenance preflight")
         manifest = {
             "schema_version": SCHEMA_VERSION,
             "bundle_kind": "planar_benchmark_run_bundle",
@@ -480,7 +535,14 @@ def main() -> int:
             "started_at_utc": started_at,
             "finished_at_utc": utc_now(),
             "repository": git,
-            "binary": {"path": str(binary), "sha256": sha256_file(binary)},
+            "binary": {"path": str(binary), "sha256": binary_sha256},
+            "build_contract": {
+                "compiler": args.compiler,
+                "compiler_flags": args.compiler_flags,
+                "expected_driver_profile": args.expected_build_profile,
+                "preflight_driver_build": driver_build,
+                "provenance_preflight_passed": True,
+            },
             "runner_command": [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]],
             "working_directory": str(repo.resolve()),
             "run_count": len(records),
