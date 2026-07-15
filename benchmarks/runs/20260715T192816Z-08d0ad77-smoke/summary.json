@@ -1,0 +1,179 @@
+{
+  "cases": [
+    {
+      "case_id": "uniform-n50",
+      "input": {
+        "coord_max": 1000000,
+        "count": 50,
+        "distribution": "uniform",
+        "id": "uniform-n50",
+        "seed": 20260715
+      },
+      "planned_repetitions": 3,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 3,
+          "mad": 1.3487000000000015e-05,
+          "maximum": 0.000212733,
+          "median": 0.000176798,
+          "minimum": 0.000163311,
+          "p10": 0.0001660084,
+          "p90": 0.000205546
+        },
+        "external_wall_seconds": {
+          "count": 3,
+          "mad": 0.00022089500271249563,
+          "maximum": 0.0022744239977328107,
+          "median": 0.001926227007061243,
+          "minimum": 0.0017053320043487474,
+          "p10": 0.0017495110048912465,
+          "p90": 0.002204784599598497
+        },
+        "input_generation_seconds": {
+          "count": 3,
+          "mad": 2.1500000000000048e-07,
+          "maximum": 8.505e-06,
+          "median": 8.29e-06,
+          "minimum": 7.365e-06,
+          "p10": 7.55e-06,
+          "p90": 8.462000000000001e-06
+        },
+        "max_rss_kb": {
+          "count": 3,
+          "mad": 0.0,
+          "maximum": 4156.0,
+          "median": 4048.0,
+          "minimum": 4048.0,
+          "p10": 4048.0,
+          "p90": 4134.4
+        },
+        "triangulation_seconds": {
+          "count": 3,
+          "mad": 6.970999999999998e-06,
+          "maximum": 0.000153716,
+          "median": 0.000112812,
+          "minimum": 0.000105841,
+          "p10": 0.0001072352,
+          "p90": 0.0001455352
+        },
+        "validation_seconds": {
+          "count": 3,
+          "mad": 1.1570000000000026e-06,
+          "maximum": 5.8758e-05,
+          "median": 5.401e-05,
+          "minimum": 5.2853e-05,
+          "p10": 5.3084399999999996e-05,
+          "p90": 5.78084e-05
+        },
+        "voronoi_seconds": {
+          "count": 3,
+          "mad": 2.2100000000000009e-07,
+          "maximum": 5.228e-06,
+          "median": 5.007e-06,
+          "minimum": 4.617e-06,
+          "p10": 4.695e-06,
+          "p90": 5.183799999999999e-06
+        }
+      },
+      "status_counts": {
+        "ok": 3
+      },
+      "successful_repetitions": 3
+    },
+    {
+      "case_id": "uniform-n100",
+      "input": {
+        "coord_max": 1000000,
+        "count": 100,
+        "distribution": "uniform",
+        "id": "uniform-n100",
+        "seed": 20260715
+      },
+      "planned_repetitions": 3,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 3,
+          "mad": 2.9620000000000167e-06,
+          "maximum": 0.000429265,
+          "median": 0.000426303,
+          "minimum": 0.00040965,
+          "p10": 0.0004129806,
+          "p90": 0.0004286726
+        },
+        "external_wall_seconds": {
+          "count": 3,
+          "mad": 3.111700061708689e-05,
+          "maximum": 0.0019750459905480966,
+          "median": 0.0018776549986796454,
+          "minimum": 0.0018465379980625585,
+          "p10": 0.0018527613981859758,
+          "p90": 0.0019555677921744064
+        },
+        "input_generation_seconds": {
+          "count": 3,
+          "mad": 2.449999999999985e-07,
+          "maximum": 1.4247e-05,
+          "median": 1.4002e-05,
+          "minimum": 1.2872e-05,
+          "p10": 1.3098e-05,
+          "p90": 1.4198e-05
+        },
+        "max_rss_kb": {
+          "count": 3,
+          "mad": 12.0,
+          "maximum": 4076.0,
+          "median": 4064.0,
+          "minimum": 4048.0,
+          "p10": 4051.2,
+          "p90": 4073.6
+        },
+        "triangulation_seconds": {
+          "count": 3,
+          "mad": 2.921999999999983e-06,
+          "maximum": 0.00026225,
+          "median": 0.000245396,
+          "minimum": 0.000242474,
+          "p10": 0.00024305840000000002,
+          "p90": 0.0002588792
+        },
+        "validation_seconds": {
+          "count": 3,
+          "mad": 2.4339999999999974e-06,
+          "maximum": 0.000173121,
+          "median": 0.000156584,
+          "minimum": 0.00015415,
+          "p10": 0.00015463680000000002,
+          "p90": 0.0001698136
+        },
+        "voronoi_seconds": {
+          "count": 3,
+          "mad": 1.5599999999999986e-07,
+          "maximum": 1.0748e-05,
+          "median": 1.0592e-05,
+          "minimum": 9.903e-06,
+          "p10": 1.00408e-05,
+          "p90": 1.0716799999999999e-05
+        }
+      },
+      "status_counts": {
+        "ok": 3
+      },
+      "successful_repetitions": 3
+    }
+  ],
+  "distribution_aggregate_policy": "For each distribution, seed-level uncertainty summarizes the case median for each distinct deterministic input. The pooled repetition summary is reported separately because repeated timings are not independent inputs.",
+  "distribution_aggregates": [],
+  "profile": "smoke",
+  "run_id": "20260715T192816Z-08d0ad77-smoke",
+  "sample_accounting": {
+    "case_count": 2,
+    "observed_run_count": 6,
+    "planned_run_count": 6,
+    "status_counts": {
+      "ok": 6
+    },
+    "successful_run_count": 6
+  },
+  "schema_version": 1,
+  "statistic_policy": "successful runs only; median, median absolute deviation, linearly interpolated p10/p90, min/max"
+}

@@ -1,0 +1,1092 @@
+{
+  "cases": [
+    {
+      "case_id": "u-s1",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "uniform",
+        "id": "u-s1",
+        "seed": 20260715
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.00011715000000000336,
+          "maximum": 0.03620513,
+          "median": 0.03608798,
+          "minimum": 0.035710412,
+          "p10": 0.0357899748,
+          "p90": 0.0361810316
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.00014677199942525476,
+          "maximum": 0.039687967000645585,
+          "median": 0.0393927629920654,
+          "minimum": 0.03909460999420844,
+          "p10": 0.03915556559804827,
+          "p90": 0.03962859419698361
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 1.286000000000001e-06,
+          "maximum": 0.000285879,
+          "median": 0.000204717,
+          "minimum": 0.000201023,
+          "p10": 0.0002024814,
+          "p90": 0.00025392860000000004
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 20.0,
+          "maximum": 4612.0,
+          "median": 4592.0,
+          "minimum": 4528.0,
+          "p10": 4539.2,
+          "p90": 4604.0
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 0.00019593299999999883,
+          "maximum": 0.015967758,
+          "median": 0.015736686,
+          "minimum": 0.01551771,
+          "p10": 0.0155329864,
+          "p90": 0.0159537024
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.00012596700000000113,
+          "maximum": 0.020352629,
+          "median": 0.020187462,
+          "minimum": 0.020061495,
+          "p10": 0.0200765398,
+          "p90": 0.0203456006
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 1.147000000000001e-06,
+          "maximum": 8.5049e-05,
+          "median": 5.6551e-05,
+          "minimum": 5.5404e-05,
+          "p10": 5.547e-05,
+          "p90": 7.45202e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "u-s2",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "uniform",
+        "id": "u-s2",
+        "seed": 20260716
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.0005113279999999984,
+          "maximum": 0.036498136,
+          "median": 0.035986808,
+          "minimum": 0.033188546,
+          "p10": 0.0334264316,
+          "p90": 0.036352251599999996
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.00038976701034698635,
+          "maximum": 0.03980033400875982,
+          "median": 0.03941056699841283,
+          "minimum": 0.03644924898981117,
+          "p10": 0.036591573792975396,
+          "p90": 0.0397198628023034
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 3.3085e-05,
+          "maximum": 0.00025841,
+          "median": 0.000204668,
+          "minimum": 0.000170561,
+          "p10": 0.0001827138,
+          "p90": 0.0002501472
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 16.0,
+          "maximum": 4620.0,
+          "median": 4544.0,
+          "minimum": 4528.0,
+          "p10": 4528.0,
+          "p90": 4608.8
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 0.00023814499999999864,
+          "maximum": 0.016017793,
+          "median": 0.015539417,
+          "minimum": 0.013487616,
+          "p10": 0.014234957999999999,
+          "p90": 0.015921700599999998
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 9.255799999999953e-05,
+          "maximum": 0.020421486,
+          "median": 0.020291495,
+          "minimum": 0.017780818,
+          "p10": 0.018764262,
+          "p90": 0.0204065128
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 4.480999999999993e-06,
+          "maximum": 6.4368e-05,
+          "median": 5.8857e-05,
+          "minimum": 5.1757e-05,
+          "p10": 5.35406e-05,
+          "p90": 6.3956e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "u-s3",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "uniform",
+        "id": "u-s3",
+        "seed": 20260717
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.00027881300000000275,
+          "maximum": 0.037212437,
+          "median": 0.036128984,
+          "minimum": 0.032220826,
+          "p10": 0.033672564,
+          "p90": 0.0367877018
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.00045298499753698707,
+          "maximum": 0.04068413299683016,
+          "median": 0.03937381900323089,
+          "minimum": 0.03523235599277541,
+          "p10": 0.036794437596108766,
+          "p90": 0.040341201398405246
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 2.2179999999999845e-06,
+          "maximum": 0.000212438,
+          "median": 0.000199511,
+          "minimum": 0.000184167,
+          "p10": 0.0001898478,
+          "p90": 0.0002081544
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 28.0,
+          "maximum": 4592.0,
+          "median": 4556.0,
+          "minimum": 4524.0,
+          "p10": 4525.6,
+          "p90": 4582.4
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 4.738399999999754e-05,
+          "maximum": 0.016993284,
+          "median": 0.01578198,
+          "minimum": 0.013458332,
+          "p10": 0.0143728864,
+          "p90": 0.016527716
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.00016569400000000095,
+          "maximum": 0.020320732,
+          "median": 0.020155038,
+          "minimum": 0.018717035,
+          "p10": 0.0192144894,
+          "p90": 0.0203139396
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 1.3339999999999977e-06,
+          "maximum": 6.4868e-05,
+          "median": 6.3534e-05,
+          "minimum": 4.5459e-05,
+          "p10": 5.13298e-05,
+          "p90": 6.45668e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "c-s1",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "clustered",
+        "id": "c-s1",
+        "seed": 20260715
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.004248837000000002,
+          "maximum": 0.033188018,
+          "median": 0.024077019,
+          "minimum": 0.019828182,
+          "p10": 0.0210116316,
+          "p90": 0.0312618712
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.003933317988412455,
+          "maximum": 0.036133225992671214,
+          "median": 0.02710639900760725,
+          "minimum": 0.022202487001777627,
+          "p10": 0.02342311899701599,
+          "p90": 0.034095822394010614
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 1.7377000000000007e-05,
+          "maximum": 0.000192581,
+          "median": 0.000174167,
+          "minimum": 0.000129429,
+          "p10": 0.0001403734,
+          "p90": 0.0001856586
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 28.0,
+          "maximum": 4696.0,
+          "median": 4548.0,
+          "minimum": 4520.0,
+          "p10": 4521.6,
+          "p90": 4654.4
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 0.0015911099999999997,
+          "maximum": 0.015567968,
+          "median": 0.010554275,
+          "minimum": 0.008963165,
+          "p10": 0.0094216758,
+          "p90": 0.0145467088
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.001827146,
+          "maximum": 0.017562587,
+          "median": 0.013491197,
+          "minimum": 0.010838509,
+          "p10": 0.0115603274,
+          "p90": 0.0166648894
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 5.178999999999999e-06,
+          "maximum": 5.7463e-05,
+          "median": 3.4309e-05,
+          "minimum": 2.6508e-05,
+          "p10": 2.8523600000000002e-05,
+          "p90": 5.0273000000000005e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "c-s2",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "clustered",
+        "id": "c-s2",
+        "seed": 20260716
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 7.254799999999867e-05,
+          "maximum": 0.019202259,
+          "median": 0.018589371,
+          "minimum": 0.018516823,
+          "p10": 0.0185351162,
+          "p90": 0.0190144514
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.00013147298886906356,
+          "maximum": 0.021364120999351144,
+          "median": 0.020984307993785478,
+          "minimum": 0.02061945899913553,
+          "p10": 0.020712809401447884,
+          "p90": 0.021255411399761216
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 1.083000000000003e-06,
+          "maximum": 0.000128206,
+          "median": 0.000123673,
+          "minimum": 0.000118588,
+          "p10": 0.000120616,
+          "p90": 0.00012682600000000002
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 32.0,
+          "maximum": 4592.0,
+          "median": 4540.0,
+          "minimum": 4476.0,
+          "p10": 4496.8,
+          "p90": 4584.0
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 1.2905000000000555e-05,
+          "maximum": 0.008179852,
+          "median": 0.007989314,
+          "minimum": 0.007976409,
+          "p10": 0.0079804918,
+          "p90": 0.008112934399999999
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 6.251500000000083e-05,
+          "maximum": 0.010992349,
+          "median": 0.010572509,
+          "minimum": 0.010509994,
+          "p10": 0.010522644,
+          "p90": 0.0108686134
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 3.6200000000000094e-07,
+          "maximum": 3.7172e-05,
+          "median": 3.042e-05,
+          "minimum": 3.0058e-05,
+          "p10": 3.01332e-05,
+          "p90": 3.49524e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "c-s3",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "clustered",
+        "id": "c-s3",
+        "seed": 20260717
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.00011992699999999884,
+          "maximum": 0.019763373,
+          "median": 0.018899611,
+          "minimum": 0.018711084,
+          "p10": 0.018777024,
+          "p90": 0.019465839
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 6.84160040691495e-05,
+          "maximum": 0.021686512991436757,
+          "median": 0.020783881991519593,
+          "minimum": 0.02037235199532006,
+          "p10": 0.02050959759217221,
+          "p90": 0.021327203794498928
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 2.3600000000000248e-07,
+          "maximum": 0.000119402,
+          "median": 0.000110528,
+          "minimum": 0.000110292,
+          "p10": 0.0001103812,
+          "p90": 0.000115962
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 20.0,
+          "maximum": 4592.0,
+          "median": 4556.0,
+          "minimum": 4528.0,
+          "p10": 4531.2,
+          "p90": 4580.8
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 3.555199999999946e-05,
+          "maximum": 0.008496007,
+          "median": 0.008152275,
+          "minimum": 0.008102648,
+          "p10": 0.008114751600000001,
+          "p90": 0.008372735
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.0001431360000000003,
+          "maximum": 0.011202575,
+          "median": 0.010696938,
+          "minimum": 0.010553802,
+          "p10": 0.0106072672,
+          "p90": 0.0110780178
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 1.332999999999999e-06,
+          "maximum": 6.4791e-05,
+          "median": 2.5708e-05,
+          "minimum": 2.4319e-05,
+          "p10": 2.43414e-05,
+          "p90": 4.9563e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "g-s1",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "jittered-grid",
+        "id": "g-s1",
+        "seed": 20260715
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.00033222200000000007,
+          "maximum": 0.025010691,
+          "median": 0.019000103,
+          "minimum": 0.018667881,
+          "p10": 0.018683375800000002,
+          "p90": 0.0242088558
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.0005129579949425533,
+          "maximum": 0.02712264900037553,
+          "median": 0.02091362400096841,
+          "minimum": 0.020400666006025858,
+          "p10": 0.020495673999539575,
+          "p90": 0.02638416900008451
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 1.8700000000000007e-06,
+          "maximum": 5.1532e-05,
+          "median": 4.324e-05,
+          "minimum": 4.137e-05,
+          "p10": 4.19172e-05,
+          "p90": 4.96224e-05
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 36.0,
+          "maximum": 4736.0,
+          "median": 4700.0,
+          "minimum": 4432.0,
+          "p10": 4475.2,
+          "p90": 4721.6
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 0.00011471799999999976,
+          "maximum": 0.010716939,
+          "median": 0.008315893,
+          "minimum": 0.008201175,
+          "p10": 0.008222475,
+          "p90": 0.010551835399999999
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.0004043349999999987,
+          "maximum": 0.014667296,
+          "median": 0.010765611,
+          "minimum": 0.010361276,
+          "p10": 0.0103703072,
+          "p90": 0.0136992776
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 3.868000000000001e-06,
+          "maximum": 4.1914e-05,
+          "median": 3.3317e-05,
+          "minimum": 2.9449e-05,
+          "p10": 2.9510199999999997e-05,
+          "p90": 4.08344e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "g-s2",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "jittered-grid",
+        "id": "g-s2",
+        "seed": 20260716
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.002512654999999999,
+          "maximum": 0.030289196,
+          "median": 0.026307706,
+          "minimum": 0.023795051,
+          "p10": 0.0239851618,
+          "p90": 0.0302494568
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.002975517010781914,
+          "maximum": 0.03314638500160072,
+          "median": 0.028820168008678593,
+          "minimum": 0.02584465099789668,
+          "p10": 0.0261239545972785,
+          "p90": 0.033048467800836076
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 1.8920000000000015e-06,
+          "maximum": 8.1331e-05,
+          "median": 6.1368e-05,
+          "minimum": 4.8848e-05,
+          "p10": 5.3099199999999995e-05,
+          "p90": 7.40262e-05
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 16.0,
+          "maximum": 4700.0,
+          "median": 4556.0,
+          "minimum": 4540.0,
+          "p10": 4546.4,
+          "p90": 4700.0
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 0.0011788729999999987,
+          "maximum": 0.014085595,
+          "median": 0.011874949,
+          "minimum": 0.00960302,
+          "p10": 0.0100402424,
+          "p90": 0.013470747
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.0008706080000000001,
+          "maximum": 0.017599955,
+          "median": 0.014393603,
+          "minimum": 0.013522995,
+          "p10": 0.013775612999999999,
+          "p90": 0.0170233514
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 3.736999999999995e-06,
+          "maximum": 5.1257e-05,
+          "median": 4.1418e-05,
+          "minimum": 3.7491e-05,
+          "p10": 3.81562e-05,
+          "p90": 4.88162e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "g-s3",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "jittered-grid",
+        "id": "g-s3",
+        "seed": 20260717
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.001926167999999999,
+          "maximum": 0.023835952,
+          "median": 0.021909784,
+          "minimum": 0.019182878,
+          "p10": 0.01948753,
+          "p90": 0.0235046424
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.001684574002865702,
+          "maximum": 0.026118494002730586,
+          "median": 0.024433919999864884,
+          "minimum": 0.021060453000245616,
+          "p10": 0.021577034203801304,
+          "p90": 0.025751821204903536
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 2.574999999999995e-06,
+          "maximum": 6.3667e-05,
+          "median": 5.1978e-05,
+          "minimum": 4.7162e-05,
+          "p10": 4.85848e-05,
+          "p90": 6.00214e-05
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 48.0,
+          "maximum": 4716.0,
+          "median": 4588.0,
+          "minimum": 4540.0,
+          "p10": 4552.8,
+          "p90": 4709.6
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 0.000853365,
+          "maximum": 0.010756882,
+          "median": 0.009608316,
+          "minimum": 0.008423589,
+          "p10": 0.0086607598,
+          "p90": 0.010638801600000001
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.0007878499999999997,
+          "maximum": 0.013041117,
+          "median": 0.012253267,
+          "minimum": 0.010726503,
+          "p10": 0.0107928482,
+          "p90": 0.0128265714
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 3.2909999999999995e-06,
+          "maximum": 4.8201e-05,
+          "median": 3.7953e-05,
+          "minimum": 3.2786e-05,
+          "p10": 3.3922e-05,
+          "p90": 4.5418200000000005e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "n-s1",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "near-collinear",
+        "id": "n-s1",
+        "seed": 20260715
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.0006153860000000025,
+          "maximum": 0.019921856,
+          "median": 0.018571085,
+          "minimum": 0.017884253,
+          "p10": 0.0179128314,
+          "p90": 0.019398274
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.0003303800040157512,
+          "maximum": 0.021979266006383114,
+          "median": 0.02072397699521389,
+          "minimum": 0.02025165199302137,
+          "p10": 0.020308429992292078,
+          "p90": 0.021493650003685617
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 3.7999999999999975e-07,
+          "maximum": 3.0024e-05,
+          "median": 2.9644e-05,
+          "minimum": 2.4825e-05,
+          "p10": 2.58762e-05,
+          "p90": 2.9948e-05
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 4.0,
+          "maximum": 4556.0,
+          "median": 4528.0,
+          "minimum": 4396.0,
+          "p10": 4447.2,
+          "p90": 4544.8
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 8.341199999999972e-05,
+          "maximum": 0.008382103,
+          "median": 0.007767481,
+          "minimum": 0.007424398,
+          "p10": 0.0075282664,
+          "p90": 0.008158518200000001
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.0003230490000000006,
+          "maximum": 0.011503878,
+          "median": 0.010756599,
+          "minimum": 0.010243463,
+          "p10": 0.010319497799999999,
+          "p90": 0.0112091892
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 3.2869999999999975e-06,
+          "maximum": 3.6448e-05,
+          "median": 3.3161e-05,
+          "minimum": 2.6305e-05,
+          "p10": 2.70498e-05,
+          "p90": 3.62188e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "n-s2",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "near-collinear",
+        "id": "n-s2",
+        "seed": 20260716
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.00027419700000000033,
+          "maximum": 0.019124866,
+          "median": 0.018105875,
+          "minimum": 0.017831678,
+          "p10": 0.0178972028,
+          "p90": 0.0189309156
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.000336045995936729,
+          "maximum": 0.020983441005228087,
+          "median": 0.020402880996698514,
+          "minimum": 0.019562643006793223,
+          "p10": 0.019850181802758014,
+          "p90": 0.02088563540019095
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 7.070000000000019e-07,
+          "maximum": 3.1079e-05,
+          "median": 2.7638e-05,
+          "minimum": 2.4689e-05,
+          "p10": 2.56998e-05,
+          "p90": 2.99854e-05
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 88.0,
+          "maximum": 4692.0,
+          "median": 4456.0,
+          "minimum": 4364.0,
+          "p10": 4365.6,
+          "p90": 4626.4
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 7.127300000000017e-05,
+          "maximum": 0.007840526,
+          "median": 0.007516499,
+          "minimum": 0.007445226,
+          "p10": 0.0074735004,
+          "p90": 0.0078097936
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.0004874979999999994,
+          "maximum": 0.011651496,
+          "median": 0.010447312,
+          "minimum": 0.009959814,
+          "p10": 0.0101005212,
+          "p90": 0.0114283356
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 7.399999999999963e-07,
+          "maximum": 3.2266e-05,
+          "median": 3.0598e-05,
+          "minimum": 2.8144e-05,
+          "p10": 2.88448e-05,
+          "p90": 3.18948e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    },
+    {
+      "case_id": "n-s3",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1024,
+        "distribution": "near-collinear",
+        "id": "n-s3",
+        "seed": 20260717
+      },
+      "planned_repetitions": 5,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 5,
+          "mad": 0.000368735000000002,
+          "maximum": 0.018650018,
+          "median": 0.018281283,
+          "minimum": 0.017557315,
+          "p10": 0.017565580600000002,
+          "p90": 0.0185174148
+        },
+        "external_wall_seconds": {
+          "count": 5,
+          "mad": 0.00032071500027086586,
+          "maximum": 0.020819869998376817,
+          "median": 0.02049915499810595,
+          "minimum": 0.019403825004701503,
+          "p10": 0.019604901401908136,
+          "p90": 0.020737633196404204
+        },
+        "input_generation_seconds": {
+          "count": 5,
+          "mad": 4.415000000000001e-06,
+          "maximum": 3.5431e-05,
+          "median": 3.0286e-05,
+          "minimum": 2.4765e-05,
+          "p10": 2.5207400000000002e-05,
+          "p90": 3.45846e-05
+        },
+        "max_rss_kb": {
+          "count": 5,
+          "mad": 0.0,
+          "maximum": 4396.0,
+          "median": 4368.0,
+          "minimum": 4368.0,
+          "p10": 4368.0,
+          "p90": 4391.2
+        },
+        "triangulation_seconds": {
+          "count": 5,
+          "mad": 7.995700000000029e-05,
+          "maximum": 0.007682882,
+          "median": 0.007524038,
+          "minimum": 0.007421292,
+          "p10": 0.0074304076,
+          "p90": 0.0076326332
+        },
+        "validation_seconds": {
+          "count": 5,
+          "mad": 0.0004639980000000002,
+          "maximum": 0.011068035,
+          "median": 0.010572078,
+          "minimum": 0.010107762,
+          "p10": 0.0101078892,
+          "p90": 0.0109477778
+        },
+        "voronoi_seconds": {
+          "count": 5,
+          "mad": 7.570000000000031e-07,
+          "maximum": 2.7943e-05,
+          "median": 2.6323e-05,
+          "minimum": 2.4723e-05,
+          "p10": 2.52882e-05,
+          "p90": 2.7597800000000002e-05
+        }
+      },
+      "status_counts": {
+        "ok": 5
+      },
+      "successful_repetitions": 5
+    }
+  ],
+  "distribution_aggregate_policy": "For each distribution, seed-level uncertainty summarizes the case median for each distinct deterministic input. The pooled repetition summary is reported separately because repeated timings are not independent inputs.",
+  "distribution_aggregates": [
+    {
+      "case_count": 3,
+      "compute_total_seconds_across_all_repetitions": {
+        "count": 15,
+        "mad": 0.00017866099999999663,
+        "maximum": 0.037212437,
+        "median": 0.03608798,
+        "minimum": 0.032220826,
+        "p10": 0.0334264316,
+        "p90": 0.0363809336
+      },
+      "compute_total_seconds_across_seed_case_medians": {
+        "count": 3,
+        "mad": 4.1004000000004204e-05,
+        "maximum": 0.036128984,
+        "median": 0.03608798,
+        "minimum": 0.035986808,
+        "p10": 0.0360070424,
+        "p90": 0.0361207832
+      },
+      "distinct_seed_count": 3,
+      "distribution": "uniform",
+      "planned_run_count": 15,
+      "status_counts": {
+        "ok": 15
+      },
+      "successful_run_count": 15
+    },
+    {
+      "case_count": 3,
+      "compute_total_seconds_across_all_repetitions": {
+        "count": 15,
+        "mad": 0.00045698199999999814,
+        "maximum": 0.033188018,
+        "median": 0.019019538,
+        "minimum": 0.018516823,
+        "p10": 0.018573282,
+        "p90": 0.0266543982
+      },
+      "compute_total_seconds_across_seed_case_medians": {
+        "count": 3,
+        "mad": 0.0003102399999999998,
+        "maximum": 0.024077019,
+        "median": 0.018899611,
+        "minimum": 0.018589371,
+        "p10": 0.018651419,
+        "p90": 0.023041537400000003
+      },
+      "distinct_seed_count": 3,
+      "distribution": "clustered",
+      "planned_run_count": 15,
+      "status_counts": {
+        "ok": 15
+      },
+      "successful_run_count": 15
+    },
+    {
+      "case_count": 3,
+      "compute_total_seconds_across_all_repetitions": {
+        "count": 15,
+        "mad": 0.0030631700000000005,
+        "maximum": 0.030289196,
+        "median": 0.023007678,
+        "minimum": 0.018667881,
+        "p10": 0.018824012,
+        "p90": 0.028636991199999996
+      },
+      "compute_total_seconds_across_seed_case_medians": {
+        "count": 3,
+        "mad": 0.0029096810000000008,
+        "maximum": 0.026307706,
+        "median": 0.021909784,
+        "minimum": 0.019000103,
+        "p10": 0.0195820392,
+        "p90": 0.0254281216
+      },
+      "distinct_seed_count": 3,
+      "distribution": "jittered-grid",
+      "planned_run_count": 15,
+      "status_counts": {
+        "ok": 15
+      },
+      "successful_run_count": 15
+    },
+    {
+      "case_count": 3,
+      "compute_total_seconds_across_all_repetitions": {
+        "count": 15,
+        "mad": 0.0003587069999999998,
+        "maximum": 0.019921856,
+        "median": 0.018281283,
+        "minimum": 0.017557315,
+        "p10": 0.0176794586,
+        "p90": 0.0189349268
+      },
+      "compute_total_seconds_across_seed_case_medians": {
+        "count": 3,
+        "mad": 0.00017540799999999843,
+        "maximum": 0.018571085,
+        "median": 0.018281283,
+        "minimum": 0.018105875,
+        "p10": 0.0181409566,
+        "p90": 0.0185131246
+      },
+      "distinct_seed_count": 3,
+      "distribution": "near-collinear",
+      "planned_run_count": 15,
+      "status_counts": {
+        "ok": 15
+      },
+      "successful_run_count": 15
+    }
+  ],
+  "profile": "research",
+  "run_id": "20260715T193010Z-08d0ad77-research",
+  "sample_accounting": {
+    "case_count": 12,
+    "observed_run_count": 60,
+    "planned_run_count": 60,
+    "status_counts": {
+      "ok": 60
+    },
+    "successful_run_count": 60
+  },
+  "schema_version": 1,
+  "statistic_policy": "successful runs only; median, median absolute deviation, linearly interpolated p10/p90, min/max"
+}

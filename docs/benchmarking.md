@@ -55,6 +55,19 @@ make benchmark-headline
 make benchmark-research
 ```
 
+When collecting several publishable profiles from one clean source commit, keep the
+generated bundles outside the checkout until every campaign is complete:
+
+```bash
+make benchmark-smoke BENCHMARK_OUTPUT_ROOT=/tmp/planar-benchmarks
+make benchmark-standard BENCHMARK_OUTPUT_ROOT=/tmp/planar-benchmarks
+make benchmark-headline BENCHMARK_OUTPUT_ROOT=/tmp/planar-benchmarks
+make benchmark-research BENCHMARK_OUTPUT_ROOT=/tmp/planar-benchmarks
+```
+
+This preserves the clean-worktree refusal between campaigns. Validate the staged
+bundles, then copy the complete selected directories into `benchmarks/runs/`.
+
 Do not treat a profile name as a performance guarantee. Runtime depends on the machine, compiler, power state, and competing work. The current Delaunay validator checks every triangle against every site, so validation has quadratic scaling and is intentionally visible as its own phase.
 
 ### Research input families
@@ -73,6 +86,19 @@ Every generator contract test asserts exact count, unique points, coordinate bou
 For each family, distribution-summary.csv reports two different summaries: the three seed-level case medians, which are the input-level uncertainty sample; and all 15 successful timing repetitions pooled separately for runtime-noise inspection.
 
 The dedicated distribution chart uses only the three seed-level case medians. It shows their median and MAD, p10–p90, and min–max, and labels the site count, seed count, repetitions per input, and successful sample count. Its p10–p90 is a descriptive interpolation across only those three seed-case medians—not a confidence interval or proof of universal robustness.
+
+## Current Published Evidence
+
+The 2026-07-15 publication set is bound to clean source commit `08d0ad7796e0cf6aaf424a947e69273396a48fb5` and contains 146 successful runs out of 146 planned:
+
+| Profile | Bundle | Runs | What it establishes |
+| --- | --- | ---: | --- |
+| smoke | [`20260715T192816Z-08d0ad77-smoke`](../benchmarks/runs/20260715T192816Z-08d0ad77-smoke/) | 6/6 | schema, raw-log, checksum, and deterministic-output smoke |
+| standard | [`20260715T192942Z-08d0ad77-standard`](../benchmarks/runs/20260715T192942Z-08d0ad77-standard/) | 50/50 | five fixed sizes from 100 through 2,500 sites |
+| headline | [`20260715T192957Z-08d0ad77-headline`](../benchmarks/runs/20260715T192957Z-08d0ad77-headline/) | 30/30 | one exact 1,500-site input: compute median 0.055095 s, range 0.039572–0.077119 s; full-process wall median 0.058059 s, maximum 0.080732 s |
+| research | [`20260715T193010Z-08d0ad77-research`](../benchmarks/runs/20260715T193010Z-08d0ad77-research/) | 60/60 | four input families, three deterministic seeds each, five repetitions per exact input |
+
+For the headline bundle, peak resident memory is 4,710 KiB at the median and 4,752 KiB at the maximum. These are observations on the recorded machine and compiler, not universal limits. The complete manifests, environment, exact inputs, raw stdout/stderr/resource logs, summaries, charts, validation reports, and checksums are in the linked directories.
 
 ## Run Bundle Contract
 

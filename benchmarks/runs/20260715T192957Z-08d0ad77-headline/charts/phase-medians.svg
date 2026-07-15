@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <text x="92" y="36" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#0f172a">Planar phase and total medians</text>
+  <text x="92" y="58" font-family="system-ui,sans-serif" font-size="12" fill="#475569">bundle 20260715T192957Z-08d0ad77-headline · successful repetitions only</text>
+  <text x="92" y="76" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Each bar is an independent median; phase medians are not stacked because medians are not additive.</text>
+  <line x1="92" y1="464" x2="924" y2="464" stroke="#64748b"/>
+  <line x1="92" y1="94" x2="92" y2="464" stroke="#64748b"/>
+  <line x1="92" y1="464.00" x2="924" y2="464.00" stroke="#e2e8f0"/>
+  <text x="82" y="468.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0000s</text>
+  <line x1="92" y1="390.00" x2="924" y2="390.00" stroke="#e2e8f0"/>
+  <text x="82" y="394.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0110s</text>
+  <line x1="92" y1="316.00" x2="924" y2="316.00" stroke="#e2e8f0"/>
+  <text x="82" y="320.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0220s</text>
+  <line x1="92" y1="242.00" x2="924" y2="242.00" stroke="#e2e8f0"/>
+  <text x="82" y="246.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0331s</text>
+  <line x1="92" y1="168.00" x2="924" y2="168.00" stroke="#e2e8f0"/>
+  <text x="82" y="172.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0441s</text>
+  <line x1="92" y1="94.00" x2="924" y2="94.00" stroke="#e2e8f0"/>
+  <text x="82" y="98.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0551s</text>
+  <rect x="433.00" y="306.50" width="35.25" height="157.50" fill="#2563eb"><title>triangulation median: 0.023452688s</title></rect>
+  <rect x="471.25" y="463.53" width="35.25" height="0.47" fill="#14b8a6"><title>voronoi median: 0.000069638s</title></rect>
+  <rect x="509.50" y="255.58" width="35.25" height="208.42" fill="#f59e0b"><title>validation median: 0.031034868s</title></rect>
+  <rect x="547.75" y="94.00" width="35.25" height="370.00" fill="#0f172a"><title>total median: 0.055094722s</title></rect>
+  <text x="565.38" y="106.00" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.055095s</text>
+  <text x="508.00" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">uniform-n1500</text>
+  <text x="508.00" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">30/30 ok</text>
+  <rect x="92" y="525" width="12" height="12" rx="2" fill="#2563eb"/>
+  <text x="110" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">triangulation</text>
+  <rect x="242" y="525" width="12" height="12" rx="2" fill="#14b8a6"/>
+  <text x="260" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">voronoi</text>
+  <rect x="392" y="525" width="12" height="12" rx="2" fill="#f59e0b"/>
+  <text x="410" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">validation</text>
+  <rect x="542" y="525" width="12" height="12" rx="2" fill="#0f172a"/>
+  <text x="560" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">compute total</text>
+</svg>

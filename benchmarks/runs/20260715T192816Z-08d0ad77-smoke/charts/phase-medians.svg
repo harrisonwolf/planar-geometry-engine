@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <text x="92" y="36" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#0f172a">Planar phase and total medians</text>
+  <text x="92" y="58" font-family="system-ui,sans-serif" font-size="12" fill="#475569">bundle 20260715T192816Z-08d0ad77-smoke · successful repetitions only</text>
+  <text x="92" y="76" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Each bar is an independent median; phase medians are not stacked because medians are not additive.</text>
+  <line x1="92" y1="464" x2="924" y2="464" stroke="#64748b"/>
+  <line x1="92" y1="94" x2="92" y2="464" stroke="#64748b"/>
+  <line x1="92" y1="464.00" x2="924" y2="464.00" stroke="#e2e8f0"/>
+  <text x="82" y="468.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0000s</text>
+  <line x1="92" y1="390.00" x2="924" y2="390.00" stroke="#e2e8f0"/>
+  <text x="82" y="394.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0001s</text>
+  <line x1="92" y1="316.00" x2="924" y2="316.00" stroke="#e2e8f0"/>
+  <text x="82" y="320.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0002s</text>
+  <line x1="92" y1="242.00" x2="924" y2="242.00" stroke="#e2e8f0"/>
+  <text x="82" y="246.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0003s</text>
+  <line x1="92" y1="168.00" x2="924" y2="168.00" stroke="#e2e8f0"/>
+  <text x="82" y="172.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0003s</text>
+  <line x1="92" y1="94.00" x2="924" y2="94.00" stroke="#e2e8f0"/>
+  <text x="82" y="98.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0004s</text>
+  <rect x="225.00" y="366.09" width="35.25" height="97.91" fill="#2563eb"><title>triangulation median: 0.000112812s</title></rect>
+  <rect x="263.25" y="459.65" width="35.25" height="4.35" fill="#14b8a6"><title>voronoi median: 0.000005007s</title></rect>
+  <rect x="301.50" y="417.12" width="35.25" height="46.88" fill="#f59e0b"><title>validation median: 0.000054010s</title></rect>
+  <rect x="339.75" y="310.55" width="35.25" height="153.45" fill="#0f172a"><title>total median: 0.000176798s</title></rect>
+  <text x="357.38" y="302.55" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.000177s</text>
+  <text x="300.00" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">uniform-n50</text>
+  <text x="300.00" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">3/3 ok</text>
+  <rect x="641.00" y="251.01" width="35.25" height="212.99" fill="#2563eb"><title>triangulation median: 0.000245396s</title></rect>
+  <rect x="679.25" y="454.81" width="35.25" height="9.19" fill="#14b8a6"><title>voronoi median: 0.000010592s</title></rect>
+  <rect x="717.50" y="328.10" width="35.25" height="135.90" fill="#f59e0b"><title>validation median: 0.000156584s</title></rect>
+  <rect x="755.75" y="94.00" width="35.25" height="370.00" fill="#0f172a"><title>total median: 0.000426303s</title></rect>
+  <text x="773.38" y="106.00" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.000426s</text>
+  <text x="716.00" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">uniform-n100</text>
+  <text x="716.00" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">3/3 ok</text>
+  <rect x="92" y="525" width="12" height="12" rx="2" fill="#2563eb"/>
+  <text x="110" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">triangulation</text>
+  <rect x="242" y="525" width="12" height="12" rx="2" fill="#14b8a6"/>
+  <text x="260" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">voronoi</text>
+  <rect x="392" y="525" width="12" height="12" rx="2" fill="#f59e0b"/>
+  <text x="410" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">validation</text>
+  <rect x="542" y="525" width="12" height="12" rx="2" fill="#0f172a"/>
+  <text x="560" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">compute total</text>
+</svg>

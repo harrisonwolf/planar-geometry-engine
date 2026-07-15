@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <text x="92" y="36" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#0f172a">Planar phase and total medians</text>
+  <text x="92" y="58" font-family="system-ui,sans-serif" font-size="12" fill="#475569">bundle 20260715T193010Z-08d0ad77-research · successful repetitions only</text>
+  <text x="92" y="76" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Each bar is an independent median; phase medians are not stacked because medians are not additive.</text>
+  <line x1="92" y1="464" x2="924" y2="464" stroke="#64748b"/>
+  <line x1="92" y1="94" x2="92" y2="464" stroke="#64748b"/>
+  <line x1="92" y1="464.00" x2="924" y2="464.00" stroke="#e2e8f0"/>
+  <text x="82" y="468.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0000s</text>
+  <line x1="92" y1="390.00" x2="924" y2="390.00" stroke="#e2e8f0"/>
+  <text x="82" y="394.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0072s</text>
+  <line x1="92" y1="316.00" x2="924" y2="316.00" stroke="#e2e8f0"/>
+  <text x="82" y="320.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0145s</text>
+  <line x1="92" y1="242.00" x2="924" y2="242.00" stroke="#e2e8f0"/>
+  <text x="82" y="246.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0217s</text>
+  <line x1="92" y1="168.00" x2="924" y2="168.00" stroke="#e2e8f0"/>
+  <text x="82" y="172.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0289s</text>
+  <line x1="92" y1="94.00" x2="924" y2="94.00" stroke="#e2e8f0"/>
+  <text x="82" y="98.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0361s</text>
+  <rect x="100.32" y="302.84" width="10.92" height="161.16" fill="#2563eb"><title>triangulation median: 0.015736686s</title></rect>
+  <rect x="114.24" y="463.42" width="10.92" height="0.58" fill="#14b8a6"><title>voronoi median: 0.000056551s</title></rect>
+  <rect x="128.17" y="257.26" width="10.92" height="206.74" fill="#f59e0b"><title>validation median: 0.020187462s</title></rect>
+  <rect x="142.09" y="94.42" width="10.92" height="369.58" fill="#0f172a"><title>total median: 0.036087980s</title></rect>
+  <text x="147.55" y="106.00" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.036088s</text>
+  <text x="126.67" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">u-s1</text>
+  <text x="126.67" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="169.65" y="304.86" width="10.92" height="159.14" fill="#2563eb"><title>triangulation median: 0.015539417s</title></rect>
+  <rect x="183.58" y="463.40" width="10.92" height="0.60" fill="#14b8a6"><title>voronoi median: 0.000058857s</title></rect>
+  <rect x="197.50" y="256.19" width="10.92" height="207.81" fill="#f59e0b"><title>validation median: 0.020291495s</title></rect>
+  <rect x="211.42" y="95.46" width="10.92" height="368.54" fill="#0f172a"><title>total median: 0.035986808s</title></rect>
+  <text x="216.89" y="106.00" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.035987s</text>
+  <text x="196.00" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">u-s2</text>
+  <text x="196.00" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="238.99" y="302.38" width="10.92" height="161.62" fill="#2563eb"><title>triangulation median: 0.015781980s</title></rect>
+  <rect x="252.91" y="463.35" width="10.92" height="0.65" fill="#14b8a6"><title>voronoi median: 0.000063534s</title></rect>
+  <rect x="266.83" y="257.59" width="10.92" height="206.41" fill="#f59e0b"><title>validation median: 0.020155038s</title></rect>
+  <rect x="280.76" y="94.00" width="10.92" height="370.00" fill="#0f172a"><title>total median: 0.036128984s</title></rect>
+  <text x="286.22" y="106.00" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.036129s</text>
+  <text x="265.33" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">u-s3</text>
+  <text x="265.33" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="308.32" y="355.91" width="10.92" height="108.09" fill="#2563eb"><title>triangulation median: 0.010554275s</title></rect>
+  <rect x="322.24" y="463.65" width="10.92" height="0.35" fill="#14b8a6"><title>voronoi median: 0.000034309s</title></rect>
+  <rect x="336.17" y="325.84" width="10.92" height="138.16" fill="#f59e0b"><title>validation median: 0.013491197s</title></rect>
+  <rect x="350.09" y="217.43" width="10.92" height="246.57" fill="#0f172a"><title>total median: 0.024077019s</title></rect>
+  <text x="355.55" y="209.43" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.024077s</text>
+  <text x="334.67" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">c-s1</text>
+  <text x="334.67" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="377.65" y="382.18" width="10.92" height="81.82" fill="#2563eb"><title>triangulation median: 0.007989314s</title></rect>
+  <rect x="391.58" y="463.69" width="10.92" height="0.31" fill="#14b8a6"><title>voronoi median: 0.000030420s</title></rect>
+  <rect x="405.50" y="355.73" width="10.92" height="108.27" fill="#f59e0b"><title>validation median: 0.010572509s</title></rect>
+  <rect x="419.42" y="273.62" width="10.92" height="190.38" fill="#0f172a"><title>total median: 0.018589371s</title></rect>
+  <text x="424.88" y="265.62" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.018589s</text>
+  <text x="404.00" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">c-s2</text>
+  <text x="404.00" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="446.99" y="380.51" width="10.92" height="83.49" fill="#2563eb"><title>triangulation median: 0.008152275s</title></rect>
+  <rect x="460.91" y="463.74" width="10.92" height="0.26" fill="#14b8a6"><title>voronoi median: 0.000025708s</title></rect>
+  <rect x="474.83" y="354.45" width="10.92" height="109.55" fill="#f59e0b"><title>validation median: 0.010696938s</title></rect>
+  <rect x="488.76" y="270.45" width="10.92" height="193.55" fill="#0f172a"><title>total median: 0.018899611s</title></rect>
+  <text x="494.22" y="262.45" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.018900s</text>
+  <text x="473.33" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">c-s3</text>
+  <text x="473.33" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="516.32" y="378.84" width="10.92" height="85.16" fill="#2563eb"><title>triangulation median: 0.008315893s</title></rect>
+  <rect x="530.24" y="463.66" width="10.92" height="0.34" fill="#14b8a6"><title>voronoi median: 0.000033317s</title></rect>
+  <rect x="544.17" y="353.75" width="10.92" height="110.25" fill="#f59e0b"><title>validation median: 0.010765611s</title></rect>
+  <rect x="558.09" y="269.42" width="10.92" height="194.58" fill="#0f172a"><title>total median: 0.019000103s</title></rect>
+  <text x="563.55" y="261.42" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.019000s</text>
+  <text x="542.67" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">g-s1</text>
+  <text x="542.67" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="585.65" y="342.39" width="10.92" height="121.61" fill="#2563eb"><title>triangulation median: 0.011874949s</title></rect>
+  <rect x="599.58" y="463.58" width="10.92" height="0.42" fill="#14b8a6"><title>voronoi median: 0.000041418s</title></rect>
+  <rect x="613.50" y="316.59" width="10.92" height="147.41" fill="#f59e0b"><title>validation median: 0.014393603s</title></rect>
+  <rect x="627.42" y="194.58" width="10.92" height="269.42" fill="#0f172a"><title>total median: 0.026307706s</title></rect>
+  <text x="632.88" y="186.58" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.026308s</text>
+  <text x="612.00" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">g-s2</text>
+  <text x="612.00" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="654.99" y="365.60" width="10.92" height="98.40" fill="#2563eb"><title>triangulation median: 0.009608316s</title></rect>
+  <rect x="668.91" y="463.61" width="10.92" height="0.39" fill="#14b8a6"><title>voronoi median: 0.000037953s</title></rect>
+  <rect x="682.83" y="338.51" width="10.92" height="125.49" fill="#f59e0b"><title>validation median: 0.012253267s</title></rect>
+  <rect x="696.76" y="239.62" width="10.92" height="224.38" fill="#0f172a"><title>total median: 0.021909784s</title></rect>
+  <text x="702.22" y="231.62" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.021910s</text>
+  <text x="681.33" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">g-s3</text>
+  <text x="681.33" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="724.32" y="384.45" width="10.92" height="79.55" fill="#2563eb"><title>triangulation median: 0.007767481s</title></rect>
+  <rect x="738.24" y="463.66" width="10.92" height="0.34" fill="#14b8a6"><title>voronoi median: 0.000033161s</title></rect>
+  <rect x="752.17" y="353.84" width="10.92" height="110.16" fill="#f59e0b"><title>validation median: 0.010756599s</title></rect>
+  <rect x="766.09" y="273.81" width="10.92" height="190.19" fill="#0f172a"><title>total median: 0.018571085s</title></rect>
+  <text x="771.55" y="265.81" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.018571s</text>
+  <text x="750.67" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">n-s1</text>
+  <text x="750.67" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="793.65" y="387.02" width="10.92" height="76.98" fill="#2563eb"><title>triangulation median: 0.007516499s</title></rect>
+  <rect x="807.58" y="463.69" width="10.92" height="0.31" fill="#14b8a6"><title>voronoi median: 0.000030598s</title></rect>
+  <rect x="821.50" y="357.01" width="10.92" height="106.99" fill="#f59e0b"><title>validation median: 0.010447312s</title></rect>
+  <rect x="835.42" y="278.58" width="10.92" height="185.42" fill="#0f172a"><title>total median: 0.018105875s</title></rect>
+  <text x="840.88" y="270.58" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.018106s</text>
+  <text x="820.00" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">n-s2</text>
+  <text x="820.00" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="862.99" y="386.95" width="10.92" height="77.05" fill="#2563eb"><title>triangulation median: 0.007524038s</title></rect>
+  <rect x="876.91" y="463.73" width="10.92" height="0.27" fill="#14b8a6"><title>voronoi median: 0.000026323s</title></rect>
+  <rect x="890.83" y="355.73" width="10.92" height="108.27" fill="#f59e0b"><title>validation median: 0.010572078s</title></rect>
+  <rect x="904.76" y="276.78" width="10.92" height="187.22" fill="#0f172a"><title>total median: 0.018281283s</title></rect>
+  <text x="910.22" y="268.78" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">total 0.018281s</text>
+  <text x="889.33" y="487" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#0f172a">n-s3</text>
+  <text x="889.33" y="504" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">5/5 ok</text>
+  <rect x="92" y="525" width="12" height="12" rx="2" fill="#2563eb"/>
+  <text x="110" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">triangulation</text>
+  <rect x="242" y="525" width="12" height="12" rx="2" fill="#14b8a6"/>
+  <text x="260" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">voronoi</text>
+  <rect x="392" y="525" width="12" height="12" rx="2" fill="#f59e0b"/>
+  <text x="410" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">validation</text>
+  <rect x="542" y="525" width="12" height="12" rx="2" fill="#0f172a"/>
+  <text x="560" y="535" font-family="system-ui,sans-serif" font-size="12" fill="#334155">compute total</text>
+</svg>
