@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "benchmark": "planar_delaunay_voronoi",
+  "status": "ok",
+  "build": {"commit": "186318995c75f7d06f46f0232bdfa7d059ee1d59", "branch": "agent/planar-benchmark-studio", "profile": "development-normal", "dirty": false, "compiler_command": "g++", "compiler_version": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0", "compiler_flags": "-Wall -Wextra -std=c++17 -O2"},
+  "input": {"generator": "splitmix64_uniform_unique_integer_v1", "distribution": "uniform", "seed": 20260715, "requested_count": 50, "coord_max": 1000000, "hash": "fnv1a64:ce47570d9b09c156", "points": [[-152152,960375],[647174,-34403],[386544,941938],[-75644,224369],[559459,-693332],[523513,-254757],[590373,-127855],[-821150,642932],[317372,928896],[-75901,-644383],[829620,-935543],[-913756,316159],[-9904,-23930],[655949,-338975],[-176034,-651550],[-255820,516558],[824901,147440],[-597966,862428],[-678467,-742214],[125913,708701],[-858047,669035],[-285491,-537064],[350621,183966],[-64548,970597],[350375,-287569],[152755,-530354],[153241,181839],[-957137,-788405],[-582268,445936],[-257655,679041],[-307597,-416373],[-428994,8951],[424318,-129456],[-295148,-738688],[-857217,231080],[-675400,983016],[-435396,-433635],[-95639,394131],[-805466,-301182],[420786,-782049],[919122,-959182],[256554,3006],[737686,-440703],[641195,-484608],[413988,-744670],[-743408,464890],[-845589,550669],[-402128,-516643],[263996,-225668],[-832667,-467438]]},
+  "timing_seconds": {"input_generation": 0.000012283, "triangulation": 0.000850437, "voronoi": 0.000007663, "validation": 0.000085830, "compute_total": 0.000943930},
+  "topology": {"sites": 50, "triangles": 90, "unique_edges": 139, "hull_edges": 8, "internal_edges": 131, "voronoi_vertices": 90, "voronoi_finite_edges": 131},
+  "validation": {"delaunay": true, "adjacency_symmetric": true, "euler_planar": true, "voronoi_dual_counts": true, "all_passed": true, "canonical_output_hash": "fnv1a64:7fb543ddd731b538"}
+}

@@ -1,0 +1,2 @@
+case_id,distribution,requested_count,seed,planned_repetitions,successful_repetitions,ok,timeout,error,validation_failed,compute_median_seconds,compute_mad_seconds,compute_p10_seconds,compute_p90_seconds,external_wall_median_seconds,max_rss_median_kb
+uniform-n1500,uniform,1500,20260715,30,30,30,0,0,0,0.0587587745,0.018503085499999995,0.0398860356,0.0838112714,0.07318966499587987,4748.0

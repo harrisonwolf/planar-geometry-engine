@@ -1,0 +1,99 @@
+{
+  "cases": [
+    {
+      "case_id": "uniform-n1500",
+      "input": {
+        "coord_max": 1000000,
+        "count": 1500,
+        "distribution": "uniform",
+        "id": "uniform-n1500",
+        "seed": 20260715
+      },
+      "planned_repetitions": 30,
+      "statistics": {
+        "compute_total_seconds": {
+          "count": 30,
+          "mad": 0.018503085499999995,
+          "maximum": 0.089080914,
+          "median": 0.0587587745,
+          "minimum": 0.039547307,
+          "p10": 0.0398860356,
+          "p90": 0.0838112714
+        },
+        "external_wall_seconds": {
+          "count": 30,
+          "mad": 0.020930988001055084,
+          "maximum": 0.1434939370083157,
+          "median": 0.07318966499587987,
+          "minimum": 0.044837829991593026,
+          "p10": 0.0452944275108166,
+          "p90": 0.11786906650668244
+        },
+        "input_generation_seconds": {
+          "count": 30,
+          "mad": 5.9474999999999996e-05,
+          "maximum": 0.000536732,
+          "median": 0.000239034,
+          "minimum": 0.000164619,
+          "p10": 0.0001823772,
+          "p90": 0.00035510340000000003
+        },
+        "max_rss_kb": {
+          "count": 30,
+          "mad": 8.0,
+          "maximum": 4792.0,
+          "median": 4748.0,
+          "minimum": 4580.0,
+          "p10": 4604.0,
+          "p90": 4788.0
+        },
+        "triangulation_seconds": {
+          "count": 30,
+          "mad": 0.007828155000000002,
+          "maximum": 0.045791251,
+          "median": 0.024986138499999998,
+          "minimum": 0.016547504,
+          "p10": 0.017150464299999998,
+          "p90": 0.0395148434
+        },
+        "validation_seconds": {
+          "count": 30,
+          "mad": 0.008992413499999997,
+          "maximum": 0.046668844,
+          "median": 0.0315272945,
+          "minimum": 0.022486188,
+          "p10": 0.0225833087,
+          "p90": 0.0443727314
+        },
+        "voronoi_seconds": {
+          "count": 30,
+          "mad": 1.8962e-05,
+          "maximum": 0.000367138,
+          "median": 8.73375e-05,
+          "minimum": 4.7304e-05,
+          "p10": 4.94332e-05,
+          "p90": 0.00011504540000000001
+        }
+      },
+      "status_counts": {
+        "ok": 30
+      },
+      "successful_repetitions": 30
+    }
+  ],
+  "distribution_aggregate_policy": "For each distribution, seed-level uncertainty summarizes the case median for each distinct deterministic input. The pooled repetition summary is reported separately because repeated timings are not independent inputs.",
+  "distribution_aggregates": [],
+  "profile": "headline",
+  "run_id": "planar-headline-20260715-1863189",
+  "sample_accounting": {
+    "case_count": 1,
+    "observed_run_count": 30,
+    "planned_run_count": 30,
+    "status_counts": {
+      "ok": 30
+    },
+    "successful_run_count": 30
+  },
+  "schema_version": 1,
+  "statistic_policy": "successful runs only; median, median absolute deviation, linearly interpolated p10/p90, min/max"
+}

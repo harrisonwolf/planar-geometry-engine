@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <text x="92" y="36" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#0f172a">Planar compute time by input distribution</text>
+  <text x="92" y="60" font-family="system-ui,sans-serif" font-size="12" fill="#475569">bundle planar-research-20260715-1863189 · n=1,024 sites · 3 seeds/distribution · 5 repetitions/input</text>
+  <text x="92" y="78" font-family="system-ui,sans-serif" font-size="11" fill="#64748b">Median dot and MAD box; dark whisker is p10–p90 and pale whisker is min–max across seed-level case medians.</text>
+  <line x1="92" y1="440" x2="924" y2="440" stroke="#64748b"/>
+  <line x1="92" y1="96" x2="92" y2="440" stroke="#64748b"/>
+  <line x1="92" y1="440.00" x2="924" y2="440.00" stroke="#e2e8f0"/>
+  <text x="82" y="444.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0000s</text>
+  <line x1="92" y1="371.20" x2="924" y2="371.20" stroke="#e2e8f0"/>
+  <text x="82" y="375.20" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0086s</text>
+  <line x1="92" y1="302.40" x2="924" y2="302.40" stroke="#e2e8f0"/>
+  <text x="82" y="306.40" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0172s</text>
+  <line x1="92" y1="233.60" x2="924" y2="233.60" stroke="#e2e8f0"/>
+  <text x="82" y="237.60" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0259s</text>
+  <line x1="92" y1="164.80" x2="924" y2="164.80" stroke="#e2e8f0"/>
+  <text x="82" y="168.80" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0345s</text>
+  <line x1="92" y1="96.00" x2="924" y2="96.00" stroke="#e2e8f0"/>
+  <text x="82" y="100.00" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#475569">0.0431s</text>
+  <line x1="196.00" y1="132.86" x2="196.00" y2="283.86" stroke="#94a3b8" stroke-width="3"/>
+  <line x1="196.00" y1="153.11" x2="196.00" y2="273.91" stroke="#2563eb" stroke-width="7"/>
+  <rect x="174.00" y="184.35" width="44" height="99.51" rx="4" fill="#bfdbfe" stroke="#2563eb"/>
+  <circle cx="196.00" cy="234.11" r="6" fill="#0f172a"/>
+  <text x="196.00" y="122.86" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">0.025806s</text>
+  <text x="196.00" y="465" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="600" fill="#0f172a">uniform</text>
+  <text x="196.00" y="484" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">15/15 runs ok</text>
+  <line x1="404.00" y1="250.40" x2="404.00" y2="271.92" stroke="#94a3b8" stroke-width="3"/>
+  <line x1="404.00" y1="250.88" x2="404.00" y2="268.10" stroke="#2563eb" stroke-width="7"/>
+  <rect x="382.00" y="250.40" width="44" height="4.85" rx="4" fill="#bfdbfe" stroke="#2563eb"/>
+  <circle cx="404.00" cy="252.82" r="6" fill="#0f172a"/>
+  <text x="404.00" y="240.40" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">0.023459s</text>
+  <text x="404.00" y="465" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="600" fill="#0f172a">clustered</text>
+  <text x="404.00" y="484" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">15/15 runs ok</text>
+  <line x1="612.00" y1="136.16" x2="612.00" y2="226.38" stroke="#94a3b8" stroke-width="3"/>
+  <line x1="612.00" y1="144.24" x2="612.00" y2="216.41" stroke="#2563eb" stroke-width="7"/>
+  <rect x="590.00" y="136.16" width="44" height="80.76" rx="4" fill="#bfdbfe" stroke="#2563eb"/>
+  <circle cx="612.00" cy="176.54" r="6" fill="#0f172a"/>
+  <text x="612.00" y="126.16" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">0.033020s</text>
+  <text x="612.00" y="465" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="600" fill="#0f172a">jittered-grid</text>
+  <text x="612.00" y="484" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">15/15 runs ok</text>
+  <line x1="820.00" y1="213.11" x2="820.00" y2="285.37" stroke="#94a3b8" stroke-width="3"/>
+  <line x1="820.00" y1="223.03" x2="820.00" y2="280.84" stroke="#2563eb" stroke-width="7"/>
+  <rect x="798.00" y="240.05" width="44" height="45.32" rx="4" fill="#bfdbfe" stroke="#2563eb"/>
+  <circle cx="820.00" cy="262.71" r="6" fill="#0f172a"/>
+  <text x="820.00" y="203.11" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f172a">0.022220s</text>
+  <text x="820.00" y="465" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="600" fill="#0f172a">near-collinear</text>
+  <text x="820.00" y="484" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">15/15 runs ok</text>
+  <text x="92" y="540" font-family="system-ui,sans-serif" font-size="11" fill="#64748b">Uncertainty sample: one median per deterministic seed input (not pooled timing repetitions).</text>
+</svg>

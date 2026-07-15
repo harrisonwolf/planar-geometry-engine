@@ -1,0 +1,24 @@
+{
+  "all_inputs_stable": true,
+  "all_outputs_stable": true,
+  "all_runs_ok": true,
+  "cases": {
+    "uniform-n100": {
+      "all_runs_ok": true,
+      "canonical_output_hash": "fnv1a64:1b53d57700d768e1",
+      "input_sha256": "41a735c47ec0d64cf07272cb85d92fd62e297f36b17217aeac358fbff83dbdd7",
+      "input_stable_across_repetitions": true,
+      "output_stable_across_repetitions": true
+    },
+    "uniform-n50": {
+      "all_runs_ok": true,
+      "canonical_output_hash": "fnv1a64:7fb543ddd731b538",
+      "input_sha256": "e802d49ed2b31fa1b74165b7d561875b4a8283f4086cd18eb0f397ea45ed91e8",
+      "input_stable_across_repetitions": true,
+      "output_stable_across_repetitions": true
+    }
+  },
+  "known_unrelated_test_failures_masked": false,
+  "provenance_preflight_passed": true,
+  "schema_version": 1
+}
