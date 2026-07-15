@@ -69,6 +69,10 @@ Each `benchmarks/runs/<run-id>/` directory is a schema-versioned evidence bundle
 
 Statuses are explicit: `ok`, `timeout`, `oom`, `error`, `skipped`, or `validation_failed`. A status is never placed in a numeric column. Timeouts terminate the entire child process group, so an over-budget geometry process is not left running in the background.
 
+Bundles created under `benchmarks/runs/` are untracked scratch evidence until they have been reviewed. When a bundle is selected to support a published claim, commit the complete directory—including its manifest, environment, structured records, exact inputs, raw logs, validation, summaries, chart, and checksums—or copy it unchanged into a tracked `benchmarks/published/` directory and validate it again. A summary or chart without its raw bundle is not publication evidence.
+
+Because bundle creation changes the worktree after provenance is captured, begin each publication run from a clean committed tree. Commit the finished evidence only after the run completes.
+
 ## Publication Checklist
 
 Before citing a result:
