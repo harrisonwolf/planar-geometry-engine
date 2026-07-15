@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/harrisonwolf/planar-geometry-engine/benchmarks/schema/run-record-v1.schema.json",
+  "title": "Planar geometry benchmark run record",
+  "type": "object",
+  "required": [
+    "schema_version", "run_id", "case_id", "repetition", "status", "command",
+    "timeout_seconds", "exit_code", "measurements", "input", "output", "validation",
+    "raw_artifacts"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "run_id": {"type": "string"},
+    "case_id": {"type": "string"},
+    "repetition": {"type": "integer", "minimum": 1},
+    "status": {
+      "enum": ["ok", "timeout", "oom", "error", "skipped", "validation_failed"]
+    },
+    "command": {"type": "array", "items": {"type": "string"}},
+    "timeout_seconds": {"type": "number", "minimum": 0},
+    "exit_code": {"type": ["integer", "null"]},
+    "measurements": {"type": "object"},
+    "input": {"type": "object"},
+    "output": {"type": "object"},
+    "validation": {"type": "object"},
+    "raw_artifacts": {"type": "object"}
+  },
+  "additionalProperties": true
+}

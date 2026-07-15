@@ -28,6 +28,10 @@ out/
 *.out
 *.exe
 
+# Python tool caches
+__pycache__/
+*.py[cod]
+
 # Debug / profiling / coverage
 *.gcno
 *.gcda

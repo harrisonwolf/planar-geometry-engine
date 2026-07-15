@@ -9,6 +9,7 @@ The project currently uses one TDD-style regression runner plus two packaging sm
 | `make test-suite` | core geometry behavior, triangulation, Voronoi logic, and artifact export payloads | `testing/tester.cc`, `testing/tdd_suite.cc`, `testing/suites/*.cc` |
 | `make release-smoke` | stable bundle contents, launcher behavior, `--version`, interactive polygon flow, and Desmos export files | `scripts/release_smoke.sh` |
 | `make interview-smoke` | interview bundle contents, `--version`, deterministic sample demo, and seeded Desmos export files | `scripts/interview_smoke.sh` |
+| `make benchmark-smoke` | deterministic benchmark input/output, schema-v1 bundle generation, raw-log capture, and checksum validation | `src/benchmark_driver.cc`, `benchmarks/*.py` |
 
 ## Regression Suite Coverage
 

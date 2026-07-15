@@ -27,6 +27,7 @@ Planar geometry workbench for polygon creation, triangulation, Delaunay/Voronoi 
 - `make interview-release`: packages the interview/demo app into `dist/interview/` and seeds the Desmos exports.
 - `make release-smoke`: rebuilds and validates the stable bundle.
 - `make interview-smoke`: rebuilds and validates the interview bundle.
+- `make benchmark-smoke`: creates and validates a new immutable benchmark evidence bundle.
 
 Common run paths:
 
@@ -61,6 +62,7 @@ For the full nested directory map, see [`docs/repo-structure.md`](docs/repo-stru
 - `rand_poly_gen_driver` (`src/rand_poly_gen_driver.cc`): A focused driver for iterating on random polygon generation without going through the full main app flow; built in `development-normal`, `development-debug`, and `release`.
 - `driver` (`src/driver.cc`): A legacy sandbox binary for quick manual geometry experiments while developing low-level primitives; built in `development-normal`, `development-debug`, and `release`.
 - `delaunay_driver` (`src/delaunay_driver.cc`): The development-only point-set app for generating Delaunay/Voronoi artifacts and opening the local SVG viewer; built in `development-normal` and `development-debug`.
+- `benchmark_driver` (`src/benchmark_driver.cc`): The development-only deterministic, machine-readable Delaunay/Voronoi benchmark driver; normally invoked through the benchmark Make targets.
 - `tester` (`testing/tester.cc`): The regression runner that executes the geometry test suites behind `make test-suite`; built in `development-normal`, `development-debug`, and `release`.
 
 ## Source Files
@@ -126,3 +128,4 @@ For the full nested directory map, see [`docs/repo-structure.md`](docs/repo-stru
 - [`docs/build-and-packaging.md`](docs/build-and-packaging.md): Build targets, bundle layouts, provenance flow, and the files involved in packaging.
 - [`docs/testing-and-verification.md`](docs/testing-and-verification.md): Regression coverage, smoke-test behavior, manual checks, and debug logging controls.
 - [`docs/tools-and-viewers.md`](docs/tools-and-viewers.md): The local browser viewers, the artifacts they load, and the fallback flow when auto-launch fails.
+- [`docs/benchmarking.md`](docs/benchmarking.md): Reproducible benchmark inputs, metrics, profiles, immutable run bundles, validation, and publication rules.

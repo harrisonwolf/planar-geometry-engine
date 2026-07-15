@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "profiles": {
+    "smoke": {
+      "description": "Fast contract and correctness check; suitable for every change.",
+      "timeout_seconds": 15,
+      "repetitions": 3,
+      "cases": [
+        {"id": "uniform-n50", "count": 50, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n100", "count": 100, "seed": 20260715, "coord_max": 1000000}
+      ]
+    },
+    "standard": {
+      "description": "Scaling and variability study for routine publication refreshes.",
+      "timeout_seconds": 120,
+      "repetitions": 10,
+      "cases": [
+        {"id": "uniform-n100", "count": 100, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n300", "count": 300, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n1000", "count": 1000, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n1500", "count": 1500, "seed": 20260715, "coord_max": 1000000},
+        {"id": "uniform-n2500", "count": 2500, "seed": 20260715, "coord_max": 1000000}
+      ]
+    },
+    "headline": {
+      "description": "High-repetition fixed 1,500-site result for a published headline number.",
+      "timeout_seconds": 120,
+      "repetitions": 30,
+      "cases": [
+        {"id": "uniform-n1500", "count": 1500, "seed": 20260715, "coord_max": 1000000}
+      ]
+    }
+  }
+}

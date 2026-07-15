@@ -14,7 +14,7 @@ BUILD_INFO_CPPFLAGS := \
 	-DGEOM_BUILD_DIRTY=$(GIT_DIRTY)
 
 COMMON_EXES := main rand_poly_gen_driver driver tester
-DEV_ONLY_EXES := delaunay_driver portfolio_export_driver
+DEV_ONLY_EXES := delaunay_driver portfolio_export_driver benchmark_driver
 PACKAGING_EXES := interview_demo
 DEV_EXES := $(COMMON_EXES) $(DEV_ONLY_EXES) $(PACKAGING_EXES)
 RELEASE_EXES := $(COMMON_EXES) $(PACKAGING_EXES)
@@ -38,6 +38,7 @@ EXE_rand_poly_gen_driver_SRCS := $(SRC_DIR)/rand_poly_gen_driver.cc
 EXE_driver_SRCS := $(SRC_DIR)/driver.cc
 EXE_delaunay_driver_SRCS := $(SRC_DIR)/delaunay_driver.cc
 EXE_portfolio_export_driver_SRCS := $(SRC_DIR)/portfolio_export_driver.cc
+EXE_benchmark_driver_SRCS := $(SRC_DIR)/benchmark_driver.cc
 EXE_tester_SRCS := \
 	testing/tester.cc \
 	testing/tdd_suite.cc \
@@ -74,7 +75,7 @@ COMMON_SRCS := \
 .PHONY: all development development-normal development-debug release release-bundle release-smoke \
 	interview-release interview-smoke clean clean-development clean-development-normal \
 	clean-development-debug clean-release clean-app-release clean-interview test-suite help \
-	generate-build-info
+	generate-build-info benchmark-smoke benchmark-standard benchmark-headline benchmark-validate
 
 all: development release
 
@@ -124,6 +125,23 @@ release: $(RELEASE_TARGETS)
 test-suite: build/development/normal/tester
 	./build/development/normal/tester
 
+BENCHMARK_BINARY := build/development/normal/benchmark_driver
+BENCHMARK_OUTPUT_ROOT ?= benchmarks/runs
+BENCHMARK_RUN_ID_ARG := $(if $(RUN_ID),--run-id=$(RUN_ID),)
+
+benchmark-smoke: $(BENCHMARK_BINARY)
+	python3 benchmarks/run_benchmarks.py --profile=smoke --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_RUN_ID_ARG)
+
+benchmark-standard: $(BENCHMARK_BINARY)
+	python3 benchmarks/run_benchmarks.py --profile=standard --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_RUN_ID_ARG)
+
+benchmark-headline: $(BENCHMARK_BINARY)
+	python3 benchmarks/run_benchmarks.py --profile=headline --binary=$(BENCHMARK_BINARY) --output-root=$(BENCHMARK_OUTPUT_ROOT) $(BENCHMARK_RUN_ID_ARG)
+
+benchmark-validate:
+	@test -n "$(BUNDLE)" || (echo "Usage: make benchmark-validate BUNDLE=benchmarks/runs/<run-id>" >&2; exit 2)
+	python3 benchmarks/validate_bundle.py $(BUNDLE)
+
 
 generate-build-info:
 	GIT_COMMIT="$(GIT_COMMIT)" GIT_BRANCH="$(GIT_BRANCH)" BUILD_TIME_UTC="$(BUILD_TIME_UTC)" GIT_DIRTY="$(GIT_DIRTY)" ./scripts/generate_build_info.sh tools/desmos-bridge/build-info.js
@@ -171,6 +189,10 @@ help:
 	@echo "  make interview-release"
 	@echo "  make interview-smoke"
 	@echo "  make test-suite"
+	@echo "  make benchmark-smoke"
+	@echo "  make benchmark-standard"
+	@echo "  make benchmark-headline"
+	@echo "  make benchmark-validate BUNDLE=benchmarks/runs/<run-id>"
 	@echo ""
 	@echo "See README.md for developer and interview packaging workflows."
 	@echo ""
