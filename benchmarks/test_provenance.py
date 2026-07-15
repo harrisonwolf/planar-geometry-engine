@@ -56,12 +56,14 @@ def make_bundle(
         "points": [[index, index] for index in range(10)],
     })
     commit = "a" * 40
-    binary_path = "/tmp/planar-benchmark-driver"
+    binary_path = "build/development/normal/benchmark_driver"
     manifest = {
         "schema_version": 1,
         "bundle_kind": "planar_benchmark_run_bundle",
         "repository": {"commit": commit, "dirty": False},
         "binary": {"path": binary_path, "sha256": "c" * 64},
+        "working_directory": "$REPO_ROOT",
+        "runner_command": ["python3", "benchmarks/run_benchmarks.py", "--profile=smoke"],
         "profile_definition": {
             "repetitions": 1,
             "cases": [{
@@ -133,7 +135,10 @@ def make_bundle(
         },
     }
     write_json(bundle / "manifest.json", manifest)
-    write_json(bundle / "environment.json", {})
+    write_json(bundle / "environment.json", {
+        "repository_path": "$REPO_ROOT",
+        "environment_variables": {},
+    })
     (bundle / "runs.jsonl").write_text(json.dumps(record, sort_keys=True) + "\n", encoding="utf-8")
     write_json(bundle / "summary.json", {})
     (bundle / "summary.csv").write_text("case_id,ok\nn10,1\n", encoding="utf-8")
@@ -151,6 +156,48 @@ def make_bundle(
 
 
 class BundleProvenanceTests(unittest.TestCase):
+    def test_validator_accepts_publication_safe_logical_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            bundle = make_bundle(
+                Path(temporary), driver_commit="a" * 40, driver_profile="development-normal"
+            )
+            self.assertEqual(validate(bundle), [])
+
+    def test_validator_rejects_absolute_manifest_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            bundle = make_bundle(
+                Path(temporary), driver_commit="a" * 40, driver_profile="development-normal"
+            )
+            manifest_path = bundle / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["binary"]["path"] = "/home/example/private/benchmark_driver"
+            write_json(manifest_path, manifest)
+            errors = validate(bundle)
+            self.assertTrue(any("binary path must be" in error for error in errors), errors)
+            self.assertTrue(any("workstation-absolute path leaked" in error for error in errors), errors)
+
+    def test_validator_rejects_workstation_path_in_raw_log(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            bundle = make_bundle(
+                Path(temporary), driver_commit="a" * 40, driver_profile="development-normal"
+            )
+            (bundle / "logs" / "run.stderr.txt").write_text(
+                "failed under /mnt/c/Users/example/private/worktree\n", encoding="utf-8"
+            )
+            errors = validate(bundle)
+            self.assertTrue(any("workstation-absolute path leaked" in error for error in errors), errors)
+
+    def test_validator_rejects_host_identifier_in_raw_log(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            bundle = make_bundle(
+                Path(temporary), driver_commit="a" * 40, driver_profile="development-normal"
+            )
+            (bundle / "logs" / "run.stderr.txt").write_text(
+                "ran on WIN-C2ANEVBHN6Q\n", encoding="utf-8"
+            )
+            errors = validate(bundle)
+            self.assertTrue(any("workstation-absolute path leaked" in error for error in errors), errors)
+
     def test_validator_rejects_driver_commit_mismatch(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             bundle = make_bundle(

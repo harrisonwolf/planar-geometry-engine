@@ -8,6 +8,7 @@ import csv
 import hashlib
 import json
 import math
+import re
 from pathlib import Path
 
 
@@ -17,6 +18,37 @@ NUMERIC_OR_NULL = {
     "input_generation_seconds", "triangulation_seconds", "voronoi_seconds",
     "validation_seconds", "compute_total_seconds",
 }
+WORKSTATION_PATH_PATTERN = re.compile(
+    r"(?:/home/[^/\s\"']+|/Users/[^/\s\"']+|/mnt/[A-Za-z]/Users/[^/\s\"']+|[A-Za-z]:[\\\\/]Users[\\\\/][^\\\\/\s\"']+|\bWIN-[A-Z0-9]{6,}\b)",
+    re.IGNORECASE,
+)
+
+
+def is_absolute_path_text(value: object) -> bool:
+    return isinstance(value, str) and (
+        value.startswith("/") or re.match(r"^[A-Za-z]:[\\\\/]", value) is not None
+    )
+
+
+def is_safe_relative_path(value: object) -> bool:
+    if not isinstance(value, str) or not value or is_absolute_path_text(value):
+        return False
+    return ".." not in Path(value).parts
+
+
+def workstation_path_leaks(bundle: Path) -> list[str]:
+    leaks: list[str] = []
+    for path in sorted(item for item in bundle.rglob("*") if item.is_file()):
+        try:
+            content = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        for line_number, line in enumerate(content.splitlines(), 1):
+            if WORKSTATION_PATH_PATTERN.search(line):
+                leaks.append(
+                    f"workstation-absolute path leaked in {path.relative_to(bundle)}:{line_number}"
+                )
+    return leaks
 
 
 def sha256(path: Path) -> str:
@@ -42,6 +74,7 @@ def validate(bundle: Path) -> list[str]:
         require((bundle / relative).is_file(), f"missing {relative}", errors)
     if errors:
         return errors
+    errors.extend(workstation_path_leaks(bundle))
 
     manifest = json.loads((bundle / "manifest.json").read_text(encoding="utf-8"))
     require(manifest.get("schema_version") == 1, "manifest schema_version must be 1", errors)
@@ -50,6 +83,7 @@ def validate(bundle: Path) -> list[str]:
     build_contract = manifest.get("build_contract", {})
     contract_version = build_contract.get("contract_version", 1)
     binary = manifest.get("binary", {})
+    binary_path = binary.get("path")
     profile_definition = manifest.get("profile_definition", {})
     profile_cases = profile_definition.get("cases", [])
     case_definitions = {
@@ -85,6 +119,26 @@ def validate(bundle: Path) -> list[str]:
             "runner provenance preflight did not pass", errors)
     require(isinstance(binary.get("sha256"), str) and len(binary.get("sha256", "")) == 64,
             "manifest binary SHA-256 is missing", errors)
+    require(is_safe_relative_path(binary_path),
+            "manifest binary path must be a repository-relative logical path", errors)
+    require(manifest.get("working_directory") == "$REPO_ROOT",
+            "manifest working_directory must use $REPO_ROOT", errors)
+    runner_command = manifest.get("runner_command")
+    require(
+        isinstance(runner_command, list)
+        and len(runner_command) >= 2
+        and runner_command[:2] == ["python3", "benchmarks/run_benchmarks.py"]
+        and not any(is_absolute_path_text(part) for part in runner_command),
+        "manifest runner_command must use publication-safe logical paths",
+        errors,
+    )
+    environment = json.loads((bundle / "environment.json").read_text(encoding="utf-8"))
+    require(environment.get("repository_path") == "$REPO_ROOT",
+            "environment repository_path must use $REPO_ROOT", errors)
+    require("PATH" not in environment.get("environment_variables", {}),
+            "environment must not record PATH", errors)
+    require("uname" not in environment.get("platform", {}),
+            "environment must not record hostname-bearing uname output", errors)
 
     records = []
     for line_number, line in enumerate((bundle / "runs.jsonl").read_text(encoding="utf-8").splitlines(), 1):
@@ -184,6 +238,8 @@ def validate(bundle: Path) -> list[str]:
         if isinstance(command, list) and command:
             require(command[0] == binary.get("path"),
                     f"run {line_number}: command binary does not match manifest", errors)
+            require(not any(is_absolute_path_text(part) for part in command),
+                    f"run {line_number}: command contains an absolute path", errors)
         driver_build = record.get("driver_build", {})
         require(driver_build.get("commit") == repository.get("commit"),
                 f"run {line_number}: driver commit does not match manifest repository commit", errors)
@@ -208,7 +264,10 @@ def validate(bundle: Path) -> list[str]:
             require(value is None or (isinstance(value, (int, float)) and math.isfinite(value)),
                     f"run {line_number}: {field} must be finite numeric/null", errors)
         for relative in record.get("raw_artifacts", {}).values():
-            require((bundle / relative).is_file(), f"run {line_number}: missing {relative}", errors)
+            require(is_safe_relative_path(relative),
+                    f"run {line_number}: unsafe raw artifact path {relative}", errors)
+            if is_safe_relative_path(relative):
+                require((bundle / relative).is_file(), f"run {line_number}: missing {relative}", errors)
 
     require(len(records) == manifest.get("run_count"), "manifest run_count mismatch", errors)
     preflight_build = build_contract.get("preflight_driver_build", {})

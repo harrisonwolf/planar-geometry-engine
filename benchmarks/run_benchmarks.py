@@ -52,6 +52,15 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def logical_path(path: Path, repo: Path, external_label: str) -> str:
+    """Return a stable publication-safe path without recording the workstation root."""
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(repo.resolve()).as_posix()
+    except ValueError:
+        return f"${external_label}/{resolved.name}"
+
+
 def json_bytes(value: Any) -> bytes:
     return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
 
@@ -128,7 +137,10 @@ def collect_environment(repo: Path, compiler_command: str) -> dict[str, Any]:
             "version": platform.version(),
             "machine": platform.machine(),
             "python": platform.python_version(),
-            "uname": command_output(["uname", "-a"]),
+            "wsl_detected": (
+                "microsoft" in platform.release().lower()
+                or "microsoft" in platform.version().lower()
+            ),
         },
         "hardware": {
             "cpu_model": cpu_model(),
@@ -143,9 +155,10 @@ def collect_environment(repo: Path, compiler_command: str) -> dict[str, Any]:
         },
         "environment_variables": {
             key: os.environ.get(key)
-            for key in ("LANG", "LC_ALL", "TZ", "OMP_NUM_THREADS", "PATH")
+            for key in ("LANG", "LC_ALL", "TZ", "OMP_NUM_THREADS")
         },
-        "repository_path": str(repo.resolve()),
+        "repository_path": "$REPO_ROOT",
+        "path_capture_policy": "PATH and absolute workstation paths are intentionally not recorded",
     }
 
 
@@ -490,6 +503,7 @@ def main() -> int:
         )
 
     binary_sha256 = sha256_file(binary)
+    binary_logical_path = logical_path(binary, repo, "EXTERNAL_BINARY")
     default_run_id = f"{utc_now().replace(':', '').replace('-', '')}-{git['commit'][:8]}-{args.profile}"
     run_id = args.run_id or default_run_id
     if not re.fullmatch(r"[A-Za-z0-9._-]+", run_id):
@@ -527,6 +541,7 @@ def main() -> int:
                     f"--distribution={case['distribution']}",
                     "--emit-points",
                 ]
+                recorded_command = [binary_logical_path, *command[1:]]
                 exit_code, timed_out, external_wall = run_with_timeout(
                     command, repo, float(profile["timeout_seconds"]),
                     stdout_path, stderr_path, time_path,
@@ -572,7 +587,7 @@ def main() -> int:
                     "case_id": case["id"],
                     "repetition": repetition,
                     "status": status,
-                    "command": command,
+                    "command": recorded_command,
                     "timeout_seconds": float(profile["timeout_seconds"]),
                     "exit_code": exit_code,
                     "measurements": {
@@ -651,7 +666,7 @@ def main() -> int:
             "started_at_utc": started_at,
             "finished_at_utc": utc_now(),
             "repository": git,
-            "binary": {"path": str(binary), "sha256": binary_sha256},
+            "binary": {"path": binary_logical_path, "sha256": binary_sha256},
             "build_contract": {
                 "compiler": args.compiler,
                 "compiler_flags": args.compiler_flags,
@@ -662,8 +677,18 @@ def main() -> int:
                 "preflight_driver_build": driver_build,
                 "provenance_preflight_passed": True,
             },
-            "runner_command": [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]],
-            "working_directory": str(repo.resolve()),
+            "runner_command": [
+                "python3", "benchmarks/run_benchmarks.py",
+                f"--profile={args.profile}",
+                f"--binary={binary_logical_path}",
+                f"--compiler={args.compiler}",
+                f"--compiler-flags={args.compiler_flags}",
+                f"--expected-build-profile={args.expected_build_profile}",
+                f"--output-root={logical_path(output_root, repo, 'OUTPUT_ROOT')}",
+                f"--run-id={run_id}",
+                *(["--allow-dirty"] if args.allow_dirty else []),
+            ],
+            "working_directory": "$REPO_ROOT",
             "run_count": len(records),
             "status_counts": status_counts,
             "metric_definition": {
